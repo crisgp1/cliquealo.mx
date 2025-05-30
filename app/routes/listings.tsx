@@ -1,20 +1,20 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
-import { useLoaderData, Link, Form } from "@remix-run/react"
+import { useLoaderData, Link, Form, useSearchParams } from "@remix-run/react"
 import { ListingModel } from "~/models/Listing"
-import { Auth } from "~/lib/auth.server"
+import { getUser } from "~/lib/session.server"
 import { 
   Search, 
   Heart, 
   Eye,
-  Plus,
   Filter,
   Grid,
   List,
   ArrowRight,
-  Calendar
+  Calendar,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { useState } from 'react'
-import { getUser } from "~/lib/session.server"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -24,6 +24,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const maxPrice = url.searchParams.get("maxPrice") ? parseInt(url.searchParams.get("maxPrice") || "") : undefined
   const minYear = url.searchParams.get("minYear") ? parseInt(url.searchParams.get("minYear") || "") : undefined
   const maxYear = url.searchParams.get("maxYear") ? parseInt(url.searchParams.get("maxYear") || "") : undefined
+  const page = parseInt(url.searchParams.get("page") || "1")
+  const limit = 12
+  const skip = (page - 1) * limit
+  
+  // Get total count for pagination
+  const totalCount = await ListingModel.getStats()
   
   const listings = await ListingModel.findMany({
     search,
@@ -32,36 +38,63 @@ export async function loader({ request }: LoaderFunctionArgs) {
     maxPrice,
     minYear,
     maxYear,
-    limit: 24
+    limit,
+    skip
   })
   
   const user = await getUser(request)
+
+  // Get brands for filter dropdown
+  const brands = await ListingModel.getBrandStats()
   
-  // Check user permissions on the server side
-  const canCreateListings = user ? Auth.canCreateListings(user) : false
-  
-  return json({ listings, search, brand, minPrice, maxPrice, minYear, maxYear, user, canCreateListings })
+  return json({ 
+    listings, 
+    search, 
+    brand, 
+    minPrice, 
+    maxPrice, 
+    minYear, 
+    maxYear, 
+    user,
+    currentPage: page,
+    totalPages: Math.ceil(totalCount.total / limit),
+    totalCount: totalCount.total,
+    brands: brands.map(b => b._id)
+  })
 }
 
-export default function Index() {
-  const { listings, search, brand, minPrice, maxPrice, minYear, maxYear, user, canCreateListings } = useLoaderData<typeof loader>()
+export default function ListingsIndex() {
+  const { 
+    listings, 
+    search, 
+    brand, 
+    minPrice, 
+    maxPrice, 
+    minYear, 
+    maxYear, 
+    user,
+    currentPage,
+    totalPages,
+    totalCount,
+    brands
+  } = useLoaderData<typeof loader>()
+  const [searchParams] = useSearchParams()
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
 
   const hasActiveFilters = brand || minPrice || maxPrice || minYear || maxYear
 
   return (
-    <div>
-
-      {/* Search Section */}
+    <div className="min-h-screen bg-white">
+      {/* Search and Filters Section */}
       <section className="border-b border-gray-100 bg-gray-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-2xl mx-auto text-center mb-8">
             <h1 className="text-4xl sm:text-5xl font-light text-gray-900 mb-4 tracking-tight">
-              Encuentra tu auto ideal
+              Explorar Catálogo
             </h1>
             <p className="text-lg text-gray-600 font-light">
-              Catálogo seleccionado de autos certificados por nuestro equipo
+              Encuentra tu auto ideal entre nuestras opciones
             </p>
           </div>
 
@@ -107,7 +140,7 @@ export default function Index() {
 
             {listings.length > 0 && (
               <span className="text-sm text-gray-600">
-                {listings.length} resultado{listings.length !== 1 ? 's' : ''}
+                {listings.length} resultado{listings.length !== 1 ? 's' : ''} de {totalCount}
               </span>
             )}
           </div>
@@ -152,12 +185,9 @@ export default function Index() {
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                 >
                   <option value="">Todas</option>
-                  <option value="Nissan">Nissan</option>
-                  <option value="Honda">Honda</option>
-                  <option value="Toyota">Toyota</option>
-                  <option value="Volkswagen">Volkswagen</option>
-                  <option value="Ford">Ford</option>
-                  <option value="Chevrolet">Chevrolet</option>
+                  {brands.map((brand: string) => (
+                    <option key={brand} value={brand}>{brand}</option>
+                  ))}
                 </select>
               </div>
 
@@ -213,7 +243,7 @@ export default function Index() {
                 </button>
                 {hasActiveFilters && (
                   <Link
-                    to="/"
+                    to="/listings"
                     className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
                   >
                     Limpiar filtros
@@ -297,7 +327,7 @@ export default function Index() {
                       )}
                       <span className="flex items-center space-x-1">
                         <Eye className="w-4 h-4" />
-                        <span>{Math.floor(Math.random() * 200) + 20}</span>
+                        <span>{listing.viewsCount || Math.floor(Math.random() * 200) + 20}</span>
                       </span>
                     </div>
                   </div>
@@ -336,55 +366,103 @@ export default function Index() {
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
               {search || hasActiveFilters
                 ? 'Intenta ajustar tus filtros de búsqueda'
-                : user && canCreateListings
-                  ? 'Comienza agregando el primer auto a nuestro catálogo'
-                  : 'Estamos preparando increíbles autos para ti'
+                : 'Estamos preparando increíbles autos para ti'
               }
             </p>
             
-            {/* Mostrar diferente CTA según rol */}
-            {user && canCreateListings ? (
-              <Link
-                to="/listings/new"
-                className="inline-flex items-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors font-medium"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Agregar Auto al Inventario</span>
-              </Link>
-            ) : (
-              <button
-                className="inline-flex items-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors font-medium"
-              >
-                <span>Notificarme cuando lleguen</span>
-              </button>
-            )}
+            <Link
+              to="/"
+              className="inline-flex items-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors font-medium"
+            >
+              <span>Volver al inicio</span>
+            </Link>
           </div>
         )}
 
-        {/* Load More */}
-        {listings.length >= 24 && (
-          <div className="text-center mt-16">
-            <button className="bg-gray-100 text-gray-900 px-8 py-3 rounded-xl hover:bg-gray-200 transition-colors font-medium">
-              Ver más resultados
-            </button>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-12 flex justify-center">
+            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <Link
+                to={`?${new URLSearchParams({
+                  ...Object.fromEntries(searchParams.entries()),
+                  page: (currentPage - 1).toString()
+                })}`}
+                className={`relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                  currentPage === 1
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-500 hover:bg-gray-50'
+                }`}
+                aria-disabled={currentPage === 1}
+                tabIndex={currentPage === 1 ? -1 : 0}
+              >
+                <span className="sr-only">Anterior</span>
+                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+              </Link>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(page => {
+                  // Show first page, last page, and pages around current page
+                  return page === 1 || 
+                         page === totalPages || 
+                         (page >= currentPage - 1 && page <= currentPage + 1);
+                })
+                .map((page, index, array) => {
+                  // Add ellipsis where there are gaps
+                  const showEllipsisBefore = index > 0 && array[index - 1] !== page - 1;
+                  const showEllipsisAfter = index < array.length - 1 && array[index + 1] !== page + 1;
+                  
+                  return (
+                    <div key={page}>
+                      {showEllipsisBefore && (
+                        <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                          ...
+                        </span>
+                      )}
+                      
+                      <Link
+                        to={`?${new URLSearchParams({
+                          ...Object.fromEntries(searchParams.entries()),
+                          page: page.toString()
+                        })}`}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          page === currentPage
+                            ? 'z-10 bg-gray-900 border-gray-900 text-white'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </Link>
+                      
+                      {showEllipsisAfter && (
+                        <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                          ...
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              
+              <Link
+                to={`?${new URLSearchParams({
+                  ...Object.fromEntries(searchParams.entries()),
+                  page: (currentPage + 1).toString()
+                })}`}
+                className={`relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                  currentPage === totalPages
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-500 hover:bg-gray-50'
+                }`}
+                aria-disabled={currentPage === totalPages}
+                tabIndex={currentPage === totalPages ? -1 : 0}
+              >
+                <span className="sr-only">Siguiente</span>
+                <ChevronRight className="h-5 w-5" aria-hidden="true" />
+              </Link>
+            </nav>
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-100 mt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-black rounded-full"></div>
-              <span className="font-light text-gray-900">Cliquealo</span>
-            </div>
-            <div className="text-sm text-gray-500">
-              © 2024 Todos los derechos reservados
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

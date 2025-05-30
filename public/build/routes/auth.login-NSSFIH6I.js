@@ -1,0 +1,259 @@
+import {
+  require_session
+} from "/build/_shared/chunk-EV32D4DT.js";
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  require_node
+} from "/build/_shared/chunk-NAZ4VLGB.js";
+import {
+  Form,
+  Link,
+  useActionData,
+  useNavigation
+} from "/build/_shared/chunk-MITS3JJR.js";
+import "/build/_shared/chunk-U4FRFQSK.js";
+import {
+  require_jsx_dev_runtime
+} from "/build/_shared/chunk-XGOTYLZ5.js";
+import {
+  require_react
+} from "/build/_shared/chunk-7M6SC7J5.js";
+import {
+  createHotContext
+} from "/build/_shared/chunk-NL5YRBQO.js";
+import "/build/_shared/chunk-UWV35TSL.js";
+import {
+  __toESM
+} from "/build/_shared/chunk-PNG5AS42.js";
+
+// app/routes/auth.login.tsx
+var import_node = __toESM(require_node(), 1);
+var import_session = __toESM(require_session(), 1);
+var import_react2 = __toESM(require_react(), 1);
+var import_jsx_dev_runtime = __toESM(require_jsx_dev_runtime(), 1);
+if (!window.$RefreshReg$ || !window.$RefreshSig$ || !window.$RefreshRuntime$) {
+  console.warn("remix:hmr: React Fast Refresh only works when the Remix compiler is running in development mode.");
+} else {
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = (type, id) => {
+    window.$RefreshRuntime$.register(type, '"app/routes/auth.login.tsx"' + id);
+  };
+  window.$RefreshSig$ = window.$RefreshRuntime$.createSignatureFunctionForTransform;
+}
+var prevRefreshReg;
+var prevRefreshSig;
+var _s = $RefreshSig$();
+if (import.meta) {
+  import.meta.hot = createHotContext(
+    //@ts-expect-error
+    "app/routes/auth.login.tsx"
+  );
+  import.meta.hot.lastModified = "1748642074409.8655";
+}
+function Login() {
+  _s();
+  const actionData = useActionData();
+  const navigation = useNavigation();
+  const [showPassword, setShowPassword] = (0, import_react2.useState)(false);
+  const isSubmitting = navigation.state === "submitting";
+  return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "min-h-screen bg-white flex", children: [
+    /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "max-w-sm w-full", children: [
+      /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "text-center mb-12", children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/", className: "inline-flex items-center space-x-3 mb-8", children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "w-8 h-8 bg-black rounded-full" }, void 0, false, {
+            fileName: "app/routes/auth.login.tsx",
+            lineNumber: 92,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { className: "text-xl font-light tracking-tight text-gray-900", children: "Cliquealo" }, void 0, false, {
+            fileName: "app/routes/auth.login.tsx",
+            lineNumber: 93,
+            columnNumber: 15
+          }, this)
+        ] }, void 0, true, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 91,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h1", { className: "text-3xl font-light text-gray-900 mb-3", children: "Bienvenido" }, void 0, false, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 98,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-gray-600", children: "Ingresa a tu cuenta para continuar" }, void 0, false, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 101,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "app/routes/auth.login.tsx",
+        lineNumber: 90,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Form, { method: "post", className: "space-y-6", children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Email" }, void 0, false, {
+            fileName: "app/routes/auth.login.tsx",
+            lineNumber: 108,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("input", { type: "email", name: "email", required: true, autoComplete: "email", className: "w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all", placeholder: "tu@email.com" }, void 0, false, {
+            fileName: "app/routes/auth.login.tsx",
+            lineNumber: 111,
+            columnNumber: 15
+          }, this)
+        ] }, void 0, true, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 107,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Contrase\xF1a" }, void 0, false, {
+            fileName: "app/routes/auth.login.tsx",
+            lineNumber: 115,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "relative", children: [
+            /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("input", { type: showPassword ? "text" : "password", name: "password", required: true, autoComplete: "current-password", className: "w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all", placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" }, void 0, false, {
+              fileName: "app/routes/auth.login.tsx",
+              lineNumber: 119,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", { type: "button", onClick: () => setShowPassword(!showPassword), className: "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors", children: showPassword ? /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(EyeOff, { className: "w-5 h-5" }, void 0, false, {
+              fileName: "app/routes/auth.login.tsx",
+              lineNumber: 121,
+              columnNumber: 35
+            }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Eye, { className: "w-5 h-5" }, void 0, false, {
+              fileName: "app/routes/auth.login.tsx",
+              lineNumber: 121,
+              columnNumber: 68
+            }, this) }, void 0, false, {
+              fileName: "app/routes/auth.login.tsx",
+              lineNumber: 120,
+              columnNumber: 17
+            }, this)
+          ] }, void 0, true, {
+            fileName: "app/routes/auth.login.tsx",
+            lineNumber: 118,
+            columnNumber: 15
+          }, this)
+        ] }, void 0, true, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 114,
+          columnNumber: 13
+        }, this),
+        actionData?.error && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "p-4 bg-red-50 border border-red-200 rounded-xl", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-sm text-red-600", children: actionData.error }, void 0, false, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 127,
+          columnNumber: 17
+        }, this) }, void 0, false, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 126,
+          columnNumber: 35
+        }, this),
+        /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", { type: "submit", disabled: isSubmitting, className: "w-full bg-gray-900 text-white py-3 rounded-xl hover:bg-gray-800 transition-colors font-medium flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed", children: isSubmitting ? /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LoaderCircle, { className: "w-5 h-5 animate-spin" }, void 0, false, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 131,
+          columnNumber: 31
+        }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { children: "Iniciar sesi\xF3n" }, void 0, false, {
+            fileName: "app/routes/auth.login.tsx",
+            lineNumber: 132,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(ArrowRight, { className: "w-4 h-4" }, void 0, false, {
+            fileName: "app/routes/auth.login.tsx",
+            lineNumber: 133,
+            columnNumber: 19
+          }, this)
+        ] }, void 0, true, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 131,
+          columnNumber: 78
+        }, this) }, void 0, false, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 130,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "app/routes/auth.login.tsx",
+        lineNumber: 106,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "mt-8 text-center", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-gray-600", children: [
+        "\xBFNo tienes cuenta?",
+        " ",
+        /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/auth/register", className: "text-gray-900 hover:text-gray-700 transition-colors font-medium", children: "Crear cuenta" }, void 0, false, {
+          fileName: "app/routes/auth.login.tsx",
+          lineNumber: 141,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, true, {
+        fileName: "app/routes/auth.login.tsx",
+        lineNumber: 139,
+        columnNumber: 13
+      }, this) }, void 0, false, {
+        fileName: "app/routes/auth.login.tsx",
+        lineNumber: 138,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "app/routes/auth.login.tsx",
+      lineNumber: 89,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "app/routes/auth.login.tsx",
+      lineNumber: 88,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "hidden lg:block lg:w-1/2 bg-gradient-to-br from-gray-50 to-gray-100", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "h-full flex items-center justify-center p-12", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "text-center", children: [
+      /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "w-32 h-32 bg-gray-200 rounded-full mx-auto mb-8" }, void 0, false, {
+        fileName: "app/routes/auth.login.tsx",
+        lineNumber: 153,
+        columnNumber: 13
+      }, this),
+      /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h2", { className: "text-2xl font-light text-gray-800 mb-4", children: "Tu marketplace de confianza" }, void 0, false, {
+        fileName: "app/routes/auth.login.tsx",
+        lineNumber: 154,
+        columnNumber: 13
+      }, this),
+      /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-gray-600 max-w-md", children: "Conectamos compradores y vendedores de autos usados de forma simple y segura." }, void 0, false, {
+        fileName: "app/routes/auth.login.tsx",
+        lineNumber: 157,
+        columnNumber: 13
+      }, this)
+    ] }, void 0, true, {
+      fileName: "app/routes/auth.login.tsx",
+      lineNumber: 152,
+      columnNumber: 11
+    }, this) }, void 0, false, {
+      fileName: "app/routes/auth.login.tsx",
+      lineNumber: 151,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "app/routes/auth.login.tsx",
+      lineNumber: 150,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "app/routes/auth.login.tsx",
+    lineNumber: 86,
+    columnNumber: 10
+  }, this);
+}
+_s(Login, "S5H12/xs931uQp8KAGwXpZGozAw=", false, function() {
+  return [useActionData, useNavigation];
+});
+_c = Login;
+var _c;
+$RefreshReg$(_c, "Login");
+window.$RefreshReg$ = prevRefreshReg;
+window.$RefreshSig$ = prevRefreshSig;
+export {
+  Login as default
+};
+//# sourceMappingURL=/build/routes/auth.login-NSSFIH6I.js.map

@@ -4,12 +4,26 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
+  Link,
 } from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useState } from "react";
+import { getUser } from "~/lib/session.server";
+import { Auth } from "~/lib/auth.server";
+import { X, Plus, User, LogOut, Shield } from "lucide-react";
 
-import "./tailwind.css";
+import styles from "./tailwind.css";
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const user = await getUser(request);
+  const canCreateListings = user ? Auth.canCreateListings(user) : false;
+  return json({ user, canCreateListings });
+};
 
 export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: styles },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -40,6 +54,170 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+
 export default function App() {
-  return <Outlet />;
+  const { user, canCreateListings } = useLoaderData<typeof loader>();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header */}
+      <header className="border-b border-gray-50 py-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-6 h-6 bg-black rounded-full"></div>
+              <span className="text-lg font-light tracking-tight text-gray-900">
+                Cliquealo
+              </span>
+            </Link>
+
+            <nav className="hidden md:flex items-center space-x-6">
+              <Link to="/listings" className="text-gray-600 hover:text-black transition-colors text-sm">
+                Explorar
+              </Link>
+              <Link to="/about" className="text-gray-600 hover:text-black transition-colors text-sm">
+                Nosotros
+              </Link>
+              
+              {/* Admin links in main nav for cleaner look */}
+              {user && canCreateListings && (
+                <Link 
+                  to="/listings/new"
+                  className="text-gray-600 hover:text-black transition-colors text-sm flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Crear</span>
+                </Link>
+              )}
+              
+              {user?.role === 'superadmin' && (
+                <Link 
+                  to="/admin"
+                  className="text-gray-600 hover:text-black transition-colors text-sm flex items-center gap-1"
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  <span>Admin</span>
+                </Link>
+              )}
+            </nav>
+
+            <div className="flex items-center">
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <span className="hidden sm:block text-sm text-gray-600">
+                    {user.name}
+                    {(user.role === 'admin' || user.role === 'superadmin') && (
+                      <span className="ml-1 text-xs text-gray-400">
+                        ({user.role})
+                      </span>
+                    )}
+                  </span>
+                  
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <Link
+                      to="/auth/logout"
+                      className="ml-2 p-2 text-gray-400 hover:text-gray-600"
+                      title="Cerrar Sesión"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <Link 
+                    to="/auth/login"
+                    className="text-gray-600 hover:text-black transition-colors text-sm"
+                  >
+                    Entrar
+                  </Link>
+                  <Link 
+                    to="/auth/register"
+                    className="px-3 py-1.5 border border-gray-200 text-sm rounded-full hover:border-gray-400 transition-colors"
+                  >
+                    Registrarse
+                  </Link>
+                </div>
+              )}
+              
+              {/* Mobile menu button */}
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+                className="md:hidden ml-2 p-2"
+                aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-5 h-5 text-gray-900" />
+                ) : (
+                  <>
+                    <div className="w-5 h-0.5 bg-gray-900 mb-1"></div>
+                    <div className="w-5 h-0.5 bg-gray-900 mb-1"></div>
+                    <div className="w-5 h-0.5 bg-gray-900"></div>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-gray-50">
+              <nav className="flex flex-col space-y-4">
+                <Link 
+                  to="/listings" 
+                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Explorar Catálogo
+                </Link>
+                <Link 
+                  to="/about" 
+                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Nosotros
+                </Link>
+                {user?.role === 'admin' || user?.role === 'superadmin' ? (
+                  <Link 
+                    to="/listings/new"
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center gap-1 py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Crear Listing
+                  </Link>
+                ) : null}
+                {user?.role === 'superadmin' && (
+                  <Link 
+                    to="/admin"
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Panel de Administración
+                  </Link>
+                )}
+                {user && (
+                  <Link
+                    to="/auth/logout"
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Cerrar Sesión
+                  </Link>
+                )}
+              </nav>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1">
+        <Outlet />
+      </main>
+    </div>
+  );
 }
