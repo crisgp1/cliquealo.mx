@@ -20,7 +20,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData
-} from "/build/_shared/chunk-MITS3JJR.js";
+} from "/build/_shared/chunk-PD2HC7TI.js";
 import "/build/_shared/chunk-U4FRFQSK.js";
 import {
   require_jsx_dev_runtime
@@ -43,7 +43,7 @@ var import_session = __toESM(require_session(), 1);
 var import_auth = __toESM(require_auth(), 1);
 
 // app/tailwind.css
-var tailwind_default = "/build/_assets/tailwind-FGER2SU6.css";
+var tailwind_default = "/build/_assets/tailwind-USAQRYYI.css";
 
 // app/root.tsx
 var import_jsx_dev_runtime = __toESM(require_jsx_dev_runtime(), 1);
@@ -383,4 +383,4 @@ export {
   App as default,
   links
 };
-//# sourceMappingURL=/build/root-4DBP2GPC.js.map
+//# sourceMappingURL=/build/root-24BWSIGT.js.map

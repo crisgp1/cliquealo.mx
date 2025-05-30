@@ -583,6 +583,6 @@ export default function ListingDetail() {
           </div>
         </div>
       )}
-    </div>
+  </div>
   )
 }

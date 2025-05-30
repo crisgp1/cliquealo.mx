@@ -33,7 +33,9 @@ export async function action({ request }: ActionFunctionArgs) {
     
     // Redirect based on user role
     let redirectTo = "/"
-    if (user.role === 'admin' || user.role === 'superadmin') {
+    if (user.role === 'admin') {
+      redirectTo = "/admin/listings"
+    } else if (user.role === 'superadmin') {
       redirectTo = "/admin"
     }
     

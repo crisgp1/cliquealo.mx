@@ -1,5 +1,5 @@
-import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
-import { Form, useActionData, Link, useNavigation } from "@remix-run/react"
+import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
+import { Form, useActionData, Link, useNavigation, useSubmit } from "@remix-run/react"
 import { ListingModel } from "~/models/Listing"
 import { requireAdmin } from "~/lib/auth.server"
 import { 
@@ -69,7 +69,11 @@ export async function action({ request }: ActionFunctionArgs) {
       user: user._id!
     })
     
-    return redirect(`/listings/${listing._id}`)
+    return json({
+      success: true,
+      message: "Auto agregado exitosamente",
+      listingId: listing._id
+    })
   } catch (error) {
     console.error(error)
     return json({ error: "Error al crear la publicación" }, { status: 500 })
@@ -81,6 +85,7 @@ export default function NewListing() {
   const navigation = useNavigation()
   const [imageUrls, setImageUrls] = useState<string[]>([])
   const [imageInput, setImageInput] = useState("")
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   
   const isSubmitting = navigation.state === "submitting"
   
@@ -109,6 +114,25 @@ export default function NewListing() {
       e.preventDefault()
       addImageUrl()
     }
+  }
+
+  // Check for successful submission
+  if (actionData && 'success' in actionData && actionData.success && !successMessage) {
+    setSuccessMessage(`¡Auto agregado exitosamente! Puedes agregar otro o ver el listado creado.`)
+    // Reset form fields
+    setTimeout(() => {
+      document.querySelectorAll('form input, form textarea, form select').forEach(
+        (element) => {
+          if (element instanceof HTMLInputElement || 
+              element instanceof HTMLTextAreaElement || 
+              element instanceof HTMLSelectElement) {
+            element.value = '';
+          }
+        }
+      );
+      setImageUrls([]);
+      setImageInput("");
+    }, 100);
   }
 
   return (
@@ -326,10 +350,24 @@ export default function NewListing() {
             </div>
           </div>
 
-          {/* Error Message */}
-          {actionData?.error && (
+          {/* Messages */}
+          {actionData && 'error' in actionData && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
               <p className="text-sm text-red-600">{actionData.error}</p>
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="p-4 bg-green-50 border border-green-200 rounded-xl flex justify-between items-center">
+              <p className="text-sm text-green-600">{successMessage}</p>
+              {actionData && 'listingId' in actionData && (
+                <Link 
+                  to={`/listings/${actionData.listingId}`} 
+                  className="text-sm font-medium text-green-700 hover:text-green-800 transition-colors"
+                >
+                  Ver listado →
+                </Link>
+              )}
             </div>
           )}
 

@@ -57,7 +57,7 @@ if (import.meta) {
     //@ts-expect-error
     "app/routes/listings.new.tsx"
   );
-  import.meta.hot.lastModified = "1748638486792.544";
+  import.meta.hot.lastModified = "1748647584864.2236";
 }
 function NewListing() {
   _s();
@@ -65,6 +65,7 @@ function NewListing() {
   const navigation = useNavigation();
   const [imageUrls, setImageUrls] = (0, import_react2.useState)([]);
   const [imageInput, setImageInput] = (0, import_react2.useState)("");
+  const [successMessage, setSuccessMessage] = (0, import_react2.useState)(null);
   const isSubmitting = navigation.state === "submitting";
   const currentYear = (/* @__PURE__ */ new Date()).getFullYear();
   const years = Array.from({
@@ -86,96 +87,108 @@ function NewListing() {
       addImageUrl();
     }
   };
+  if (actionData && "success" in actionData && actionData.success && !successMessage) {
+    setSuccessMessage(`\xA1Auto agregado exitosamente! Puedes agregar otro o ver el listado creado.`);
+    setTimeout(() => {
+      document.querySelectorAll("form input, form textarea, form select").forEach((element) => {
+        if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) {
+          element.value = "";
+        }
+      });
+      setImageUrls([]);
+      setImageInput("");
+    }, 100);
+  }
   return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "min-h-screen bg-white", children: [
     /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("header", { className: "border-b border-gray-100", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "max-w-4xl mx-auto px-4 sm:px-6 lg:px-8", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "flex items-center justify-between h-16", children: [
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/", className: "flex items-center space-x-3 text-gray-600 hover:text-gray-900 transition-colors", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(ArrowLeft, { className: "w-5 h-5" }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 138,
+          lineNumber: 158,
           columnNumber: 15
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { className: "font-medium", children: "Volver" }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 139,
+          lineNumber: 159,
           columnNumber: 15
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings.new.tsx",
-        lineNumber: 137,
+        lineNumber: 157,
         columnNumber: 13
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/", className: "flex items-center space-x-3", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "w-6 h-6 bg-black rounded-full" }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 143,
+          lineNumber: 163,
           columnNumber: 15
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { className: "text-lg font-light tracking-tight text-gray-900", children: "Cliquealo" }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 144,
+          lineNumber: 164,
           columnNumber: 15
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings.new.tsx",
-        lineNumber: 142,
+        lineNumber: 162,
         columnNumber: 13
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "w-20" }, void 0, false, {
         fileName: "app/routes/listings.new.tsx",
-        lineNumber: 149,
+        lineNumber: 169,
         columnNumber: 13
       }, this),
       " "
     ] }, void 0, true, {
       fileName: "app/routes/listings.new.tsx",
-      lineNumber: 136,
+      lineNumber: 156,
       columnNumber: 11
     }, this) }, void 0, false, {
       fileName: "app/routes/listings.new.tsx",
-      lineNumber: 135,
+      lineNumber: 155,
       columnNumber: 9
     }, this) }, void 0, false, {
       fileName: "app/routes/listings.new.tsx",
-      lineNumber: 134,
+      lineNumber: 154,
       columnNumber: 7
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12", children: [
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "text-center mb-12", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h1", { className: "text-4xl font-light text-gray-900 mb-4 tracking-tight", children: "Agregar Auto al Inventario" }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 156,
+          lineNumber: 176,
           columnNumber: 11
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-lg text-gray-600", children: "Completa los detalles para crear tu anuncio" }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 159,
+          lineNumber: 179,
           columnNumber: 11
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings.new.tsx",
-        lineNumber: 155,
+        lineNumber: 175,
         columnNumber: 9
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Form, { method: "post", className: "space-y-8", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "space-y-2", children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("label", { className: "block text-sm font-medium text-gray-700", children: "T\xEDtulo del anuncio *" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 167,
+            lineNumber: 187,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("input", { type: "text", name: "title", required: true, maxLength: 100, placeholder: "ej: Nissan Sentra 2020 Autom\xE1tico Excelente Estado", className: "w-full px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all text-lg" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 170,
+            lineNumber: 190,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-sm text-gray-500", children: "Incluye marca, modelo, a\xF1o y caracter\xEDsticas principales" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 171,
+            lineNumber: 191,
             columnNumber: 13
           }, this)
         ] }, void 0, true, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 166,
+          lineNumber: 186,
           columnNumber: 11
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-6", children: [
@@ -183,60 +196,60 @@ function NewListing() {
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("label", { className: "block text-sm font-medium text-gray-700", children: [
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Car, { className: "w-4 h-4 inline mr-2" }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 180,
+                lineNumber: 200,
                 columnNumber: 17
               }, this),
               "Marca *"
             ] }, void 0, true, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 179,
+              lineNumber: 199,
               columnNumber: 15
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("select", { name: "brand", required: true, className: "w-full px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all", children: [
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("option", { value: "", children: "Seleccionar marca" }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 184,
+                lineNumber: 204,
                 columnNumber: 17
               }, this),
               popularBrands.map((brand) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("option", { value: brand, children: brand }, brand, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 185,
+                lineNumber: 205,
                 columnNumber: 45
               }, this)),
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("option", { value: "Otra", children: "Otra marca" }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 186,
+                lineNumber: 206,
                 columnNumber: 17
               }, this)
             ] }, void 0, true, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 183,
+              lineNumber: 203,
               columnNumber: 15
             }, this)
           ] }, void 0, true, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 178,
+            lineNumber: 198,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "space-y-2", children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("label", { className: "block text-sm font-medium text-gray-700", children: "Modelo *" }, void 0, false, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 191,
+              lineNumber: 211,
               columnNumber: 15
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("input", { type: "text", name: "model", required: true, maxLength: 50, placeholder: "ej: Sentra, Civic, Corolla", className: "w-full px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all" }, void 0, false, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 194,
+              lineNumber: 214,
               columnNumber: 15
             }, this)
           ] }, void 0, true, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 190,
+            lineNumber: 210,
             columnNumber: 13
           }, this)
         ] }, void 0, true, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 177,
+          lineNumber: 197,
           columnNumber: 11
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-6", children: [
@@ -244,122 +257,122 @@ function NewListing() {
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("label", { className: "block text-sm font-medium text-gray-700", children: [
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Calendar, { className: "w-4 h-4 inline mr-2" }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 202,
+                lineNumber: 222,
                 columnNumber: 17
               }, this),
               "A\xF1o *"
             ] }, void 0, true, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 201,
+              lineNumber: 221,
               columnNumber: 15
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("select", { name: "year", required: true, className: "w-full px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all", children: [
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("option", { value: "", children: "Seleccionar a\xF1o" }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 206,
+                lineNumber: 226,
                 columnNumber: 17
               }, this),
               years.map((year) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("option", { value: year, children: year }, year, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 207,
+                lineNumber: 227,
                 columnNumber: 36
               }, this))
             ] }, void 0, true, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 205,
+              lineNumber: 225,
               columnNumber: 15
             }, this)
           ] }, void 0, true, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 200,
+            lineNumber: 220,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "space-y-2", children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("label", { className: "block text-sm font-medium text-gray-700", children: [
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(DollarSign, { className: "w-4 h-4 inline mr-2" }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 213,
+                lineNumber: 233,
                 columnNumber: 17
               }, this),
               "Precio (MXN) *"
             ] }, void 0, true, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 212,
+              lineNumber: 232,
               columnNumber: 15
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("input", { type: "number", name: "price", required: true, min: "1000", max: "5000000", step: "1000", placeholder: "250000", className: "w-full px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all" }, void 0, false, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 216,
+              lineNumber: 236,
               columnNumber: 15
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-sm text-gray-500", children: "Precio sin comas ni s\xEDmbolos" }, void 0, false, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 217,
+              lineNumber: 237,
               columnNumber: 15
             }, this)
           ] }, void 0, true, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 211,
+            lineNumber: 231,
             columnNumber: 13
           }, this)
         ] }, void 0, true, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 199,
+          lineNumber: 219,
           columnNumber: 11
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "space-y-2", children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("label", { className: "block text-sm font-medium text-gray-700", children: "Descripci\xF3n" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 225,
+            lineNumber: 245,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("textarea", { name: "description", rows: 6, maxLength: 1e3, placeholder: "Describe las caracter\xEDsticas, estado, historia del mantenimiento, extras incluidos, raz\xF3n de venta, etc.", className: "w-full px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all resize-none" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 228,
+            lineNumber: 248,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-sm text-gray-500", children: "Una buena descripci\xF3n ayuda a vender m\xE1s r\xE1pido" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 229,
+            lineNumber: 249,
             columnNumber: 13
           }, this)
         ] }, void 0, true, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 224,
+          lineNumber: 244,
           columnNumber: 11
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "space-y-4", children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("label", { className: "block text-sm font-medium text-gray-700", children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Camera, { className: "w-4 h-4 inline mr-2" }, void 0, false, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 237,
+              lineNumber: 257,
               columnNumber: 15
             }, this),
             "Fotograf\xEDas"
           ] }, void 0, true, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 236,
+            lineNumber: 256,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "space-y-3", children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "flex space-x-2", children: [
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("input", { type: "url", value: imageInput, onChange: (e) => setImageInput(e.target.value), onKeyPress: handleKeyPress, placeholder: "https://ejemplo.com/foto-del-auto.jpg", className: "flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all" }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 243,
+                lineNumber: 263,
                 columnNumber: 17
               }, this),
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", { type: "button", onClick: addImageUrl, className: "px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Plus, { className: "w-5 h-5" }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 245,
+                lineNumber: 265,
                 columnNumber: 19
               }, this) }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 244,
+                lineNumber: 264,
                 columnNumber: 17
               }, this)
             ] }, void 0, true, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 242,
+              lineNumber: 262,
               columnNumber: 15
             }, this),
             imageUrls.length > 0 && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3", children: imageUrls.map((url, index) => /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "relative group", children: [
@@ -369,157 +382,173 @@ function NewListing() {
                   e.currentTarget.nextElementSibling?.classList.remove("hidden");
                 } }, void 0, false, {
                   fileName: "app/routes/listings.new.tsx",
-                  lineNumber: 252,
+                  lineNumber: 272,
                   columnNumber: 25
                 }, this),
                 /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "hidden w-full h-full flex items-center justify-center text-gray-400", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Camera, { className: "w-8 h-8" }, void 0, false, {
                   fileName: "app/routes/listings.new.tsx",
-                  lineNumber: 257,
+                  lineNumber: 277,
                   columnNumber: 27
                 }, this) }, void 0, false, {
                   fileName: "app/routes/listings.new.tsx",
-                  lineNumber: 256,
+                  lineNumber: 276,
                   columnNumber: 25
                 }, this)
               ] }, void 0, true, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 251,
+                lineNumber: 271,
                 columnNumber: 23
               }, this),
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", { type: "button", onClick: () => removeImageUrl(index), className: "absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(X, { className: "w-4 h-4" }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 261,
+                lineNumber: 281,
                 columnNumber: 25
               }, this) }, void 0, false, {
                 fileName: "app/routes/listings.new.tsx",
-                lineNumber: 260,
+                lineNumber: 280,
                 columnNumber: 23
               }, this)
             ] }, index, true, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 250,
+              lineNumber: 270,
               columnNumber: 50
             }, this)) }, void 0, false, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 249,
+              lineNumber: 269,
               columnNumber: 40
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("input", { type: "hidden", name: "images", value: imageUrls.join(",") }, void 0, false, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 266,
+              lineNumber: 286,
               columnNumber: 15
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-sm text-gray-500", children: "Las fotos aumentan las posibilidades de venta hasta en 5x" }, void 0, false, {
               fileName: "app/routes/listings.new.tsx",
-              lineNumber: 268,
+              lineNumber: 288,
               columnNumber: 15
             }, this)
           ] }, void 0, true, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 241,
+            lineNumber: 261,
             columnNumber: 13
           }, this)
         ] }, void 0, true, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 235,
+          lineNumber: 255,
           columnNumber: 11
         }, this),
-        actionData?.error && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "p-4 bg-red-50 border border-red-200 rounded-xl", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-sm text-red-600", children: actionData.error }, void 0, false, {
+        actionData && "error" in actionData && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "p-4 bg-red-50 border border-red-200 rounded-xl", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-sm text-red-600", children: actionData.error }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 276,
+          lineNumber: 296,
           columnNumber: 15
         }, this) }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 275,
-          columnNumber: 33
+          lineNumber: 295,
+          columnNumber: 51
+        }, this),
+        successMessage && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "p-4 bg-green-50 border border-green-200 rounded-xl flex justify-between items-center", children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("p", { className: "text-sm text-green-600", children: successMessage }, void 0, false, {
+            fileName: "app/routes/listings.new.tsx",
+            lineNumber: 300,
+            columnNumber: 15
+          }, this),
+          actionData && "listingId" in actionData && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: `/listings/${actionData.listingId}`, className: "text-sm font-medium text-green-700 hover:text-green-800 transition-colors", children: "Ver listado \u2192" }, void 0, false, {
+            fileName: "app/routes/listings.new.tsx",
+            lineNumber: 301,
+            columnNumber: 59
+          }, this)
+        ] }, void 0, true, {
+          fileName: "app/routes/listings.new.tsx",
+          lineNumber: 299,
+          columnNumber: 30
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "pt-8", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", { type: "submit", disabled: isSubmitting, className: "w-full bg-gray-900 text-white py-4 rounded-xl hover:bg-gray-800 transition-colors font-medium text-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed", children: isSubmitting ? /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LoaderCircle, { className: "w-6 h-6 animate-spin" }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 282,
+          lineNumber: 309,
           columnNumber: 33
         }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { children: "Agregar al inventario" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 283,
+            lineNumber: 310,
             columnNumber: 21
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Hash, { className: "w-5 h-5" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 284,
+            lineNumber: 311,
             columnNumber: 21
           }, this)
         ] }, void 0, true, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 282,
+          lineNumber: 309,
           columnNumber: 80
         }, this) }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 281,
+          lineNumber: 308,
           columnNumber: 15
         }, this) }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 280,
+          lineNumber: 307,
           columnNumber: 11
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings.new.tsx",
-        lineNumber: 164,
+        lineNumber: 184,
         columnNumber: 9
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "mt-12 p-6 bg-gray-50 rounded-2xl", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("h3", { className: "font-medium text-gray-900 mb-4", children: "Consejos para una mejor venta" }, void 0, false, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 292,
+          lineNumber: 319,
           columnNumber: 11
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("ul", { className: "space-y-2 text-sm text-gray-600", children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: "\u2022 Incluye fotos desde diferentes \xE1ngulos (exterior, interior, motor)" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 296,
+            lineNumber: 323,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: "\u2022 Menciona el kilometraje y historial de mantenimiento" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 297,
+            lineNumber: 324,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: "\u2022 S\xE9 honesto sobre el estado del veh\xEDculo" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 298,
+            lineNumber: 325,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: "\u2022 Indica si tiene alg\xFAn detalle o reparaci\xF3n necesaria" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 299,
+            lineNumber: 326,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("li", { children: "\u2022 Responde r\xE1pido a los mensajes de compradores interesados" }, void 0, false, {
             fileName: "app/routes/listings.new.tsx",
-            lineNumber: 300,
+            lineNumber: 327,
             columnNumber: 13
           }, this)
         ] }, void 0, true, {
           fileName: "app/routes/listings.new.tsx",
-          lineNumber: 295,
+          lineNumber: 322,
           columnNumber: 11
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings.new.tsx",
-        lineNumber: 291,
+        lineNumber: 318,
         columnNumber: 9
       }, this)
     ] }, void 0, true, {
       fileName: "app/routes/listings.new.tsx",
-      lineNumber: 154,
+      lineNumber: 174,
       columnNumber: 7
     }, this)
   ] }, void 0, true, {
     fileName: "app/routes/listings.new.tsx",
-    lineNumber: 132,
+    lineNumber: 152,
     columnNumber: 10
   }, this);
 }
-_s(NewListing, "uslQYJkLZP47Me/HPZi80d3dZ2U=", false, function() {
+_s(NewListing, "q+i8XVZeoG6CnS7HgxOIbATirM8=", false, function() {
   return [useActionData, useNavigation];
 });
 _c = NewListing;
@@ -530,4 +559,4 @@ window.$RefreshSig$ = prevRefreshSig;
 export {
   NewListing as default
 };
-//# sourceMappingURL=/build/routes/listings.new-XYUSRUZA.js.map
+//# sourceMappingURL=/build/routes/listings.new-O6563XYO.js.map
