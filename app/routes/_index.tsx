@@ -377,7 +377,7 @@ export default function Index() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 bg-black rounded-full"></div>
-              <span className="font-light text-gray-900">Cliquealo</span>
+              <span className="font-light text-gray-900">Cliquéalo.mx</span>
             </div>
             <div className="text-sm text-gray-500">
               © 2024 Todos los derechos reservados

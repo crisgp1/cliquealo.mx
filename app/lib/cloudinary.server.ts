@@ -1,11 +1,11 @@
 import type { UploadApiResponse } from "cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 
-// Configure Cloudinary with the provided credentials
+// Configure Cloudinary with environment variables
 cloudinary.config({
-  cloud_name: "dswklswqw",
-  api_key: "916231453571933",
-  api_secret: "juONTFLEVV6HxhxN3j2Y-fesZjs",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true,
 });
 
