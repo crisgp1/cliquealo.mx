@@ -20,7 +20,13 @@ export interface User {
 
 export const UserModel = {
   // Crear usuario
-  async create(userData: { name: string, email: string, password: string, role?: User['role'] }) {
+  async create(userData: { 
+    name: string, 
+    email: string, 
+    phone: string, 
+    password: string, 
+    role?: User['role'] 
+  }) {
     const hashedPassword = await bcrypt.hash(userData.password, 10)
     // Generate a username from the email (before the @ symbol)
     const emailUsername = userData.email.toLowerCase().trim().split('@')[0]
@@ -31,6 +37,7 @@ export const UserModel = {
     const user = {
       name: userData.name.trim(),
       email: userData.email.toLowerCase().trim(),
+      phone: userData.phone.trim(),
       username: username, // Set the unique username
       passwordHash: hashedPassword,
       role: userData.role || 'user' as User['role'],
@@ -48,6 +55,14 @@ export const UserModel = {
   async findByEmail(email: string) {
     return await db.collection<User>('users').findOne({ 
       email: email.toLowerCase().trim(),
+      isActive: true 
+    })
+  },
+
+  // Buscar por teléfono
+  async findByPhone(phone: string) {
+    return await db.collection<User>('users').findOne({ 
+      phone: phone.trim(),
       isActive: true 
     })
   },
@@ -314,7 +329,8 @@ export const UserModel = {
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
       ]
     }
 

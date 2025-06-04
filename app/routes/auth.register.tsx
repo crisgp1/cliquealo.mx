@@ -15,11 +15,12 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const name = formData.get("name") as string
   const email = formData.get("email") as string
+  const phone = formData.get("phone") as string
   const password = formData.get("password") as string
   const confirmPassword = formData.get("confirmPassword") as string
   
   // Validaciones
-  if (!name || !email || !password || !confirmPassword) {
+  if (!name || !email || !phone || !password || !confirmPassword) {
     return json({ error: "Todos los campos son requeridos" }, { status: 400 })
   }
   
@@ -29,6 +30,18 @@ export async function action({ request }: ActionFunctionArgs) {
   
   if (!email.includes('@')) {
     return json({ error: "Email inválido" }, { status: 400 })
+  }
+  
+  // Validación básica del teléfono (solo números, espacios, guiones y paréntesis)
+  const phoneRegex = /^[\d\s\-\(\)\+]+$/
+  if (!phoneRegex.test(phone)) {
+    return json({ error: "El número de teléfono solo puede contener números, espacios, guiones y paréntesis" }, { status: 400 })
+  }
+  
+  // Validar que tenga al menos 10 dígitos
+  const phoneDigits = phone.replace(/\D/g, '')
+  if (phoneDigits.length < 10) {
+    return json({ error: "El número de teléfono debe tener al menos 10 dígitos" }, { status: 400 })
   }
   
   if (password.length < 6) {
@@ -50,6 +63,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const user = await UserModel.create({
       name: name.trim(),
       email: email.toLowerCase().trim(),
+      phone: phone.trim(),
       password
     })
     
@@ -68,6 +82,7 @@ export default function Register() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: ''
   })
@@ -81,6 +96,29 @@ export default function Register() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  // Formatear número de teléfono mientras se escribe
+  const formatPhoneNumber = (value: string) => {
+    // Remover todo excepto números
+    const phoneNumber = value.replace(/\D/g, '')
+    
+    // Aplicar formato para números mexicanos (10 dígitos)
+    if (phoneNumber.length <= 3) {
+      return phoneNumber
+    } else if (phoneNumber.length <= 6) {
+      return `${phoneNumber.slice(0, 3)} ${phoneNumber.slice(3)}`
+    } else if (phoneNumber.length <= 10) {
+      return `${phoneNumber.slice(0, 3)} ${phoneNumber.slice(3, 6)} ${phoneNumber.slice(6)}`
+    } else {
+      // Para números con código de país
+      return `+${phoneNumber.slice(0, 2)} ${phoneNumber.slice(2, 5)} ${phoneNumber.slice(5, 8)} ${phoneNumber.slice(8, 12)}`
+    }
+  }
+
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhoneNumber(value)
+    handleInputChange('phone', formatted)
   }
 
   return (
@@ -150,6 +188,26 @@ export default function Register() {
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                 placeholder="tu@email.com"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Número de teléfono
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                required
+                autoComplete="tel"
+                value={formData.phone}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                placeholder="33 1234 5678"
+                maxLength={15}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Formato: 33 1234 5678 o +52 33 1234 5678
+              </p>
             </div>
 
             <div>
