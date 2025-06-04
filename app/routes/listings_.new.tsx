@@ -6,8 +6,6 @@ import { requireAdmin } from "~/lib/auth.server"
 import { 
   ArrowLeft, 
   Camera, 
-  Plus, 
-  X,
   Loader2,
   Car,
   DollarSign,
@@ -15,6 +13,7 @@ import {
   Hash
 } from 'lucide-react'
 import { useState } from 'react'
+import { ImageUpload } from "~/components/ui/image-upload"
 
 // CORRECCIÓN 1: Asegurar que el loader funcione correctamente
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -93,8 +92,8 @@ export default function NewListing() {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const [imageUrls, setImageUrls] = useState<string[]>([])
-  const [imageInput, setImageInput] = useState("")
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const submit = useSubmit()
   
   const isSubmitting = navigation.state === "submitting"
   
@@ -107,22 +106,8 @@ export default function NewListing() {
     'Audi', 'SEAT', 'Renault', 'Peugeot', 'Mitsubishi', 'Jeep'
   ]
 
-  const addImageUrl = () => {
-    if (imageInput.trim() && !imageUrls.includes(imageInput.trim())) {
-      setImageUrls([...imageUrls, imageInput.trim()])
-      setImageInput("")
-    }
-  }
-
-  const removeImageUrl = (index: number) => {
-    setImageUrls(imageUrls.filter((_, i) => i !== index))
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addImageUrl()
-    }
+  const handleImageChange = (urls: string[]) => {
+    setImageUrls(urls)
   }
 
   // Check for successful submission
@@ -140,7 +125,7 @@ export default function NewListing() {
         }
       );
       setImageUrls([]);
-      setImageInput("");
+      // Reset form has been simplified with the new image upload component
     }, 100);
   }
 
@@ -291,7 +276,7 @@ export default function NewListing() {
             </p>
           </div>
 
-          {/* Imágenes */}
+          {/* Imágenes con Cloudinary */}
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
               <Camera className="w-4 h-4 inline mr-2" />
@@ -299,53 +284,12 @@ export default function NewListing() {
             </label>
             
             <div className="space-y-3">
-              <div className="flex space-x-2">
-                <input
-                  type="url"
-                  value={imageInput}
-                  onChange={(e) => setImageInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="https://ejemplo.com/foto-del-auto.jpg"
-                  className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={addImageUrl}
-                  className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              </div>
-
-              {imageUrls.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {imageUrls.map((url, index) => (
-                    <div key={index} className="relative group">
-                      <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden">
-                        <img
-                          src={url}
-                          alt={`Foto ${index + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                            e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                          }}
-                        />
-                        <div className="hidden w-full h-full flex items-center justify-center text-gray-400">
-                          <Camera className="w-8 h-8" />
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeImageUrl(index)}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <ImageUpload
+                label="Arrastra y suelta tus imágenes aquí o haz clic para seleccionarlas"
+                maxFiles={5}
+                initialImages={imageUrls}
+                onImagesChange={handleImageChange}
+              />
 
               <input
                 type="hidden"
