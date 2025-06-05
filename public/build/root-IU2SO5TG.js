@@ -16,6 +16,7 @@ import {
   require_node
 } from "/build/_shared/chunk-NAZ4VLGB.js";
 import {
+  Form,
   Link,
   Links,
   Meta,
@@ -23,7 +24,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData
-} from "/build/_shared/chunk-T6UYO7E6.js";
+} from "/build/_shared/chunk-UPSJBP36.js";
 import "/build/_shared/chunk-U4FRFQSK.js";
 import {
   require_jsx_dev_runtime
@@ -90,54 +91,54 @@ function Layout({
     /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("head", { children: [
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("meta", { charSet: "utf-8" }, void 0, false, {
         fileName: "app/root.tsx",
-        lineNumber: 58,
+        lineNumber: 59,
         columnNumber: 9
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("meta", { name: "viewport", content: "width=device-width, initial-scale=1" }, void 0, false, {
         fileName: "app/root.tsx",
-        lineNumber: 59,
+        lineNumber: 60,
         columnNumber: 9
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Meta, {}, void 0, false, {
         fileName: "app/root.tsx",
-        lineNumber: 60,
+        lineNumber: 61,
         columnNumber: 9
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Links, {}, void 0, false, {
         fileName: "app/root.tsx",
-        lineNumber: 61,
+        lineNumber: 62,
         columnNumber: 9
       }, this)
     ] }, void 0, true, {
       fileName: "app/root.tsx",
-      lineNumber: 57,
+      lineNumber: 58,
       columnNumber: 7
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("body", { children: [
       children,
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Toaster, {}, void 0, false, {
         fileName: "app/root.tsx",
-        lineNumber: 65,
+        lineNumber: 66,
         columnNumber: 9
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(ScrollRestoration, {}, void 0, false, {
         fileName: "app/root.tsx",
-        lineNumber: 66,
+        lineNumber: 67,
         columnNumber: 9
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Scripts, {}, void 0, false, {
         fileName: "app/root.tsx",
-        lineNumber: 67,
+        lineNumber: 68,
         columnNumber: 9
       }, this)
     ] }, void 0, true, {
       fileName: "app/root.tsx",
-      lineNumber: 63,
+      lineNumber: 64,
       columnNumber: 7
     }, this)
   ] }, void 0, true, {
     fileName: "app/root.tsx",
-    lineNumber: 56,
+    lineNumber: 57,
     columnNumber: 10
   }, this);
 }
@@ -155,65 +156,65 @@ function App() {
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/", className: "flex items-center space-x-3", children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "w-6 h-6 bg-black rounded-full" }, void 0, false, {
             fileName: "app/root.tsx",
-            lineNumber: 85,
+            lineNumber: 86,
             columnNumber: 15
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { className: "text-lg font-light tracking-tight text-gray-900", children: "Cliqu\xE9alo.mx" }, void 0, false, {
             fileName: "app/root.tsx",
-            lineNumber: 86,
+            lineNumber: 87,
             columnNumber: 15
           }, this)
         ] }, void 0, true, {
           fileName: "app/root.tsx",
-          lineNumber: 84,
+          lineNumber: 85,
           columnNumber: 13
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("nav", { className: "hidden md:flex items-center space-x-6", children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/listings", className: "text-gray-600 hover:text-black transition-colors text-sm", children: "Explorar" }, void 0, false, {
             fileName: "app/root.tsx",
-            lineNumber: 92,
+            lineNumber: 93,
             columnNumber: 15
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/about", className: "text-gray-600 hover:text-black transition-colors text-sm", children: "Nosotros" }, void 0, false, {
             fileName: "app/root.tsx",
-            lineNumber: 95,
+            lineNumber: 96,
             columnNumber: 15
           }, this),
           user && canCreateListings && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/listings/new", className: "text-gray-600 hover:text-black transition-colors text-sm flex items-center gap-1", children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Plus, { className: "w-3.5 h-3.5" }, void 0, false, {
               fileName: "app/root.tsx",
-              lineNumber: 102,
+              lineNumber: 103,
               columnNumber: 19
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { children: "Crear" }, void 0, false, {
               fileName: "app/root.tsx",
-              lineNumber: 103,
+              lineNumber: 104,
               columnNumber: 19
             }, this)
           ] }, void 0, true, {
             fileName: "app/root.tsx",
-            lineNumber: 100,
+            lineNumber: 101,
             columnNumber: 45
           }, this),
           user?.role === "superadmin" && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/admin", className: "text-gray-600 hover:text-black transition-colors text-sm flex items-center gap-1", children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Shield, { className: "w-3.5 h-3.5" }, void 0, false, {
               fileName: "app/root.tsx",
-              lineNumber: 108,
+              lineNumber: 109,
               columnNumber: 19
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("span", { children: "Admin" }, void 0, false, {
               fileName: "app/root.tsx",
-              lineNumber: 109,
+              lineNumber: 110,
               columnNumber: 19
             }, this)
           ] }, void 0, true, {
             fileName: "app/root.tsx",
-            lineNumber: 106,
+            lineNumber: 107,
             columnNumber: 47
           }, this)
         ] }, void 0, true, {
           fileName: "app/root.tsx",
-          lineNumber: 91,
+          lineNumber: 92,
           columnNumber: 13
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "flex items-center", children: [
@@ -226,153 +227,161 @@ function App() {
                 ")"
               ] }, void 0, true, {
                 fileName: "app/root.tsx",
-                lineNumber: 117,
+                lineNumber: 118,
                 columnNumber: 79
               }, this)
             ] }, void 0, true, {
               fileName: "app/root.tsx",
-              lineNumber: 115,
+              lineNumber: 116,
               columnNumber: 19
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "flex items-center", children: [
               /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(User, { className: "w-4 h-4 text-gray-600" }, void 0, false, {
                 fileName: "app/root.tsx",
-                lineNumber: 124,
+                lineNumber: 125,
                 columnNumber: 23
               }, this) }, void 0, false, {
                 fileName: "app/root.tsx",
-                lineNumber: 123,
+                lineNumber: 124,
                 columnNumber: 21
               }, this),
-              /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/auth/logout", className: "ml-2 p-2 text-gray-400 hover:text-gray-600", title: "Cerrar Sesi\xF3n", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LogOut, { className: "w-4 h-4" }, void 0, false, {
+              /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Form, { method: "post", action: "/auth/logout", className: "inline", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", { type: "submit", className: "ml-2 p-2 text-gray-400 hover:text-gray-600 transition-colors", title: "Cerrar Sesi\xF3n", "aria-label": "Cerrar sesi\xF3n", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(LogOut, { className: "w-4 h-4" }, void 0, false, {
                 fileName: "app/root.tsx",
-                lineNumber: 128,
+                lineNumber: 131,
+                columnNumber: 25
+              }, this) }, void 0, false, {
+                fileName: "app/root.tsx",
+                lineNumber: 129,
                 columnNumber: 23
               }, this) }, void 0, false, {
                 fileName: "app/root.tsx",
-                lineNumber: 126,
+                lineNumber: 128,
                 columnNumber: 21
               }, this)
             ] }, void 0, true, {
               fileName: "app/root.tsx",
-              lineNumber: 122,
+              lineNumber: 123,
               columnNumber: 19
             }, this)
           ] }, void 0, true, {
             fileName: "app/root.tsx",
-            lineNumber: 114,
+            lineNumber: 115,
             columnNumber: 23
           }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "flex items-center gap-4", children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/auth/login", className: "text-gray-600 hover:text-black transition-colors text-sm", children: "Entrar" }, void 0, false, {
               fileName: "app/root.tsx",
-              lineNumber: 132,
+              lineNumber: 136,
               columnNumber: 19
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/auth/register", className: "px-3 py-1.5 border border-gray-200 text-sm rounded-full hover:border-gray-400 transition-colors", children: "Registrarse" }, void 0, false, {
               fileName: "app/root.tsx",
-              lineNumber: 136,
+              lineNumber: 140,
               columnNumber: 19
             }, this)
           ] }, void 0, true, {
             fileName: "app/root.tsx",
-            lineNumber: 131,
+            lineNumber: 135,
             columnNumber: 26
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", { onClick: () => setMobileMenuOpen(!mobileMenuOpen), className: "md:hidden ml-2 p-2", "aria-label": mobileMenuOpen ? "Cerrar men\xFA" : "Abrir men\xFA", children: mobileMenuOpen ? /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(X, { className: "w-5 h-5 text-gray-900" }, void 0, false, {
             fileName: "app/root.tsx",
-            lineNumber: 145,
+            lineNumber: 149,
             columnNumber: 35
           }, this) : /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(import_jsx_dev_runtime.Fragment, { children: [
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "w-5 h-0.5 bg-gray-900 mb-1" }, void 0, false, {
               fileName: "app/root.tsx",
-              lineNumber: 146,
+              lineNumber: 150,
               columnNumber: 21
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "w-5 h-0.5 bg-gray-900 mb-1" }, void 0, false, {
               fileName: "app/root.tsx",
-              lineNumber: 147,
+              lineNumber: 151,
               columnNumber: 21
             }, this),
             /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "w-5 h-0.5 bg-gray-900" }, void 0, false, {
               fileName: "app/root.tsx",
-              lineNumber: 148,
+              lineNumber: 152,
               columnNumber: 21
             }, this)
           ] }, void 0, true, {
             fileName: "app/root.tsx",
-            lineNumber: 145,
+            lineNumber: 149,
             columnNumber: 77
           }, this) }, void 0, false, {
             fileName: "app/root.tsx",
-            lineNumber: 143,
+            lineNumber: 147,
             columnNumber: 15
           }, this)
         ] }, void 0, true, {
           fileName: "app/root.tsx",
-          lineNumber: 113,
+          lineNumber: 114,
           columnNumber: 13
         }, this)
       ] }, void 0, true, {
         fileName: "app/root.tsx",
-        lineNumber: 83,
+        lineNumber: 84,
         columnNumber: 11
       }, this),
       mobileMenuOpen && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("div", { className: "md:hidden py-4 border-t border-gray-50", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("nav", { className: "flex flex-col space-y-4", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/listings", className: "text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2", onClick: () => setMobileMenuOpen(false), children: "Explorar Cat\xE1logo" }, void 0, false, {
           fileName: "app/root.tsx",
-          lineNumber: 157,
+          lineNumber: 161,
           columnNumber: 17
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/about", className: "text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2", onClick: () => setMobileMenuOpen(false), children: "Nosotros" }, void 0, false, {
           fileName: "app/root.tsx",
-          lineNumber: 161,
+          lineNumber: 165,
           columnNumber: 17
         }, this),
         user?.role === "admin" || user?.role === "superadmin" ? /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/listings/new", className: "text-gray-600 hover:text-gray-900 transition-colors text-sm flex items-center gap-1 py-2", onClick: () => setMobileMenuOpen(false), children: "Crear Listing" }, void 0, false, {
           fileName: "app/root.tsx",
-          lineNumber: 165,
+          lineNumber: 169,
           columnNumber: 74
         }, this) : null,
         user?.role === "superadmin" && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/admin", className: "text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2", onClick: () => setMobileMenuOpen(false), children: "Panel de Administraci\xF3n" }, void 0, false, {
           fileName: "app/root.tsx",
-          lineNumber: 169,
+          lineNumber: 173,
           columnNumber: 49
         }, this),
-        user && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Link, { to: "/auth/logout", className: "text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2", onClick: () => setMobileMenuOpen(false), children: "Cerrar Sesi\xF3n" }, void 0, false, {
+        user && /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Form, { method: "post", action: "/auth/logout", className: "block", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("button", { type: "submit", className: "w-full text-left text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2", onClick: () => setMobileMenuOpen(false), "aria-label": "Cerrar sesi\xF3n", children: "Cerrar Sesi\xF3n" }, void 0, false, {
           fileName: "app/root.tsx",
-          lineNumber: 173,
+          lineNumber: 179,
+          columnNumber: 21
+        }, this) }, void 0, false, {
+          fileName: "app/root.tsx",
+          lineNumber: 178,
           columnNumber: 26
         }, this)
       ] }, void 0, true, {
         fileName: "app/root.tsx",
-        lineNumber: 156,
+        lineNumber: 160,
         columnNumber: 15
       }, this) }, void 0, false, {
         fileName: "app/root.tsx",
-        lineNumber: 155,
+        lineNumber: 159,
         columnNumber: 30
       }, this)
     ] }, void 0, true, {
       fileName: "app/root.tsx",
-      lineNumber: 82,
+      lineNumber: 83,
       columnNumber: 9
     }, this) }, void 0, false, {
       fileName: "app/root.tsx",
-      lineNumber: 81,
+      lineNumber: 82,
       columnNumber: 7
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)("main", { className: "flex-1", children: /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Outlet, {}, void 0, false, {
       fileName: "app/root.tsx",
-      lineNumber: 184,
+      lineNumber: 191,
       columnNumber: 9
     }, this) }, void 0, false, {
       fileName: "app/root.tsx",
-      lineNumber: 183,
+      lineNumber: 190,
       columnNumber: 7
     }, this)
   ] }, void 0, true, {
     fileName: "app/root.tsx",
-    lineNumber: 79,
+    lineNumber: 80,
     columnNumber: 10
   }, this);
 }
@@ -391,4 +400,4 @@ export {
   App as default,
   links
 };
-//# sourceMappingURL=/build/root-TMXNIA5M.js.map
+//# sourceMappingURL=/build/root-IU2SO5TG.js.map
