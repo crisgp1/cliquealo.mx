@@ -1,7 +1,13 @@
-node_modules
+# Node modules
+node_modules/
 
-/.cache
+# Remix build output
 /build
+/.cache
+
+# Environment variables
 .env
-/.scripts
-scripts
+
+# Script folders (depending on usage)
+scripts/
+.scripts/
