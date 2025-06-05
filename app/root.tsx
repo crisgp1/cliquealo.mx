@@ -6,6 +6,7 @@ import {
   ScrollRestoration,
   useLoaderData,
   Link,
+  Form, // ← IMPORT AGREGADO
 } from "@remix-run/react";
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
@@ -55,7 +56,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
-
 
 export default function App() {
   const { user, canCreateListings } = useLoaderData<typeof loader>();
@@ -120,13 +120,17 @@ export default function App() {
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                       <User className="w-4 h-4 text-gray-600" />
                     </div>
-                    <Link
-                      to="/auth/logout"
-                      className="ml-2 p-2 text-gray-400 hover:text-gray-600"
-                      title="Cerrar Sesión"
-                    >
-                      <LogOut className="w-4 h-4" />
-                    </Link>
+                    {/* ✅ LOGOUT CORREGIDO - DESKTOP */}
+                    <Form method="post" action="/auth/logout" className="inline">
+                      <button
+                        type="submit"
+                        className="ml-2 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Cerrar Sesión"
+                        aria-label="Cerrar sesión"
+                      >
+                        <LogOut className="w-4 h-4" />
+                      </button>
+                    </Form>
                   </div>
                 </div>
               ) : (
@@ -201,14 +205,18 @@ export default function App() {
                     Panel de Administración
                   </Link>
                 )}
+                {/* ✅ LOGOUT CORREGIDO - MÓVIL */}
                 {user && (
-                  <Link
-                    to="/auth/logout"
-                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Cerrar Sesión
-                  </Link>
+                  <Form method="post" action="/auth/logout" className="block">
+                    <button
+                      type="submit"
+                      className="w-full text-left text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                      aria-label="Cerrar sesión"
+                    >
+                      Cerrar Sesión
+                    </button>
+                  </Form>
                 )}
               </nav>
             </div>
