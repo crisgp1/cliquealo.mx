@@ -14,6 +14,7 @@ import { getUser } from "~/lib/session.server";
 import { Auth } from "~/lib/auth.server";
 import { X, Plus, User, LogOut, Shield } from "lucide-react";
 
+import { Toaster } from "~/components/ui/toast";
 import styles from "./tailwind.css";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -47,6 +48,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -68,7 +70,7 @@ export default function App() {
             <Link to="/" className="flex items-center space-x-3">
               <div className="w-6 h-6 bg-black rounded-full"></div>
               <span className="text-lg font-light tracking-tight text-gray-900">
-                Cliquealo
+                Cliquéalo.mx
               </span>
             </Link>
 
