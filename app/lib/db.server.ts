@@ -7,7 +7,7 @@ const client = singleton('mongo', () => {
   return client
 })
 
-export const db: Db = client.db()
+export const db: Db = client.db('cliquealo')
 
 // Helper para cerrar conexión en desarrollo
 if (process.env.NODE_ENV === 'development') {
