@@ -12,8 +12,26 @@ import { AnimationProvider } from "~/components/AnimationProvider";
 import { toast } from "~/components/ui/toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "~/components/ui/dialog";
 
+// 🌐 Configuración de textos en español para la página
+const PAGE_TEXTS = {
+  header: {
+    backToListings: "Volver a Listados",
+    title: "Agregar Nuevo Listado de Auto",
+    subtitle: "Ingresa los detalles a continuación para crear un nuevo listado de vehículo"
+  },
+  messages: {
+    success: "¡Vehículo agregado exitosamente! Puedes agregar otro o ver el listado creado.",
+    error: "Error al crear el listado"
+  },
+  dialog: {
+    title: "Listado Creado Exitosamente",
+    description: "¡Tu listado de vehículo ha sido creado exitosamente!",
+    viewListing: "Ver Listado",
+    createAnother: "Crear Otro Listado"
+  }
+} as const;
+
 export async function loader({ request }: LoaderFunctionArgs) {
-  // Verify admin authentication
   try {
     const user = await requireAdmin(request);
     return json({ user });
@@ -33,9 +51,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const year = parseInt(formData.get("year") as string);
   const price = parseFloat(formData.get("price") as string);
   const mileage = parseFloat(formData.get("mileage") as string);
-  // Get condition but don't use it directly (not in Listing model)
   const conditionValue = formData.get("condition") as "new" | "used" | "certified";
-  // Map form values to expected types
   const fuelTypeValue = formData.get("fuelType") as string;
   const transmissionValue = formData.get("transmission") as string;
   const locationValue = formData.get("location") as string;
@@ -48,31 +64,29 @@ export async function action({ request }: ActionFunctionArgs) {
     city: locationValue.split(',')[0]?.trim() || "",
     state: locationValue.split(',')[1]?.trim() || ""
   } : undefined;
-  // Contact information
+  
   const contactPhone = formData.get("contactPhone") as string;
   const contactEmail = formData.get("contactEmail") as string;
   
-  // Structure contact info according to the model
   const contactInfo = {
     phone: contactPhone,
     email: contactEmail
   };
   const images = formData.get("images") as string;
   
-  // Title combining make, model and year
   const title = `${year} ${make} ${model}`;
   
-  // Validations
+  // Validaciones
   if (!make || !model || !year || !price) {
-    return json({ error: "Make, model, year and price are required" }, { status: 400 });
+    return json({ error: "Marca, modelo, año y precio son requeridos" }, { status: 400 });
   }
   
   if (year < 1900 || year > new Date().getFullYear() + 1) {
-    return json({ error: "Invalid year" }, { status: 400 });
+    return json({ error: "Año inválido" }, { status: 400 });
   }
   
   if (price < 0) {
-    return json({ error: "Price must be greater than 0" }, { status: 400 });
+    return json({ error: "El precio debe ser mayor a 0" }, { status: 400 });
   }
   
   try {
@@ -80,7 +94,6 @@ export async function action({ request }: ActionFunctionArgs) {
       ? images.split(',').map(url => url.trim()).filter(Boolean)
       : [];
     
-    // Create listing with the data from CarListingForm
     const listing = await ListingModel.create({
       title,
       description: description?.trim() || "",
@@ -89,7 +102,6 @@ export async function action({ request }: ActionFunctionArgs) {
       year,
       price,
       mileage,
-      // Use isFeatured for certified cars and set active status
       isFeatured: conditionValue === "certified",
       fuelType,
       transmission,
@@ -101,12 +113,12 @@ export async function action({ request }: ActionFunctionArgs) {
     
     return json({
       success: true,
-      message: "Vehicle added successfully",
+      message: PAGE_TEXTS.messages.success,
       listingId: listing._id
     });
   } catch (error) {
     console.error(error);
-    return json({ error: "Error creating listing" }, { status: 500 });
+    return json({ error: PAGE_TEXTS.messages.error }, { status: 500 });
   }
 }
 
@@ -120,15 +132,12 @@ export default function NewListing() {
   
   const isSubmitting = navigation.state === "submitting";
   
-  // Handle form submission
   const handleSubmit = (data: any) => {
-    // The CarListingForm now includes the images array
     const formData = new FormData();
     
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         if (key === "images" && Array.isArray(value)) {
-          // Join array of image URLs into a comma-separated string
           formData.append(key, value.join(','));
         } else {
           formData.append(key, String(value));
@@ -136,27 +145,24 @@ export default function NewListing() {
       }
     });
     
-    // Submit the form (using the imported useSubmit)
     const submit = useSubmit();
     submit(formData, { method: "post" });
   };
   
-  // Check for submission results
   useEffect(() => {
     if (actionData) {
       if ('success' in actionData && actionData.success) {
         setFormStatus("success");
-        setSuccessMessage(`Vehicle added successfully! You can add another or view the created listing.`);
+        setSuccessMessage(actionData.message || PAGE_TEXTS.messages.success);
         setShowSuccessDialog(true);
-        toast.success("Vehicle listing created successfully!");
+        toast.success("¡Listado de vehículo creado exitosamente!");
       } else if ('error' in actionData) {
         setFormStatus("error");
-        toast.error(actionData.error || "Failed to create listing");
+        toast.error(actionData.error || PAGE_TEXTS.messages.error);
       }
     }
   }, [actionData]);
 
-  // Reset form status when starting a new submission
   useEffect(() => {
     if (isSubmitting) {
       setFormStatus("idle");
@@ -175,7 +181,7 @@ export default function NewListing() {
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
               >
                 <ChevronLeft className="w-5 h-5" />
-                <span className="font-medium">Back to Listings</span>
+                <span className="font-medium">{PAGE_TEXTS.header.backToListings}</span>
               </Link>
 
               <div className="flex items-center space-x-2">
@@ -193,10 +199,10 @@ export default function NewListing() {
             {/* Page Title */}
             <div className="text-center space-y-2">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Add New Car Listing
+                {PAGE_TEXTS.header.title}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Enter the details below to create a new vehicle listing
+                {PAGE_TEXTS.header.subtitle}
               </p>
             </div>
 
@@ -208,7 +214,7 @@ export default function NewListing() {
                   {actionData && 'listingId' in actionData && (
                     <Button variant="outline" size="sm" asChild>
                       <Link to={`/listings/${actionData.listingId}`}>
-                        View Listing
+                        {PAGE_TEXTS.dialog.viewListing}
                       </Link>
                     </Button>
                   )}
@@ -237,16 +243,16 @@ export default function NewListing() {
           <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Listing Created Successfully</DialogTitle>
+                <DialogTitle>{PAGE_TEXTS.dialog.title}</DialogTitle>
               </DialogHeader>
               <div className="py-4">
-                <p className="text-gray-700">Your vehicle listing has been created successfully!</p>
+                <p className="text-gray-700">{PAGE_TEXTS.dialog.description}</p>
               </div>
               <DialogFooter className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
                 {actionData && 'listingId' in actionData && (
                   <Button asChild>
                     <Link to={`/listings/${actionData.listingId}`}>
-                      View Listing
+                      {PAGE_TEXTS.dialog.viewListing}
                     </Link>
                   </Button>
                 )}
@@ -257,7 +263,7 @@ export default function NewListing() {
                     setFormStatus("idle");
                   }}
                 >
-                  Create Another Listing
+                  {PAGE_TEXTS.dialog.createAnother}
                 </Button>
               </DialogFooter>
             </DialogContent>

@@ -8,7 +8,93 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "~/components/ui/dialog";
 import { ImageUpload } from "~/components/ui/image-upload";
 
-// Simple validation functions (would use zod in a complete implementation)
+// 🌐 Configuración centralizada de textos en español
+const FORM_CONFIG = {
+  validation: {
+    makeRequired: "La marca es requerida",
+    modelRequired: "El modelo es requerido",
+    invalidYear: "Año inválido",
+    priceGreaterThanZero: "El precio debe ser mayor a 0",
+    mileageNonNegative: "El kilometraje no puede ser negativo",
+    selectCondition: "Selecciona una condición",
+    fuelTypeRequired: "El tipo de combustible es requerido",
+    transmissionRequired: "La transmisión es requerida",
+    descriptionMinLength: "La descripción debe tener al menos 10 caracteres",
+    locationRequired: "La ubicación es requerida",
+    validPhoneRequired: "Se requiere un número telefónico válido",
+    validEmailRequired: "Se requiere un email válido",
+    imageRequired: "Se requiere al menos una imagen"
+  },
+  ui: {
+    vehicleInformation: "Información del Vehículo",
+    additionalDetails: "Detalles Adicionales",
+    contactInformation: "Información de Contacto",
+    vehicleImages: "Imágenes del Vehículo"
+  },
+  fields: {
+    make: "Marca *",
+    model: "Modelo *",
+    year: "Año *",
+    price: "Precio *",
+    mileage: "Kilometraje *",
+    condition: "Condición *",
+    fuelType: "Tipo de Combustible *",
+    transmission: "Transmisión *",
+    description: "Descripción *",
+    location: "Ubicación *",
+    phone: "Número de Teléfono *",
+    email: "Email *"
+  },
+  placeholders: {
+    selectMake: "Selecciona la marca",
+    selectYear: "Selecciona el año",
+    selectCondition: "Selecciona la condición",
+    selectFuelType: "Selecciona el tipo de combustible",
+    selectTransmission: "Selecciona la transmisión"
+  },
+  options: {
+    makes: {
+      toyota: "Toyota",
+      honda: "Honda",
+      ford: "Ford",
+      chevrolet: "Chevrolet",
+      bmw: "BMW",
+      mercedesBenz: "Mercedes-Benz",
+      audi: "Audi",
+      tesla: "Tesla",
+      other: "Otra"
+    },
+    condition: {
+      new: "Nuevo",
+      used: "Usado",
+      certified: "Certificado Pre-Owned"
+    },
+    fuelType: {
+      gasoline: "Gasolina",
+      diesel: "Diésel",
+      electric: "Eléctrico",
+      hybrid: "Híbrido",
+      plugInHybrid: "Híbrido Enchufable"
+    },
+    transmission: {
+      automatic: "Automática",
+      manual: "Manual",
+      cvt: "CVT"
+    }
+  },
+  actions: {
+    saveDraft: "Guardar Borrador",
+    publish: "Publicar Listado",
+    publishing: "Publicando...",
+    cancel: "Cancelar"
+  },
+  dialog: {
+    saveDraftTitle: "Guardar como Borrador",
+    saveDraftDescription: "Esto guardará tu listado como borrador. Puedes regresar y editarlo después antes de publicarlo."
+  }
+} as const;
+
+// Funciones de validación simples
 const validateRequired = (value: any) => !!value;
 const validateYear = (year: number) => year >= 1900 && year <= new Date().getFullYear() + 1;
 const validatePrice = (price: number) => price > 0;
@@ -75,7 +161,7 @@ export function CarListingForm({
       [field]: value
     });
     
-    // Clear error when field is updated
+    // Limpiar error cuando el campo se actualiza
     if (errors[field]) {
       setErrors({
         ...errors,
@@ -92,55 +178,55 @@ export function CarListingForm({
     const newErrors: Record<string, string> = {};
     
     if (!validateRequired(formData.make)) {
-      newErrors.make = "Make is required";
+      newErrors.make = FORM_CONFIG.validation.makeRequired;
     }
     
     if (!validateRequired(formData.model)) {
-      newErrors.model = "Model is required";
+      newErrors.model = FORM_CONFIG.validation.modelRequired;
     }
     
     if (!validateYear(formData.year || 0)) {
-      newErrors.year = "Invalid year";
+      newErrors.year = FORM_CONFIG.validation.invalidYear;
     }
     
     if (!validatePrice(formData.price || 0)) {
-      newErrors.price = "Price must be greater than 0";
+      newErrors.price = FORM_CONFIG.validation.priceGreaterThanZero;
     }
     
     if (!validateMileage(formData.mileage || 0)) {
-      newErrors.mileage = "Mileage cannot be negative";
+      newErrors.mileage = FORM_CONFIG.validation.mileageNonNegative;
     }
     
     if (!validateRequired(formData.condition)) {
-      newErrors.condition = "Please select a condition";
+      newErrors.condition = FORM_CONFIG.validation.selectCondition;
     }
     
     if (!validateRequired(formData.fuelType)) {
-      newErrors.fuelType = "Fuel type is required";
+      newErrors.fuelType = FORM_CONFIG.validation.fuelTypeRequired;
     }
     
     if (!validateRequired(formData.transmission)) {
-      newErrors.transmission = "Transmission is required";
+      newErrors.transmission = FORM_CONFIG.validation.transmissionRequired;
     }
     
     if (!validateRequired(formData.description) || (formData.description?.length || 0) < 10) {
-      newErrors.description = "Description must be at least 10 characters";
+      newErrors.description = FORM_CONFIG.validation.descriptionMinLength;
     }
     
     if (!validateRequired(formData.location)) {
-      newErrors.location = "Location is required";
+      newErrors.location = FORM_CONFIG.validation.locationRequired;
     }
     
     if (!validatePhone(formData.contactPhone || "")) {
-      newErrors.contactPhone = "Valid phone number is required";
+      newErrors.contactPhone = FORM_CONFIG.validation.validPhoneRequired;
     }
     
     if (!validateEmail(formData.contactEmail || "")) {
-      newErrors.contactEmail = "Valid email is required";
+      newErrors.contactEmail = FORM_CONFIG.validation.validEmailRequired;
     }
     
     if (!validateImages(formData.images as string[] || [])) {
-      newErrors.images = "At least one image is required";
+      newErrors.images = FORM_CONFIG.validation.imageRequired;
     }
     
     setErrors(newErrors);
@@ -155,7 +241,7 @@ export function CarListingForm({
     }
   };
   
-  // Generate years for select dropdown
+  // Generar años para el dropdown de selección
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - 1900 + 2 }, (_, i) => currentYear + 1 - i);
   
@@ -163,12 +249,12 @@ export function CarListingForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Vehicle Information</CardTitle>
+          <CardTitle>{FORM_CONFIG.ui.vehicleInformation}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="make">Make *</Label>
+              <Label htmlFor="make">{FORM_CONFIG.fields.make}</Label>
               <Select
                 value={formData.make}
                 onValueChange={handleSelectChange("make")}
@@ -178,18 +264,18 @@ export function CarListingForm({
                   aria-invalid={!!errors.make}
                   aria-describedby={errors.make ? "make-error" : undefined}
                 >
-                  <SelectValue placeholder="Select make" />
+                  <SelectValue placeholder={FORM_CONFIG.placeholders.selectMake} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="toyota">Toyota</SelectItem>
-                  <SelectItem value="honda">Honda</SelectItem>
-                  <SelectItem value="ford">Ford</SelectItem>
-                  <SelectItem value="chevrolet">Chevrolet</SelectItem>
-                  <SelectItem value="bmw">BMW</SelectItem>
-                  <SelectItem value="mercedes-benz">Mercedes-Benz</SelectItem>
-                  <SelectItem value="audi">Audi</SelectItem>
-                  <SelectItem value="tesla">Tesla</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="toyota">{FORM_CONFIG.options.makes.toyota}</SelectItem>
+                  <SelectItem value="honda">{FORM_CONFIG.options.makes.honda}</SelectItem>
+                  <SelectItem value="ford">{FORM_CONFIG.options.makes.ford}</SelectItem>
+                  <SelectItem value="chevrolet">{FORM_CONFIG.options.makes.chevrolet}</SelectItem>
+                  <SelectItem value="bmw">{FORM_CONFIG.options.makes.bmw}</SelectItem>
+                  <SelectItem value="mercedes-benz">{FORM_CONFIG.options.makes.mercedesBenz}</SelectItem>
+                  <SelectItem value="audi">{FORM_CONFIG.options.makes.audi}</SelectItem>
+                  <SelectItem value="tesla">{FORM_CONFIG.options.makes.tesla}</SelectItem>
+                  <SelectItem value="other">{FORM_CONFIG.options.makes.other}</SelectItem>
                 </SelectContent>
               </Select>
               {errors.make && (
@@ -200,7 +286,7 @@ export function CarListingForm({
             </div>
 
             <div>
-              <Label htmlFor="model">Model *</Label>
+              <Label htmlFor="model">{FORM_CONFIG.fields.model}</Label>
               <Input
                 id="model"
                 value={formData.model}
@@ -216,7 +302,7 @@ export function CarListingForm({
             </div>
 
             <div>
-              <Label htmlFor="year">Year *</Label>
+              <Label htmlFor="year">{FORM_CONFIG.fields.year}</Label>
               <Select
                 value={String(formData.year)}
                 onValueChange={(value) => handleChange("year", parseInt(value, 10))}
@@ -226,7 +312,7 @@ export function CarListingForm({
                   aria-invalid={!!errors.year}
                   aria-describedby={errors.year ? "year-error" : undefined}
                 >
-                  <SelectValue placeholder="Select year" />
+                  <SelectValue placeholder={FORM_CONFIG.placeholders.selectYear} />
                 </SelectTrigger>
                 <SelectContent>
                   {years.map((year) => (
@@ -246,7 +332,7 @@ export function CarListingForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="price">Price *</Label>
+              <Label htmlFor="price">{FORM_CONFIG.fields.price}</Label>
               <Input
                 id="price"
                 type="number"
@@ -263,7 +349,7 @@ export function CarListingForm({
             </div>
 
             <div>
-              <Label htmlFor="mileage">Mileage *</Label>
+              <Label htmlFor="mileage">{FORM_CONFIG.fields.mileage}</Label>
               <Input
                 id="mileage"
                 type="number"
@@ -282,7 +368,7 @@ export function CarListingForm({
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="condition">Condition *</Label>
+              <Label htmlFor="condition">{FORM_CONFIG.fields.condition}</Label>
               <Select
                 value={formData.condition}
                 onValueChange={handleSelectChange("condition")}
@@ -292,12 +378,12 @@ export function CarListingForm({
                   aria-invalid={!!errors.condition}
                   aria-describedby={errors.condition ? "condition-error" : undefined}
                 >
-                  <SelectValue placeholder="Select condition" />
+                  <SelectValue placeholder={FORM_CONFIG.placeholders.selectCondition} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="used">Used</SelectItem>
-                  <SelectItem value="certified">Certified Pre-Owned</SelectItem>
+                  <SelectItem value="new">{FORM_CONFIG.options.condition.new}</SelectItem>
+                  <SelectItem value="used">{FORM_CONFIG.options.condition.used}</SelectItem>
+                  <SelectItem value="certified">{FORM_CONFIG.options.condition.certified}</SelectItem>
                 </SelectContent>
               </Select>
               {errors.condition && (
@@ -308,7 +394,7 @@ export function CarListingForm({
             </div>
             
             <div>
-              <Label htmlFor="fuelType">Fuel Type *</Label>
+              <Label htmlFor="fuelType">{FORM_CONFIG.fields.fuelType}</Label>
               <Select
                 value={formData.fuelType}
                 onValueChange={handleSelectChange("fuelType")}
@@ -318,14 +404,14 @@ export function CarListingForm({
                   aria-invalid={!!errors.fuelType}
                   aria-describedby={errors.fuelType ? "fuelType-error" : undefined}
                 >
-                  <SelectValue placeholder="Select fuel type" />
+                  <SelectValue placeholder={FORM_CONFIG.placeholders.selectFuelType} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="gasoline">Gasoline</SelectItem>
-                  <SelectItem value="diesel">Diesel</SelectItem>
-                  <SelectItem value="electric">Electric</SelectItem>
-                  <SelectItem value="hybrid">Hybrid</SelectItem>
-                  <SelectItem value="plug-in-hybrid">Plug-in Hybrid</SelectItem>
+                  <SelectItem value="gasoline">{FORM_CONFIG.options.fuelType.gasoline}</SelectItem>
+                  <SelectItem value="diesel">{FORM_CONFIG.options.fuelType.diesel}</SelectItem>
+                  <SelectItem value="electric">{FORM_CONFIG.options.fuelType.electric}</SelectItem>
+                  <SelectItem value="hybrid">{FORM_CONFIG.options.fuelType.hybrid}</SelectItem>
+                  <SelectItem value="plug-in-hybrid">{FORM_CONFIG.options.fuelType.plugInHybrid}</SelectItem>
                 </SelectContent>
               </Select>
               {errors.fuelType && (
@@ -336,7 +422,7 @@ export function CarListingForm({
             </div>
             
             <div>
-              <Label htmlFor="transmission">Transmission *</Label>
+              <Label htmlFor="transmission">{FORM_CONFIG.fields.transmission}</Label>
               <Select
                 value={formData.transmission}
                 onValueChange={handleSelectChange("transmission")}
@@ -346,12 +432,12 @@ export function CarListingForm({
                   aria-invalid={!!errors.transmission}
                   aria-describedby={errors.transmission ? "transmission-error" : undefined}
                 >
-                  <SelectValue placeholder="Select transmission" />
+                  <SelectValue placeholder={FORM_CONFIG.placeholders.selectTransmission} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="automatic">Automatic</SelectItem>
-                  <SelectItem value="manual">Manual</SelectItem>
-                  <SelectItem value="cvt">CVT</SelectItem>
+                  <SelectItem value="automatic">{FORM_CONFIG.options.transmission.automatic}</SelectItem>
+                  <SelectItem value="manual">{FORM_CONFIG.options.transmission.manual}</SelectItem>
+                  <SelectItem value="cvt">{FORM_CONFIG.options.transmission.cvt}</SelectItem>
                 </SelectContent>
               </Select>
               {errors.transmission && (
@@ -366,11 +452,11 @@ export function CarListingForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Additional Details</CardTitle>
+          <CardTitle>{FORM_CONFIG.ui.additionalDetails}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="description">{FORM_CONFIG.fields.description}</Label>
             <Textarea
               id="description"
               rows={4}
@@ -387,7 +473,7 @@ export function CarListingForm({
           </div>
           
           <div>
-            <Label htmlFor="location">Location *</Label>
+            <Label htmlFor="location">{FORM_CONFIG.fields.location}</Label>
             <Input
               id="location"
               value={formData.location}
@@ -406,12 +492,12 @@ export function CarListingForm({
       
       <Card>
         <CardHeader>
-          <CardTitle>Contact Information</CardTitle>
+          <CardTitle>{FORM_CONFIG.ui.contactInformation}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="contactPhone">Phone Number *</Label>
+              <Label htmlFor="contactPhone">{FORM_CONFIG.fields.phone}</Label>
               <Input
                 id="contactPhone"
                 type="tel"
@@ -428,7 +514,7 @@ export function CarListingForm({
             </div>
             
             <div>
-              <Label htmlFor="contactEmail">Email *</Label>
+              <Label htmlFor="contactEmail">{FORM_CONFIG.fields.email}</Label>
               <Input
                 id="contactEmail"
                 type="email"
@@ -449,11 +535,11 @@ export function CarListingForm({
       
       <Card>
         <CardHeader>
-          <CardTitle>Vehicle Images</CardTitle>
+          <CardTitle>{FORM_CONFIG.ui.vehicleImages}</CardTitle>
         </CardHeader>
         <CardContent>
           <ImageUpload
-            label="Upload Vehicle Images *"
+            label="Subir Imágenes del Vehículo *"
             maxFiles={5}
             initialImages={formData.images as string[] || []}
             onImagesChange={(urls) => handleChange("images", urls)}
@@ -468,36 +554,35 @@ export function CarListingForm({
 
       <div className="flex justify-end space-x-4">
         <Button type="button" variant="outline" onClick={() => setShowConfirmDialog(true)}>
-          Save Draft
+          {FORM_CONFIG.actions.saveDraft}
         </Button>
         <Button 
           type="submit" 
           disabled={isLoading}
           variant={status === "success" ? "success" : status === "error" ? "error" : "default"}
         >
-          {isLoading ? "Publishing..." : "Publish Listing"}
+          {isLoading ? FORM_CONFIG.actions.publishing : FORM_CONFIG.actions.publish}
         </Button>
       </div>
 
-      {/* Confirmation Dialog */}
+      {/* Diálogo de Confirmación */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save as Draft</DialogTitle>
+            <DialogTitle>{FORM_CONFIG.dialog.saveDraftTitle}</DialogTitle>
             <DialogDescription>
-              This will save your listing as a draft. You can come back and edit it later before publishing.
+              {FORM_CONFIG.dialog.saveDraftDescription}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
-              Cancel
+              {FORM_CONFIG.actions.cancel}
             </Button>
             <Button onClick={() => {
               setShowConfirmDialog(false);
-              // Here you would implement draft saving functionality
-              // For now we just close the dialog
+              // Aquí implementarías la funcionalidad de guardar borrador
             }}>
-              Save Draft
+              {FORM_CONFIG.actions.saveDraft}
             </Button>
           </DialogFooter>
         </DialogContent>
