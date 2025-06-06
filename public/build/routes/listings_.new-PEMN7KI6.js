@@ -106,7 +106,7 @@ var require_react_is_development = __commonJS({
         var ContextProvider = REACT_PROVIDER_TYPE;
         var Element2 = REACT_ELEMENT_TYPE;
         var ForwardRef = REACT_FORWARD_REF_TYPE;
-        var Fragment8 = REACT_FRAGMENT_TYPE;
+        var Fragment9 = REACT_FRAGMENT_TYPE;
         var Lazy = REACT_LAZY_TYPE;
         var Memo = REACT_MEMO_TYPE;
         var Portal3 = REACT_PORTAL_TYPE;
@@ -165,7 +165,7 @@ var require_react_is_development = __commonJS({
         exports.ContextProvider = ContextProvider;
         exports.Element = Element2;
         exports.ForwardRef = ForwardRef;
-        exports.Fragment = Fragment8;
+        exports.Fragment = Fragment9;
         exports.Lazy = Lazy;
         exports.Memo = Memo;
         exports.Portal = Portal3;
@@ -5129,10 +5129,10 @@ function _iterableToArrayLimit(arr, i) {
   var _arr = [];
   var _n = true;
   var _d = false;
-  var _s8, _e;
+  var _s9, _e;
   try {
-    for (_i = _i.call(arr); !(_n = (_s8 = _i.next()).done); _n = true) {
-      _arr.push(_s8.value);
+    for (_i = _i.call(arr); !(_n = (_s9 = _i.next()).done); _n = true) {
+      _arr.push(_s9.value);
       if (i && _arr.length === i)
         break;
     }
@@ -5368,10 +5368,10 @@ function _iterableToArrayLimit2(arr, i) {
   var _arr = [];
   var _n = true;
   var _d = false;
-  var _s8, _e;
+  var _s9, _e;
   try {
-    for (_i = _i.call(arr); !(_n = (_s8 = _i.next()).done); _n = true) {
-      _arr.push(_s8.value);
+    for (_i = _i.call(arr); !(_n = (_s9 = _i.next()).done); _n = true) {
+      _arr.push(_s9.value);
       if (i && _arr.length === i)
         break;
     }
@@ -6400,8 +6400,94 @@ if (import.meta) {
     //@ts-expect-error
     "app\\components\\forms\\CarListingForm.tsx"
   );
-  import.meta.hot.lastModified = "1749086516571.9734";
+  import.meta.hot.lastModified = "1749180347280.0808";
 }
+var FORM_CONFIG = {
+  validation: {
+    makeRequired: "La marca es requerida",
+    modelRequired: "El modelo es requerido",
+    invalidYear: "A\xF1o inv\xE1lido",
+    priceGreaterThanZero: "El precio debe ser mayor a 0",
+    mileageNonNegative: "El kilometraje no puede ser negativo",
+    selectCondition: "Selecciona una condici\xF3n",
+    fuelTypeRequired: "El tipo de combustible es requerido",
+    transmissionRequired: "La transmisi\xF3n es requerida",
+    descriptionMinLength: "La descripci\xF3n debe tener al menos 10 caracteres",
+    locationRequired: "La ubicaci\xF3n es requerida",
+    validPhoneRequired: "Se requiere un n\xFAmero telef\xF3nico v\xE1lido",
+    validEmailRequired: "Se requiere un email v\xE1lido",
+    imageRequired: "Se requiere al menos una imagen"
+  },
+  ui: {
+    vehicleInformation: "Informaci\xF3n del Veh\xEDculo",
+    additionalDetails: "Detalles Adicionales",
+    contactInformation: "Informaci\xF3n de Contacto",
+    vehicleImages: "Im\xE1genes del Veh\xEDculo"
+  },
+  fields: {
+    make: "Marca *",
+    model: "Modelo *",
+    year: "A\xF1o *",
+    price: "Precio *",
+    mileage: "Kilometraje *",
+    condition: "Condici\xF3n *",
+    fuelType: "Tipo de Combustible *",
+    transmission: "Transmisi\xF3n *",
+    description: "Descripci\xF3n *",
+    location: "Ubicaci\xF3n *",
+    phone: "N\xFAmero de Tel\xE9fono *",
+    email: "Email *"
+  },
+  placeholders: {
+    selectMake: "Selecciona la marca",
+    selectYear: "Selecciona el a\xF1o",
+    selectCondition: "Selecciona la condici\xF3n",
+    selectFuelType: "Selecciona el tipo de combustible",
+    selectTransmission: "Selecciona la transmisi\xF3n"
+  },
+  options: {
+    makes: {
+      toyota: "Toyota",
+      honda: "Honda",
+      ford: "Ford",
+      chevrolet: "Chevrolet",
+      bmw: "BMW",
+      mercedesBenz: "Mercedes-Benz",
+      audi: "Audi",
+      tesla: "Tesla",
+      other: "Otra"
+    },
+    condition: {
+      new: "Nuevo",
+      used: "Usado",
+      certified: "Certificado Pre-Owned"
+    },
+    fuelType: {
+      gasoline: "Gasolina",
+      diesel: "Di\xE9sel",
+      electric: "El\xE9ctrico",
+      hybrid: "H\xEDbrido",
+      plugInHybrid: "H\xEDbrido Enchufable"
+    },
+    transmission: {
+      automatic: "Autom\xE1tica",
+      manual: "Manual",
+      cvt: "CVT"
+    }
+  },
+  actions: {
+    saveDraft: "Guardar Borrador",
+    publish: "Publicar Listado",
+    publishing: "Publicando...",
+    savingDraft: "Guardando...",
+    cancel: "Cancelar"
+  },
+  dialog: {
+    saveDraftTitle: "Guardar como Borrador",
+    saveDraftDescription: "Esto guardar\xE1 tu listado como borrador. Puedes regresar y editarlo despu\xE9s antes de publicarlo.",
+    confirmSave: "S\xED, Guardar Borrador"
+  }
+};
 var validateRequired = (value) => !!value;
 var validateYear = (year) => year >= 1900 && year <= (/* @__PURE__ */ new Date()).getFullYear() + 1;
 var validatePrice = (price) => price > 0;
@@ -6411,6 +6497,8 @@ var validatePhone = (phone) => phone.length >= 10;
 var validateImages = (images) => images.length > 0;
 function CarListingForm({
   onSubmit,
+  onSaveDraft,
+  // ✅ Nueva prop
   isLoading = false,
   status = "idle",
   defaultValues = {}
@@ -6449,675 +6537,642 @@ function CarListingForm({
   const handleSelectChange = (field) => (value) => {
     handleChange(field, value);
   };
-  const validateForm = () => {
+  const validateForm = (isDraft = false) => {
     const newErrors = {};
-    if (!validateRequired(formData.make)) {
-      newErrors.make = "Make is required";
-    }
-    if (!validateRequired(formData.model)) {
-      newErrors.model = "Model is required";
-    }
-    if (!validateYear(formData.year || 0)) {
-      newErrors.year = "Invalid year";
-    }
-    if (!validatePrice(formData.price || 0)) {
-      newErrors.price = "Price must be greater than 0";
-    }
-    if (!validateMileage(formData.mileage || 0)) {
-      newErrors.mileage = "Mileage cannot be negative";
-    }
-    if (!validateRequired(formData.condition)) {
-      newErrors.condition = "Please select a condition";
-    }
-    if (!validateRequired(formData.fuelType)) {
-      newErrors.fuelType = "Fuel type is required";
-    }
-    if (!validateRequired(formData.transmission)) {
-      newErrors.transmission = "Transmission is required";
-    }
-    if (!validateRequired(formData.description) || (formData.description?.length || 0) < 10) {
-      newErrors.description = "Description must be at least 10 characters";
-    }
-    if (!validateRequired(formData.location)) {
-      newErrors.location = "Location is required";
-    }
-    if (!validatePhone(formData.contactPhone || "")) {
-      newErrors.contactPhone = "Valid phone number is required";
-    }
-    if (!validateEmail(formData.contactEmail || "")) {
-      newErrors.contactEmail = "Valid email is required";
-    }
-    if (!validateImages(formData.images || [])) {
-      newErrors.images = "At least one image is required";
+    if (!isDraft) {
+      if (!validateRequired(formData.make)) {
+        newErrors.make = FORM_CONFIG.validation.makeRequired;
+      }
+      if (!validateRequired(formData.model)) {
+        newErrors.model = FORM_CONFIG.validation.modelRequired;
+      }
+      if (!validateYear(formData.year || 0)) {
+        newErrors.year = FORM_CONFIG.validation.invalidYear;
+      }
+      if (!validatePrice(formData.price || 0)) {
+        newErrors.price = FORM_CONFIG.validation.priceGreaterThanZero;
+      }
+      if (!validateMileage(formData.mileage || 0)) {
+        newErrors.mileage = FORM_CONFIG.validation.mileageNonNegative;
+      }
+      if (!validateRequired(formData.condition)) {
+        newErrors.condition = FORM_CONFIG.validation.selectCondition;
+      }
+      if (!validateRequired(formData.fuelType)) {
+        newErrors.fuelType = FORM_CONFIG.validation.fuelTypeRequired;
+      }
+      if (!validateRequired(formData.transmission)) {
+        newErrors.transmission = FORM_CONFIG.validation.transmissionRequired;
+      }
+      if (!validateRequired(formData.description) || (formData.description?.length || 0) < 10) {
+        newErrors.description = FORM_CONFIG.validation.descriptionMinLength;
+      }
+      if (!validateRequired(formData.location)) {
+        newErrors.location = FORM_CONFIG.validation.locationRequired;
+      }
+      if (!validatePhone(formData.contactPhone || "")) {
+        newErrors.contactPhone = FORM_CONFIG.validation.validPhoneRequired;
+      }
+      if (!validateEmail(formData.contactEmail || "")) {
+        newErrors.contactEmail = FORM_CONFIG.validation.validEmailRequired;
+      }
+      if (!validateImages(formData.images || [])) {
+        newErrors.images = FORM_CONFIG.validation.imageRequired;
+      }
+    } else {
+      if (!validateRequired(formData.make)) {
+        newErrors.make = FORM_CONFIG.validation.makeRequired;
+      }
+      if (!validateRequired(formData.model)) {
+        newErrors.model = FORM_CONFIG.validation.modelRequired;
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateForm()) {
+    if (validateForm(false)) {
       onSubmit(formData);
+    }
+  };
+  const handleSaveDraft = () => {
+    if (validateForm(true) && onSaveDraft) {
+      onSaveDraft(formData);
+      setShowConfirmDialog(false);
     }
   };
   const currentYear = (/* @__PURE__ */ new Date()).getFullYear();
   const years = Array.from({
     length: currentYear - 1900 + 2
   }, (_, i) => currentYear + 1 - i);
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("form", { onSubmit: handleSubmit, className: "space-y-6", children: [
-    /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Card, { children: [
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardTitle, { children: "Vehicle Information" }, void 0, false, {
+  return /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(import_jsx_dev_runtime9.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("form", { onSubmit: handleSubmit, className: "space-y-6", children: [
+      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Card, { children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardTitle, { children: FORM_CONFIG.ui.vehicleInformation }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 256,
+          columnNumber: 13
+        }, this) }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 255,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardContent, { className: "space-y-4", children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4", children: [
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "make", children: FORM_CONFIG.fields.make }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 261,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Select, { value: formData.make, onValueChange: handleSelectChange("make"), children: [
+                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectTrigger, { id: "make", "aria-invalid": !!errors.make, "aria-describedby": errors.make ? "make-error" : void 0, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectValue, { placeholder: FORM_CONFIG.placeholders.selectMake }, void 0, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 264,
+                  columnNumber: 21
+                }, this) }, void 0, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 263,
+                  columnNumber: 19
+                }, this),
+                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectContent, { children: [
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "toyota", children: FORM_CONFIG.options.makes.toyota }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 267,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "honda", children: FORM_CONFIG.options.makes.honda }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 268,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "ford", children: FORM_CONFIG.options.makes.ford }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 269,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "chevrolet", children: FORM_CONFIG.options.makes.chevrolet }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 270,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "bmw", children: FORM_CONFIG.options.makes.bmw }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 271,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "mercedes-benz", children: FORM_CONFIG.options.makes.mercedesBenz }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 272,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "audi", children: FORM_CONFIG.options.makes.audi }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 273,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "tesla", children: FORM_CONFIG.options.makes.tesla }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 274,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "other", children: FORM_CONFIG.options.makes.other }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 275,
+                    columnNumber: 21
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 266,
+                  columnNumber: 19
+                }, this)
+              ] }, void 0, true, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 262,
+                columnNumber: 17
+              }, this),
+              errors.make && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "make-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.make }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 278,
+                columnNumber: 33
+              }, this)
+            ] }, void 0, true, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 260,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "model", children: FORM_CONFIG.fields.model }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 284,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "model", value: formData.model, onChange: (e) => handleChange("model", e.target.value), "aria-invalid": !!errors.model, "aria-describedby": errors.model ? "model-error" : void 0 }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 285,
+                columnNumber: 17
+              }, this),
+              errors.model && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "model-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.model }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 286,
+                columnNumber: 34
+              }, this)
+            ] }, void 0, true, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 283,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "year", children: FORM_CONFIG.fields.year }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 292,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Select, { value: String(formData.year), onValueChange: (value) => handleChange("year", parseInt(value, 10)), children: [
+                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectTrigger, { id: "year", "aria-invalid": !!errors.year, "aria-describedby": errors.year ? "year-error" : void 0, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectValue, { placeholder: FORM_CONFIG.placeholders.selectYear }, void 0, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 295,
+                  columnNumber: 21
+                }, this) }, void 0, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 294,
+                  columnNumber: 19
+                }, this),
+                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectContent, { children: years.map((year) => /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: String(year), children: year }, year, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 298,
+                  columnNumber: 40
+                }, this)) }, void 0, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 297,
+                  columnNumber: 19
+                }, this)
+              ] }, void 0, true, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 293,
+                columnNumber: 17
+              }, this),
+              errors.year && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "year-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.year }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 303,
+                columnNumber: 33
+              }, this)
+            ] }, void 0, true, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 291,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "app/components/forms/CarListingForm.tsx",
+            lineNumber: 259,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "price", children: FORM_CONFIG.fields.price }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 311,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "price", type: "number", value: formData.price || "", onChange: (e) => handleChange("price", parseFloat(e.target.value)), "aria-invalid": !!errors.price, "aria-describedby": errors.price ? "price-error" : void 0 }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 312,
+                columnNumber: 17
+              }, this),
+              errors.price && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "price-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.price }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 313,
+                columnNumber: 34
+              }, this)
+            ] }, void 0, true, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 310,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "mileage", children: FORM_CONFIG.fields.mileage }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 319,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "mileage", type: "number", value: formData.mileage || "", onChange: (e) => handleChange("mileage", parseFloat(e.target.value)), "aria-invalid": !!errors.mileage, "aria-describedby": errors.mileage ? "mileage-error" : void 0 }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 320,
+                columnNumber: 17
+              }, this),
+              errors.mileage && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "mileage-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.mileage }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 321,
+                columnNumber: 36
+              }, this)
+            ] }, void 0, true, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 318,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "app/components/forms/CarListingForm.tsx",
+            lineNumber: 309,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "fuelType", children: FORM_CONFIG.fields.fuelType }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 331,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Select, { value: formData.fuelType, onValueChange: handleSelectChange("fuelType"), children: [
+                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectTrigger, { id: "fuelType", "aria-invalid": !!errors.fuelType, "aria-describedby": errors.fuelType ? "fuelType-error" : void 0, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectValue, { placeholder: FORM_CONFIG.placeholders.selectFuelType }, void 0, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 334,
+                  columnNumber: 21
+                }, this) }, void 0, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 333,
+                  columnNumber: 19
+                }, this),
+                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectContent, { children: [
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "Gasolina", children: FORM_CONFIG.options.fuelType.gasoline }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 337,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "Disel", children: FORM_CONFIG.options.fuelType.diesel }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 338,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "Electrico", children: FORM_CONFIG.options.fuelType.electric }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 339,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "Hibrido", children: FORM_CONFIG.options.fuelType.hybrid }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 340,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "Hibrido Conectable", children: FORM_CONFIG.options.fuelType.plugInHybrid }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 341,
+                    columnNumber: 21
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 336,
+                  columnNumber: 19
+                }, this)
+              ] }, void 0, true, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 332,
+                columnNumber: 17
+              }, this),
+              errors.fuelType && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "fuelType-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.fuelType }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 344,
+                columnNumber: 37
+              }, this)
+            ] }, void 0, true, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 330,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "transmission", children: FORM_CONFIG.fields.transmission }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 350,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Select, { value: formData.transmission, onValueChange: handleSelectChange("transmission"), children: [
+                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectTrigger, { id: "transmission", "aria-invalid": !!errors.transmission, "aria-describedby": errors.transmission ? "transmission-error" : void 0, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectValue, { placeholder: FORM_CONFIG.placeholders.selectTransmission }, void 0, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 353,
+                  columnNumber: 21
+                }, this) }, void 0, false, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 352,
+                  columnNumber: 19
+                }, this),
+                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectContent, { children: [
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "Automatico", children: FORM_CONFIG.options.transmission.automatic }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 356,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "Manual", children: FORM_CONFIG.options.transmission.manual }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 357,
+                    columnNumber: 21
+                  }, this),
+                  /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "Cvt", children: FORM_CONFIG.options.transmission.cvt }, void 0, false, {
+                    fileName: "app/components/forms/CarListingForm.tsx",
+                    lineNumber: 358,
+                    columnNumber: 21
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "app/components/forms/CarListingForm.tsx",
+                  lineNumber: 355,
+                  columnNumber: 19
+                }, this)
+              ] }, void 0, true, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 351,
+                columnNumber: 17
+              }, this),
+              errors.transmission && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "transmission-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.transmission }, void 0, false, {
+                fileName: "app/components/forms/CarListingForm.tsx",
+                lineNumber: 361,
+                columnNumber: 41
+              }, this)
+            ] }, void 0, true, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 349,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "app/components/forms/CarListingForm.tsx",
+            lineNumber: 327,
+            columnNumber: 13
+          }, this)
+        ] }, void 0, true, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 258,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
         fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 141,
-        columnNumber: 11
-      }, this) }, void 0, false, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 140,
+        lineNumber: 254,
         columnNumber: 9
       }, this),
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardContent, { className: "space-y-4", children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4", children: [
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "make", children: "Make *" }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 146,
-              columnNumber: 15
-            }, this),
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Select, { value: formData.make, onValueChange: handleSelectChange("make"), children: [
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectTrigger, { id: "make", "aria-invalid": !!errors.make, "aria-describedby": errors.make ? "make-error" : void 0, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectValue, { placeholder: "Select make" }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 149,
-                columnNumber: 19
-              }, this) }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 148,
-                columnNumber: 17
-              }, this),
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectContent, { children: [
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "toyota", children: "Toyota" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 152,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "honda", children: "Honda" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 153,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "ford", children: "Ford" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 154,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "chevrolet", children: "Chevrolet" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 155,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "bmw", children: "BMW" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 156,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "mercedes-benz", children: "Mercedes-Benz" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 157,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "audi", children: "Audi" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 158,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "tesla", children: "Tesla" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 159,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "other", children: "Other" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 160,
-                  columnNumber: 19
-                }, this)
-              ] }, void 0, true, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 151,
-                columnNumber: 17
-              }, this)
-            ] }, void 0, true, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 147,
-              columnNumber: 15
-            }, this),
-            errors.make && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "make-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.make }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 163,
-              columnNumber: 31
-            }, this)
-          ] }, void 0, true, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 145,
-            columnNumber: 13
-          }, this),
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "model", children: "Model *" }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 169,
-              columnNumber: 15
-            }, this),
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "model", value: formData.model, onChange: (e) => handleChange("model", e.target.value), "aria-invalid": !!errors.model, "aria-describedby": errors.model ? "model-error" : void 0 }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 170,
-              columnNumber: 15
-            }, this),
-            errors.model && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "model-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.model }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 171,
-              columnNumber: 32
-            }, this)
-          ] }, void 0, true, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 168,
-            columnNumber: 13
-          }, this),
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "year", children: "Year *" }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 177,
-              columnNumber: 15
-            }, this),
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Select, { value: String(formData.year), onValueChange: (value) => handleChange("year", parseInt(value, 10)), children: [
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectTrigger, { id: "year", "aria-invalid": !!errors.year, "aria-describedby": errors.year ? "year-error" : void 0, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectValue, { placeholder: "Select year" }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 180,
-                columnNumber: 19
-              }, this) }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 179,
-                columnNumber: 17
-              }, this),
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectContent, { children: years.map((year) => /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: String(year), children: year }, year, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 183,
-                columnNumber: 38
-              }, this)) }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 182,
-                columnNumber: 17
-              }, this)
-            ] }, void 0, true, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 178,
-              columnNumber: 15
-            }, this),
-            errors.year && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "year-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.year }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 188,
-              columnNumber: 31
-            }, this)
-          ] }, void 0, true, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 176,
-            columnNumber: 13
-          }, this)
-        ] }, void 0, true, {
+      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Card, { children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardTitle, { children: FORM_CONFIG.ui.additionalDetails }, void 0, false, {
           fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 144,
+          lineNumber: 371,
+          columnNumber: 13
+        }, this) }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 370,
           columnNumber: 11
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardContent, { className: "space-y-4", children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "price", children: "Price *" }, void 0, false, {
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "description", children: FORM_CONFIG.fields.description }, void 0, false, {
               fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 196,
+              lineNumber: 375,
               columnNumber: 15
             }, this),
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "price", type: "number", value: formData.price || "", onChange: (e) => handleChange("price", parseFloat(e.target.value)), "aria-invalid": !!errors.price, "aria-describedby": errors.price ? "price-error" : void 0 }, void 0, false, {
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Textarea, { id: "description", rows: 4, value: formData.description, onChange: (e) => handleChange("description", e.target.value), "aria-invalid": !!errors.description, "aria-describedby": errors.description ? "description-error" : void 0 }, void 0, false, {
               fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 197,
+              lineNumber: 376,
               columnNumber: 15
             }, this),
-            errors.price && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "price-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.price }, void 0, false, {
+            errors.description && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "description-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.description }, void 0, false, {
               fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 198,
-              columnNumber: 32
+              lineNumber: 377,
+              columnNumber: 38
             }, this)
           ] }, void 0, true, {
             fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 195,
+            lineNumber: 374,
             columnNumber: 13
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "mileage", children: "Mileage *" }, void 0, false, {
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "location", children: FORM_CONFIG.fields.location }, void 0, false, {
               fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 204,
+              lineNumber: 383,
               columnNumber: 15
             }, this),
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "mileage", type: "number", value: formData.mileage || "", onChange: (e) => handleChange("mileage", parseFloat(e.target.value)), "aria-invalid": !!errors.mileage, "aria-describedby": errors.mileage ? "mileage-error" : void 0 }, void 0, false, {
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "location", value: formData.location, onChange: (e) => handleChange("location", e.target.value), placeholder: "Ciudad, Estado", "aria-invalid": !!errors.location, "aria-describedby": errors.location ? "location-error" : void 0 }, void 0, false, {
               fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 205,
+              lineNumber: 384,
               columnNumber: 15
             }, this),
-            errors.mileage && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "mileage-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.mileage }, void 0, false, {
+            errors.location && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "location-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.location }, void 0, false, {
               fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 206,
-              columnNumber: 34
-            }, this)
-          ] }, void 0, true, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 203,
-            columnNumber: 13
-          }, this)
-        ] }, void 0, true, {
-          fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 194,
-          columnNumber: 11
-        }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4", children: [
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "condition", children: "Condition *" }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 214,
-              columnNumber: 15
-            }, this),
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Select, { value: formData.condition, onValueChange: handleSelectChange("condition"), children: [
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectTrigger, { id: "condition", "aria-invalid": !!errors.condition, "aria-describedby": errors.condition ? "condition-error" : void 0, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectValue, { placeholder: "Select condition" }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 217,
-                columnNumber: 19
-              }, this) }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 216,
-                columnNumber: 17
-              }, this),
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectContent, { children: [
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "new", children: "New" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 220,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "used", children: "Used" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 221,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "certified", children: "Certified Pre-Owned" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 222,
-                  columnNumber: 19
-                }, this)
-              ] }, void 0, true, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 219,
-                columnNumber: 17
-              }, this)
-            ] }, void 0, true, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 215,
-              columnNumber: 15
-            }, this),
-            errors.condition && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "condition-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.condition }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 225,
-              columnNumber: 36
-            }, this)
-          ] }, void 0, true, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 213,
-            columnNumber: 13
-          }, this),
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "fuelType", children: "Fuel Type *" }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 231,
-              columnNumber: 15
-            }, this),
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Select, { value: formData.fuelType, onValueChange: handleSelectChange("fuelType"), children: [
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectTrigger, { id: "fuelType", "aria-invalid": !!errors.fuelType, "aria-describedby": errors.fuelType ? "fuelType-error" : void 0, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectValue, { placeholder: "Select fuel type" }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 234,
-                columnNumber: 19
-              }, this) }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 233,
-                columnNumber: 17
-              }, this),
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectContent, { children: [
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "gasoline", children: "Gasoline" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 237,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "diesel", children: "Diesel" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 238,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "electric", children: "Electric" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 239,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "hybrid", children: "Hybrid" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 240,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "plug-in-hybrid", children: "Plug-in Hybrid" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 241,
-                  columnNumber: 19
-                }, this)
-              ] }, void 0, true, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 236,
-                columnNumber: 17
-              }, this)
-            ] }, void 0, true, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 232,
-              columnNumber: 15
-            }, this),
-            errors.fuelType && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "fuelType-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.fuelType }, void 0, false, {
-              fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 244,
+              lineNumber: 385,
               columnNumber: 35
             }, this)
           ] }, void 0, true, {
             fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 230,
+            lineNumber: 382,
             columnNumber: 13
-          }, this),
+          }, this)
+        ] }, void 0, true, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 373,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "app/components/forms/CarListingForm.tsx",
+        lineNumber: 369,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Card, { children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardTitle, { children: FORM_CONFIG.ui.contactInformation }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 394,
+          columnNumber: 13
+        }, this) }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 393,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardContent, { className: "space-y-4", children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
           /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "transmission", children: "Transmission *" }, void 0, false, {
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "contactPhone", children: FORM_CONFIG.fields.phone }, void 0, false, {
               fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 250,
-              columnNumber: 15
+              lineNumber: 399,
+              columnNumber: 17
             }, this),
-            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Select, { value: formData.transmission, onValueChange: handleSelectChange("transmission"), children: [
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectTrigger, { id: "transmission", "aria-invalid": !!errors.transmission, "aria-describedby": errors.transmission ? "transmission-error" : void 0, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectValue, { placeholder: "Select transmission" }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 253,
-                columnNumber: 19
-              }, this) }, void 0, false, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 252,
-                columnNumber: 17
-              }, this),
-              /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectContent, { children: [
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "automatic", children: "Automatic" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 256,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "manual", children: "Manual" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 257,
-                  columnNumber: 19
-                }, this),
-                /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(SelectItem, { value: "cvt", children: "CVT" }, void 0, false, {
-                  fileName: "app/components/forms/CarListingForm.tsx",
-                  lineNumber: 258,
-                  columnNumber: 19
-                }, this)
-              ] }, void 0, true, {
-                fileName: "app/components/forms/CarListingForm.tsx",
-                lineNumber: 255,
-                columnNumber: 17
-              }, this)
-            ] }, void 0, true, {
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "contactPhone", type: "tel", value: formData.contactPhone, onChange: (e) => handleChange("contactPhone", e.target.value), "aria-invalid": !!errors.contactPhone, "aria-describedby": errors.contactPhone ? "contactPhone-error" : void 0 }, void 0, false, {
               fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 251,
-              columnNumber: 15
+              lineNumber: 400,
+              columnNumber: 17
             }, this),
-            errors.transmission && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "transmission-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.transmission }, void 0, false, {
+            errors.contactPhone && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "contactPhone-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.contactPhone }, void 0, false, {
               fileName: "app/components/forms/CarListingForm.tsx",
-              lineNumber: 261,
-              columnNumber: 39
+              lineNumber: 401,
+              columnNumber: 41
             }, this)
           ] }, void 0, true, {
             fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 249,
-            columnNumber: 13
-          }, this)
-        ] }, void 0, true, {
-          fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 212,
-          columnNumber: 11
-        }, this)
-      ] }, void 0, true, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 143,
-        columnNumber: 9
-      }, this)
-    ] }, void 0, true, {
-      fileName: "app/components/forms/CarListingForm.tsx",
-      lineNumber: 139,
-      columnNumber: 7
-    }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Card, { children: [
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardTitle, { children: "Additional Details" }, void 0, false, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 271,
-        columnNumber: 11
-      }, this) }, void 0, false, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 270,
-        columnNumber: 9
-      }, this),
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardContent, { className: "space-y-4", children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "description", children: "Description *" }, void 0, false, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 275,
-            columnNumber: 13
-          }, this),
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Textarea, { id: "description", rows: 4, value: formData.description, onChange: (e) => handleChange("description", e.target.value), "aria-invalid": !!errors.description, "aria-describedby": errors.description ? "description-error" : void 0 }, void 0, false, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 276,
-            columnNumber: 13
-          }, this),
-          errors.description && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "description-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.description }, void 0, false, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 277,
-            columnNumber: 36
-          }, this)
-        ] }, void 0, true, {
-          fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 274,
-          columnNumber: 11
-        }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "location", children: "Location *" }, void 0, false, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 283,
-            columnNumber: 13
-          }, this),
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "location", value: formData.location, onChange: (e) => handleChange("location", e.target.value), "aria-invalid": !!errors.location, "aria-describedby": errors.location ? "location-error" : void 0 }, void 0, false, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 284,
-            columnNumber: 13
-          }, this),
-          errors.location && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "location-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.location }, void 0, false, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 285,
-            columnNumber: 33
-          }, this)
-        ] }, void 0, true, {
-          fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 282,
-          columnNumber: 11
-        }, this)
-      ] }, void 0, true, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 273,
-        columnNumber: 9
-      }, this)
-    ] }, void 0, true, {
-      fileName: "app/components/forms/CarListingForm.tsx",
-      lineNumber: 269,
-      columnNumber: 7
-    }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Card, { children: [
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardTitle, { children: "Contact Information" }, void 0, false, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 294,
-        columnNumber: 11
-      }, this) }, void 0, false, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 293,
-        columnNumber: 9
-      }, this),
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardContent, { className: "space-y-4", children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "contactPhone", children: "Phone Number *" }, void 0, false, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 299,
+            lineNumber: 398,
             columnNumber: 15
           }, this),
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "contactPhone", type: "tel", value: formData.contactPhone, onChange: (e) => handleChange("contactPhone", e.target.value), "aria-invalid": !!errors.contactPhone, "aria-describedby": errors.contactPhone ? "contactPhone-error" : void 0 }, void 0, false, {
+          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "contactEmail", children: FORM_CONFIG.fields.email }, void 0, false, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 407,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "contactEmail", type: "email", value: formData.contactEmail, onChange: (e) => handleChange("contactEmail", e.target.value), "aria-invalid": !!errors.contactEmail, "aria-describedby": errors.contactEmail ? "contactEmail-error" : void 0 }, void 0, false, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 408,
+              columnNumber: 17
+            }, this),
+            errors.contactEmail && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "contactEmail-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.contactEmail }, void 0, false, {
+              fileName: "app/components/forms/CarListingForm.tsx",
+              lineNumber: 409,
+              columnNumber: 41
+            }, this)
+          ] }, void 0, true, {
             fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 300,
+            lineNumber: 406,
             columnNumber: 15
-          }, this),
-          errors.contactPhone && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "contactPhone-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.contactPhone }, void 0, false, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 301,
-            columnNumber: 39
           }, this)
         ] }, void 0, true, {
           fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 298,
+          lineNumber: 397,
           columnNumber: 13
+        }, this) }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 396,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "app/components/forms/CarListingForm.tsx",
+        lineNumber: 392,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Card, { children: [
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardTitle, { children: FORM_CONFIG.ui.vehicleImages }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 419,
+          columnNumber: 13
+        }, this) }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 418,
+          columnNumber: 11
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { children: [
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Label, { htmlFor: "contactEmail", children: "Email *" }, void 0, false, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardContent, { children: [
+          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(ImageUpload, { label: "Subir Im\xE1genes del Veh\xEDculo *", maxFiles: 5, initialImages: formData.images || [], onImagesChange: (urls) => handleChange("images", urls) }, void 0, false, {
             fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 307,
-            columnNumber: 15
+            lineNumber: 422,
+            columnNumber: 13
           }, this),
-          /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Input, { id: "contactEmail", type: "email", value: formData.contactEmail, onChange: (e) => handleChange("contactEmail", e.target.value), "aria-invalid": !!errors.contactEmail, "aria-describedby": errors.contactEmail ? "contactEmail-error" : void 0 }, void 0, false, {
+          errors.images && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { role: "alert", className: "text-sm text-red-600 mt-1", children: errors.images }, void 0, false, {
             fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 308,
-            columnNumber: 15
-          }, this),
-          errors.contactEmail && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { id: "contactEmail-error", role: "alert", className: "text-sm text-red-600 mt-1", children: errors.contactEmail }, void 0, false, {
-            fileName: "app/components/forms/CarListingForm.tsx",
-            lineNumber: 309,
-            columnNumber: 39
+            lineNumber: 423,
+            columnNumber: 31
           }, this)
         ] }, void 0, true, {
           fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 306,
-          columnNumber: 13
-        }, this)
-      ] }, void 0, true, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 297,
-        columnNumber: 11
-      }, this) }, void 0, false, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 296,
-        columnNumber: 9
-      }, this)
-    ] }, void 0, true, {
-      fileName: "app/components/forms/CarListingForm.tsx",
-      lineNumber: 292,
-      columnNumber: 7
-    }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Card, { children: [
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardTitle, { children: "Vehicle Images" }, void 0, false, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 319,
-        columnNumber: 11
-      }, this) }, void 0, false, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 318,
-        columnNumber: 9
-      }, this),
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(CardContent, { children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(ImageUpload, { label: "Upload Vehicle Images *", maxFiles: 5, initialImages: formData.images || [], onImagesChange: (urls) => handleChange("images", urls) }, void 0, false, {
-          fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 322,
+          lineNumber: 421,
           columnNumber: 11
-        }, this),
-        errors.images && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("p", { role: "alert", className: "text-sm text-red-600 mt-1", children: errors.images }, void 0, false, {
-          fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 323,
-          columnNumber: 29
         }, this)
       ] }, void 0, true, {
         fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 321,
-        columnNumber: 9
-      }, this)
-    ] }, void 0, true, {
-      fileName: "app/components/forms/CarListingForm.tsx",
-      lineNumber: 317,
-      columnNumber: 7
-    }, this),
-    /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "flex justify-end space-x-4", children: [
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Button, { type: "button", variant: "outline", onClick: () => setShowConfirmDialog(true), children: "Save Draft" }, void 0, false, {
-        fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 330,
+        lineNumber: 417,
         columnNumber: 9
       }, this),
-      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Button, { type: "submit", disabled: isLoading, variant: status === "success" ? "success" : status === "error" ? "error" : "default", children: isLoading ? "Publishing..." : "Publish Listing" }, void 0, false, {
+      /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)("div", { className: "flex justify-end space-x-4", children: [
+        onSaveDraft && /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Button, { type: "button", variant: "outline", onClick: () => setShowConfirmDialog(true), disabled: isLoading, children: isLoading ? FORM_CONFIG.actions.savingDraft : FORM_CONFIG.actions.saveDraft }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 431,
+          columnNumber: 27
+        }, this),
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Button, { type: "submit", disabled: isLoading, variant: status === "success" ? "success" : status === "error" ? "error" : "default", children: isLoading ? FORM_CONFIG.actions.publishing : FORM_CONFIG.actions.publish }, void 0, false, {
+          fileName: "app/components/forms/CarListingForm.tsx",
+          lineNumber: 434,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
         fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 333,
+        lineNumber: 430,
         columnNumber: 9
       }, this)
     ] }, void 0, true, {
       fileName: "app/components/forms/CarListingForm.tsx",
-      lineNumber: 329,
+      lineNumber: 253,
       columnNumber: 7
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Dialog2, { open: showConfirmDialog, onOpenChange: setShowConfirmDialog, children: /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(DialogContent2, { children: [
       /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(DialogHeader, { children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(DialogTitle2, { children: "Save as Draft" }, void 0, false, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(DialogTitle2, { children: FORM_CONFIG.dialog.saveDraftTitle }, void 0, false, {
           fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 342,
+          lineNumber: 444,
           columnNumber: 13
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(DialogDescription2, { children: "This will save your listing as a draft. You can come back and edit it later before publishing." }, void 0, false, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(DialogDescription2, { children: FORM_CONFIG.dialog.saveDraftDescription }, void 0, false, {
           fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 343,
+          lineNumber: 445,
           columnNumber: 13
         }, this)
       ] }, void 0, true, {
         fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 341,
+        lineNumber: 443,
         columnNumber: 11
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(DialogFooter, { children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Button, { variant: "outline", onClick: () => setShowConfirmDialog(false), children: "Cancel" }, void 0, false, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Button, { variant: "outline", onClick: () => setShowConfirmDialog(false), children: FORM_CONFIG.actions.cancel }, void 0, false, {
           fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 348,
+          lineNumber: 450,
           columnNumber: 13
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Button, { onClick: () => {
-          setShowConfirmDialog(false);
-        }, children: "Save Draft" }, void 0, false, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime9.jsxDEV)(Button, { onClick: handleSaveDraft, children: FORM_CONFIG.dialog.confirmSave }, void 0, false, {
           fileName: "app/components/forms/CarListingForm.tsx",
-          lineNumber: 351,
+          lineNumber: 453,
           columnNumber: 13
         }, this)
       ] }, void 0, true, {
         fileName: "app/components/forms/CarListingForm.tsx",
-        lineNumber: 347,
+        lineNumber: 449,
         columnNumber: 11
       }, this)
     ] }, void 0, true, {
       fileName: "app/components/forms/CarListingForm.tsx",
-      lineNumber: 340,
+      lineNumber: 442,
       columnNumber: 9
     }, this) }, void 0, false, {
       fileName: "app/components/forms/CarListingForm.tsx",
-      lineNumber: 339,
+      lineNumber: 441,
       columnNumber: 7
     }, this)
   ] }, void 0, true, {
     fileName: "app/components/forms/CarListingForm.tsx",
-    lineNumber: 138,
+    lineNumber: 252,
     columnNumber: 10
   }, this);
 }
@@ -7238,28 +7293,44 @@ if (!window.$RefreshReg$ || !window.$RefreshSig$ || !window.$RefreshRuntime$) {
 }
 var prevRefreshReg;
 var prevRefreshSig;
-var _s22 = $RefreshSig$();
+var _s8 = $RefreshSig$();
 if (import.meta) {
   import.meta.hot = createHotContext(
     //@ts-expect-error
     "app\\routes\\listings_.new.tsx"
   );
-  import.meta.hot.lastModified = "1749091286855.1548";
+  import.meta.hot.lastModified = "1749179776622.5195";
 }
+var PAGE_TEXTS = {
+  header: {
+    backToListings: "Volver a Listados",
+    title: "Agregar Nuevo Listado de Auto",
+    subtitle: "Ingresa los detalles a continuaci\xF3n para crear un nuevo listado de veh\xEDculo"
+  },
+  messages: {
+    success: "\xA1Veh\xEDculo agregado exitosamente! Puedes agregar otro o ver el listado creado.",
+    error: "Error al crear el listado"
+  },
+  dialog: {
+    title: "Listado Creado Exitosamente",
+    description: "\xA1Tu listado de veh\xEDculo ha sido creado exitosamente!",
+    viewListing: "Ver Listado",
+    createAnother: "Crear Otro Listado"
+  }
+};
 function NewListing() {
-  _s22();
-  var _s8 = $RefreshSig$();
+  _s8();
   const {
     user
   } = useLoaderData();
   const actionData = useActionData();
   const navigation = useNavigation();
+  const submit = useSubmit();
   const [successMessage, setSuccessMessage] = (0, import_react6.useState)(null);
   const [formStatus, setFormStatus] = (0, import_react6.useState)("idle");
   const [showSuccessDialog, setShowSuccessDialog] = (0, import_react6.useState)(false);
   const isSubmitting = navigation.state === "submitting";
   const handleSubmit = (data) => {
-    _s8();
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== void 0 && value !== null) {
@@ -7270,24 +7341,20 @@ function NewListing() {
         }
       }
     });
-    const submit = useSubmit();
     submit(formData, {
       method: "post"
     });
   };
-  _s8(handleSubmit, "/qFIYzOq2OE/SSM69ffcyD0/sOE=", false, function() {
-    return [useSubmit];
-  });
   (0, import_react6.useEffect)(() => {
     if (actionData) {
       if ("success" in actionData && actionData.success) {
         setFormStatus("success");
-        setSuccessMessage(`Vehicle added successfully! You can add another or view the created listing.`);
+        setSuccessMessage(actionData.message || PAGE_TEXTS.messages.success);
         setShowSuccessDialog(true);
-        toast.success("Vehicle listing created successfully!");
+        toast.success("\xA1Listado de veh\xEDculo creado exitosamente!");
       } else if ("error" in actionData) {
         setFormStatus("error");
-        toast.error(actionData.error || "Failed to create listing");
+        toast.error(actionData.error || PAGE_TEXTS.messages.error);
       }
     }
   }, [actionData]);
@@ -7301,109 +7368,118 @@ function NewListing() {
       /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Link, { to: "/admin/listings", className: "flex items-center space-x-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(ChevronLeft, { className: "w-5 h-5" }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 214,
+          lineNumber: 211,
           columnNumber: 17
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("span", { className: "font-medium", children: "Back to Listings" }, void 0, false, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("span", { className: "font-medium", children: PAGE_TEXTS.header.backToListings }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 215,
+          lineNumber: 212,
           columnNumber: 17
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 213,
+        lineNumber: 210,
         columnNumber: 15
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("div", { className: "flex items-center space-x-2", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Badge, { variant: user.role === "admin" ? "default" : "secondary", children: user.role }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 219,
+          lineNumber: 216,
           columnNumber: 17
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("span", { className: "text-sm text-gray-600 dark:text-gray-300", children: user.name }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 222,
+          lineNumber: 219,
           columnNumber: 17
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 218,
+        lineNumber: 215,
         columnNumber: 15
       }, this)
     ] }, void 0, true, {
       fileName: "app/routes/listings_.new.tsx",
-      lineNumber: 212,
+      lineNumber: 209,
       columnNumber: 13
     }, this) }, void 0, false, {
       fileName: "app/routes/listings_.new.tsx",
-      lineNumber: 211,
+      lineNumber: 208,
       columnNumber: 11
     }, this) }, void 0, false, {
       fileName: "app/routes/listings_.new.tsx",
-      lineNumber: 210,
+      lineNumber: 207,
       columnNumber: 9
     }, this),
     /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("main", { className: "max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12", children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("div", { className: "space-y-6", children: [
       /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("div", { className: "text-center space-y-2", children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("h1", { className: "text-3xl font-bold text-gray-900 dark:text-white", children: "Add New Car Listing" }, void 0, false, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("h1", { className: "text-3xl font-bold text-gray-900 dark:text-white", children: PAGE_TEXTS.header.title }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 232,
+          lineNumber: 229,
           columnNumber: 15
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("p", { className: "text-gray-600 dark:text-gray-400", children: "Enter the details below to create a new vehicle listing" }, void 0, false, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("p", { className: "text-gray-600 dark:text-gray-400", children: PAGE_TEXTS.header.subtitle }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 235,
+          lineNumber: 232,
           columnNumber: 15
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 231,
+        lineNumber: 228,
         columnNumber: 13
       }, this),
       successMessage && /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Card, { className: "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800", children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(CardContent, { className: "flex justify-between items-center p-4", children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("p", { className: "text-green-700 dark:text-green-300", children: successMessage }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 243,
+          lineNumber: 240,
           columnNumber: 19
         }, this),
-        actionData && "listingId" in actionData && /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Button, { variant: "outline", size: "sm", asChild: true, children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Link, { to: `/listings/${actionData.listingId}`, children: "View Listing" }, void 0, false, {
+        actionData && "listingId" in actionData && /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Button, { variant: "outline", size: "sm", asChild: true, children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Link, { to: `/listings/${actionData.listingId}`, children: PAGE_TEXTS.dialog.viewListing }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 245,
+          lineNumber: 242,
           columnNumber: 23
         }, this) }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 244,
+          lineNumber: 241,
           columnNumber: 63
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 242,
+        lineNumber: 239,
         columnNumber: 17
       }, this) }, void 0, false, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 241,
+        lineNumber: 238,
         columnNumber: 32
       }, this),
       actionData && "error" in actionData && /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Card, { className: "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800", children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(CardContent, { className: "p-4", children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("p", { className: "text-red-700 dark:text-red-300", children: actionData.error }, void 0, false, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 255,
+        lineNumber: 252,
         columnNumber: 19
       }, this) }, void 0, false, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 254,
+        lineNumber: 251,
         columnNumber: 17
       }, this) }, void 0, false, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 253,
+        lineNumber: 250,
         columnNumber: 53
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(CarListingForm, { onSubmit: handleSubmit, isLoading: isSubmitting, status: formStatus, defaultValues: {} }, void 0, false, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 260,
+        lineNumber: 257,
         columnNumber: 11
       }, this),
       /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Dialog2, { open: showSuccessDialog, onOpenChange: setShowSuccessDialog, children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(DialogContent2, { children: [
-        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(DialogTitle2, { children: "Listing Created Successfully" }, void 0, false, {
+        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(DialogTitle2, { children: PAGE_TEXTS.dialog.title }, void 0, false, {
+          fileName: "app/routes/listings_.new.tsx",
+          lineNumber: 263,
+          columnNumber: 17
+        }, this) }, void 0, false, {
+          fileName: "app/routes/listings_.new.tsx",
+          lineNumber: 262,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("div", { className: "py-4", children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("p", { className: "text-gray-700", children: PAGE_TEXTS.dialog.description }, void 0, false, {
           fileName: "app/routes/listings_.new.tsx",
           lineNumber: 266,
           columnNumber: 17
@@ -7412,68 +7488,59 @@ function NewListing() {
           lineNumber: 265,
           columnNumber: 15
         }, this),
-        /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("div", { className: "py-4", children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)("p", { className: "text-gray-700", children: "Your vehicle listing has been created successfully!" }, void 0, false, {
-          fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 269,
-          columnNumber: 17
-        }, this) }, void 0, false, {
-          fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 268,
-          columnNumber: 15
-        }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(DialogFooter, { className: "flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0", children: [
-          actionData && "listingId" in actionData && /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Button, { asChild: true, children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Link, { to: `/listings/${actionData.listingId}`, children: "View Listing" }, void 0, false, {
+          actionData && "listingId" in actionData && /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Button, { asChild: true, children: /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Link, { to: `/listings/${actionData.listingId}`, children: PAGE_TEXTS.dialog.viewListing }, void 0, false, {
             fileName: "app/routes/listings_.new.tsx",
-            lineNumber: 273,
+            lineNumber: 270,
             columnNumber: 21
           }, this) }, void 0, false, {
             fileName: "app/routes/listings_.new.tsx",
-            lineNumber: 272,
+            lineNumber: 269,
             columnNumber: 61
           }, this),
           /* @__PURE__ */ (0, import_jsx_dev_runtime12.jsxDEV)(Button, { variant: "outline", onClick: () => {
             setShowSuccessDialog(false);
             setFormStatus("idle");
-          }, children: "Create Another Listing" }, void 0, false, {
+          }, children: PAGE_TEXTS.dialog.createAnother }, void 0, false, {
             fileName: "app/routes/listings_.new.tsx",
-            lineNumber: 277,
+            lineNumber: 274,
             columnNumber: 17
           }, this)
         ] }, void 0, true, {
           fileName: "app/routes/listings_.new.tsx",
-          lineNumber: 271,
+          lineNumber: 268,
           columnNumber: 15
         }, this)
       ] }, void 0, true, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 264,
+        lineNumber: 261,
         columnNumber: 13
       }, this) }, void 0, false, {
         fileName: "app/routes/listings_.new.tsx",
-        lineNumber: 263,
+        lineNumber: 260,
         columnNumber: 11
       }, this)
     ] }, void 0, true, {
       fileName: "app/routes/listings_.new.tsx",
-      lineNumber: 229,
+      lineNumber: 226,
       columnNumber: 11
     }, this) }, void 0, false, {
       fileName: "app/routes/listings_.new.tsx",
-      lineNumber: 228,
+      lineNumber: 225,
       columnNumber: 9
     }, this)
   ] }, void 0, true, {
     fileName: "app/routes/listings_.new.tsx",
-    lineNumber: 208,
+    lineNumber: 205,
     columnNumber: 7
   }, this) }, void 0, false, {
     fileName: "app/routes/listings_.new.tsx",
-    lineNumber: 207,
+    lineNumber: 204,
     columnNumber: 10
   }, this);
 }
-_s22(NewListing, "b/4uVhfJMSrgLvxTGh7KzCWpPJA=", false, function() {
-  return [useLoaderData, useActionData, useNavigation];
+_s8(NewListing, "eyGYYYSj6FBEIFbTAWpPMV9W6jw=", false, function() {
+  return [useLoaderData, useActionData, useNavigation, useSubmit];
 });
 _c15 = NewListing;
 var _c15;
@@ -7502,4 +7569,4 @@ object-assign/index.js:
   @license MIT
   *)
 */
-//# sourceMappingURL=/build/routes/listings_.new-2LNW3GPC.js.map
+//# sourceMappingURL=/build/routes/listings_.new-PEMN7KI6.js.map

@@ -1,5 +1,5 @@
-import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
-import { useActionData, Link, useNavigation, useLoaderData, useSubmit } from "@remix-run/react";
+import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
+import { useActionData, Link, useNavigation, useLoaderData, useSubmit, Form } from "@remix-run/react";
 import { ListingModel } from "~/models/Listing";
 import { requireAdmin } from "~/lib/auth.server";
 import { CarListingForm } from "~/components/forms/CarListingForm";
@@ -12,7 +12,7 @@ import { AnimationProvider } from "~/components/AnimationProvider";
 import { toast } from "~/components/ui/toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "~/components/ui/dialog";
 
-// 🌐 Configuración de textos en español para la página
+//  Configuración de textos en español para la página
 const PAGE_TEXTS = {
   header: {
     backToListings: "Volver a Listados",
@@ -51,11 +51,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const year = parseInt(formData.get("year") as string);
   const price = parseFloat(formData.get("price") as string);
   const mileage = parseFloat(formData.get("mileage") as string);
-  const conditionValue = formData.get("condition") as "new" | "used" | "certified";
   const fuelTypeValue = formData.get("fuelType") as string;
   const transmissionValue = formData.get("transmission") as string;
   const locationValue = formData.get("location") as string;
   const description = formData.get("description") as string;
+  const contactPhone = formData.get("contactPhone") as string;
+  const contactEmail = formData.get("contactEmail") as string;
+  const images = formData.get("images") as string;
   
   // Convert to expected types for the model
   const fuelType = fuelTypeValue as "gasolina" | "diesel" | "hibrido" | "electrico" | undefined;
@@ -65,14 +67,10 @@ export async function action({ request }: ActionFunctionArgs) {
     state: locationValue.split(',')[1]?.trim() || ""
   } : undefined;
   
-  const contactPhone = formData.get("contactPhone") as string;
-  const contactEmail = formData.get("contactEmail") as string;
-  
   const contactInfo = {
     phone: contactPhone,
     email: contactEmail
   };
-  const images = formData.get("images") as string;
   
   const title = `${year} ${make} ${model}`;
   
@@ -102,7 +100,6 @@ export async function action({ request }: ActionFunctionArgs) {
       year,
       price,
       mileage,
-      isFeatured: conditionValue === "certified",
       fuelType,
       transmission,
       location,
@@ -126,15 +123,18 @@ export default function NewListing() {
   const { user } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const submit = useSubmit(); //  Hook en el nivel superior
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">("idle");
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   
   const isSubmitting = navigation.state === "submitting";
   
+  //  Función corregida para manejar envío del formulario
   const handleSubmit = (data: any) => {
     const formData = new FormData();
     
+    // Agregar todos los campos del formulario
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         if (key === "images" && Array.isArray(value)) {
@@ -145,7 +145,7 @@ export default function NewListing() {
       }
     });
     
-    const submit = useSubmit();
+    // Enviar el formulario
     submit(formData, { method: "post" });
   };
   
@@ -231,7 +231,7 @@ export default function NewListing() {
               </Card>
             )}
 
-          {/* Car Listing Form */}
+          {/* ✅ Car Listing Form corregido */}
           <CarListingForm
             onSubmit={handleSubmit}
             isLoading={isSubmitting}
