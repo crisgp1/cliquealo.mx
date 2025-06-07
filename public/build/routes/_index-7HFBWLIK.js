@@ -60,7 +60,7 @@ if (import.meta) {
     //@ts-expect-error
     "app\\routes\\_index.tsx"
   );
-  import.meta.hot.lastModified = "1749086516602.6438";
+  import.meta.hot.lastModified = "1749257382648.157";
 }
 function Index() {
   _s();
@@ -624,4 +624,4 @@ window.$RefreshSig$ = prevRefreshSig;
 export {
   Index as default
 };
-//# sourceMappingURL=/build/routes/_index-C76Y2OS3.js.map
+//# sourceMappingURL=/build/routes/_index-7HFBWLIK.js.map

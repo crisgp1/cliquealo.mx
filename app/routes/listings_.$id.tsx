@@ -5,6 +5,7 @@ import { ListingModel } from "~/models/Listing"
 import { UserModel } from "~/models/User"
 import { getUser } from "~/lib/session.server"
 import { requireUser, Auth } from "~/lib/auth.server"
+import { toast } from "~/components/ui/toast"
 import { 
   ArrowLeft, 
   Heart, 
@@ -30,24 +31,34 @@ import { useState, useEffect } from 'react'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const listingId = params.id
+  console.log('🎯 LOADER - Listing ID:', listingId)
+  
   if (!listingId) {
+    console.log('❌ No hay listingId en params')
     throw new Response("Not Found", { status: 404 })
   }
 
   const user = await getUser(request)
+  console.log('👤 Usuario actual:', user?.name || 'No logueado')
   
   // Buscar el listing con información del dueño
   const listing = await ListingModel.findByIdWithUser(listingId)
+  console.log('📄 Listing encontrado:', !!listing)
+  
   if (!listing) {
+    console.log('❌ Listing no encontrado para ID:', listingId)
     throw new Response("Listing no encontrado", { status: 404 })
   }
+
+  console.log('📝 Título del listing:', listing.title)
+  console.log('👨‍💼 Propietario:', listing.owner?.name)
 
   // Incrementar contador de vistas (solo si no es el dueño)
   if (!user || listing.user.toString() !== user._id?.toString()) {
     await ListingModel.incrementViews(listingId)
   }
 
-  // Verificar si el usuario le dio like
+  // Verificar si el usuario le dio like (solo si está logueado)
   const hasLiked = user ? await UserModel.hasLiked(user._id!.toString(), listingId) : false
   
   // Obtener autos similares
@@ -55,6 +66,11 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   
   // Verificar permisos de edición
   const canEdit = user ? Auth.canEditListing(user, listing) : false
+
+  console.log('🔍 Loader debug:')
+  console.log('- Usuario:', user?.name || 'No logueado')
+  console.log('- Has liked:', hasLiked)
+  console.log('- Can edit:', canEdit)
 
   return json({ 
     listing, 
@@ -67,24 +83,52 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 export async function action({ params, request }: ActionFunctionArgs) {
   const listingId = params.id
+  console.log('🎯 ACTION EJECUTADO - Listing ID:', listingId)
+  
   if (!listingId) {
+    console.log('❌ No listing ID')
     throw new Response("Not Found", { status: 404 })
   }
 
-  const user = await requireUser(request)
+  // Verificar si hay usuario autenticado
+  let user
+  try {
+    user = await requireUser(request)
+    console.log('✅ Usuario autenticado:', user.name, 'ID:', user._id)
+  } catch (error) {
+    console.log('❌ Usuario NO autenticado')
+    return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
+  }
+
   const formData = await request.formData()
   const intent = formData.get("intent") as string
+  console.log('🎯 Intent recibido:', intent)
 
   try {
     switch (intent) {
       case "like": {
-        await UserModel.likeListing(user._id!.toString(), listingId)
-        return json({ success: true, action: "liked" })
+        console.log('➕ Procesando LIKE...')
+        const success = await UserModel.likeListing(user._id!.toString(), listingId)
+        console.log('✅ Resultado LIKE:', success)
+        
+        if (success) {
+          return json({ success: true, action: "liked" })
+        } else {
+          console.log('❌ No se pudo dar like (posiblemente es el dueño)')
+          return json({ error: "No puedes dar like a tu propio auto" }, { status: 400 })
+        }
       }
       
       case "unlike": {
-        await UserModel.unlikeListing(user._id!.toString(), listingId)
-        return json({ success: true, action: "unliked" })
+        console.log('➖ Procesando UNLIKE...')
+        const success = await UserModel.unlikeListing(user._id!.toString(), listingId)
+        console.log('✅ Resultado UNLIKE:', success)
+        
+        if (success) {
+          return json({ success: true, action: "unliked" })
+        } else {
+          return json({ error: "No se pudo quitar el like" }, { status: 400 })
+        }
       }
       
       case "delete": {
@@ -98,10 +142,11 @@ export async function action({ params, request }: ActionFunctionArgs) {
       }
       
       default:
+        console.log('❌ Intent no válido:', intent)
         throw new Response("Acción no válida", { status: 400 })
     }
   } catch (error) {
-    console.error("Error en action:", error)
+    console.error("💥 Error en action:", error)
     return json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
@@ -116,12 +161,50 @@ export default function ListingDetail() {
   const isLiking = likeFetcher.state !== "idle"
   const isDeleting = navigation.state === "submitting" && navigation.formData?.get("intent") === "delete"
 
-  // Determinar estado actual de like
-  const currentlyLiked = (likeFetcher.data as ActionResponse | undefined)?.action === "liked" 
-    ? true 
-    : (likeFetcher.data as ActionResponse | undefined)?.action === "unliked"
-    ? false 
-    : hasLiked
+  // 🔥 SOLUCIÓN: Estado optimista REAL - ARREGLADO TYPESCRIPT
+  const getCurrentlyLiked = (): boolean => {
+    // 1. Si hay FormData pendiente (estado optimista)
+    if (likeFetcher.formData) {
+      const intent = likeFetcher.formData.get("intent")
+      const intentStr = typeof intent === 'string' ? intent : ''
+      console.log('🔄 Estado optimista - Intent:', intentStr)
+      return intentStr === "like"
+    }
+    
+    // 2. Si hay respuesta del servidor
+    if (likeFetcher.data) {
+      const data = likeFetcher.data as ActionResponse | undefined
+      console.log('📡 Respuesta servidor - Action:', data?.action)
+      if (data?.action === "liked") return true
+      if (data?.action === "unliked") return false
+      if (data?.error) return hasLiked // Mantener estado original en error
+    }
+    
+    // 3. Estado inicial del loader
+    return hasLiked
+  }
+
+  const currentlyLiked = getCurrentlyLiked()
+
+  // Mostrar feedback del fetcher
+  useEffect(() => {
+    if (likeFetcher.data) {
+      const data = likeFetcher.data as ActionResponse | undefined
+      
+      if (data?.error) {
+        console.error('❌ Error en like:', data.error)
+        toast.error(data.error)
+      } else if (data?.success) {
+        if (data.action === "liked") {
+          console.log('✅ Like exitoso')
+          toast.success("Agregado a favoritos ❤️")
+        } else if (data.action === "unliked") {
+          console.log('✅ Unlike exitoso')
+          toast.success("Removido de favoritos")
+        }
+      }
+    }
+  }, [likeFetcher.data])
 
   const images = listing.images || []
   const hasImages = images.length > 0
@@ -164,7 +247,24 @@ export default function ListingDetail() {
     } else {
       // Fallback: copiar al clipboard
       navigator.clipboard.writeText(window.location.href)
-      alert('¡Enlace copiado al portapapeles!')
+      toast.success('¡Enlace copiado al portapapeles!')
+    }
+  }
+
+  // 🔧 HELPER para obtener intent de forma segura
+  const getCurrentIntent = (): string => {
+    if (!likeFetcher.formData) return 'none'
+    const intent = likeFetcher.formData.get('intent')
+    return typeof intent === 'string' ? intent : 'unknown'
+  }
+
+  // 🔧 HELPER para formatear datos del fetcher de forma segura
+  const getFetcherDataString = (): string => {
+    if (!likeFetcher.data) return 'null'
+    try {
+      return JSON.stringify(likeFetcher.data)
+    } catch {
+      return 'error-serializing'
     }
   }
 
@@ -190,21 +290,48 @@ export default function ListingDetail() {
             </Link>
 
             <div className="flex items-center space-x-2">
+              {/* 🔥 SOLUCIÓN: Botón de Like Corregido - SIN ERRORES TYPESCRIPT */}
               {user && (
-                <likeFetcher.Form method="post">
-                  <input type="hidden" name="intent" value={currentlyLiked ? "unlike" : "like"} />
+                <likeFetcher.Form method="post" style={{ display: 'inline' }}>
+                  <input 
+                    type="hidden" 
+                    name="intent" 
+                    value={currentlyLiked ? "unlike" : "like"} 
+                  />
                   <button
                     type="submit"
                     disabled={isLiking}
-                    className={`p-2 rounded-full transition-colors ${
+                    className={`p-2 rounded-full transition-all duration-200 ${
                       currentlyLiked
-                        ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200 scale-110'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${isLiking ? 'opacity-50 cursor-not-allowed animate-pulse' : 'hover:scale-105'}`}
+                    title={currentlyLiked ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                    onClick={() => {
+                      console.log('💗 Click en corazón - Estado actual:', currentlyLiked)
+                      console.log('👤 Usuario:', user.name)
+                      console.log('🔄 Fetcher state:', likeFetcher.state)
+                      console.log('📤 Enviando intent:', currentlyLiked ? 'unlike' : 'like')
+                    }}
                   >
-                    <Heart className={`w-5 h-5 ${currentlyLiked ? 'fill-current' : ''}`} />
+                    <Heart 
+                      className={`w-5 h-5 transition-all duration-200 ${
+                        currentlyLiked ? 'fill-current text-red-600' : 'text-gray-600'
+                      }`} 
+                    />
                   </button>
                 </likeFetcher.Form>
+              )}
+              
+              {/* Si no hay usuario, mostrar corazón deshabilitado */}
+              {!user && (
+                <button
+                  disabled
+                  className="p-2 rounded-full bg-gray-100 text-gray-400 cursor-not-allowed"
+                  title="Inicia sesión para dar like"
+                >
+                  <Heart className="w-5 h-5" />
+                </button>
               )}
               
               <button
@@ -584,6 +711,8 @@ export default function ListingDetail() {
           </div>
         </div>
       )}
+
+    
     </div>
   )
 }

@@ -58,7 +58,7 @@ if (import.meta) {
     //@ts-expect-error
     "app\\routes\\listings.tsx"
   );
-  import.meta.hot.lastModified = "1748918744066.3904";
+  import.meta.hot.lastModified = "1749186923900.6226";
 }
 function ListingsIndex() {
   _s();
@@ -624,4 +624,4 @@ window.$RefreshSig$ = prevRefreshSig;
 export {
   ListingsIndex as default
 };
-//# sourceMappingURL=/build/routes/listings-TR4QFPFQ.js.map
+//# sourceMappingURL=/build/routes/listings-N4TDEHKC.js.map
