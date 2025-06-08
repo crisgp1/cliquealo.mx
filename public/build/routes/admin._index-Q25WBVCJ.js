@@ -11,15 +11,15 @@ import {
 import {
   Link,
   useLoaderData
-} from "/build/_shared/chunk-UPSJBP36.js";
+} from "/build/_shared/chunk-XUSZDHZA.js";
+import {
+  createHotContext
+} from "/build/_shared/chunk-QA5V5W5C.js";
 import "/build/_shared/chunk-U4FRFQSK.js";
 import {
   require_jsx_dev_runtime
 } from "/build/_shared/chunk-XGOTYLZ5.js";
 import "/build/_shared/chunk-7M6SC7J5.js";
-import {
-  createHotContext
-} from "/build/_shared/chunk-QA5V5W5C.js";
 import "/build/_shared/chunk-UWV35TSL.js";
 import {
   __commonJS,
@@ -317,4 +317,4 @@ window.$RefreshSig$ = prevRefreshSig;
 export {
   AdminDashboard as default
 };
-//# sourceMappingURL=/build/routes/admin._index-GL3HOQYG.js.map
+//# sourceMappingURL=/build/routes/admin._index-Q25WBVCJ.js.map

@@ -1,4 +1,7 @@
 import {
+  createHotContext
+} from "/build/_shared/chunk-QA5V5W5C.js";
+import {
   require_react_dom
 } from "/build/_shared/chunk-U4FRFQSK.js";
 import {
@@ -7,9 +10,6 @@ import {
 import {
   require_react
 } from "/build/_shared/chunk-7M6SC7J5.js";
-import {
-  createHotContext
-} from "/build/_shared/chunk-QA5V5W5C.js";
 import {
   __toESM
 } from "/build/_shared/chunk-PNG5AS42.js";
@@ -1198,23 +1198,38 @@ if (import.meta) {
     //@ts-expect-error
     "app\\components\\ui\\toast.tsx"
   );
-  import.meta.hot.lastModified = "1749261056424.2063";
+  import.meta.hot.lastModified = "1749341024972.0461";
 }
 function Toaster3({
   position = "top-right",
-  richColors = true,
+  richColors = false,
   closeButton = true
 }) {
-  return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Toaster, { position, richColors, closeButton, className: "toaster group", toastOptions: {
+  return /* @__PURE__ */ (0, import_jsx_dev_runtime.jsxDEV)(Toaster, { position, richColors, closeButton, expand: false, visibleToasts: 3, duration: 3e3, style: {
+    top: "1rem",
+    right: "1rem",
+    bottom: "auto",
+    left: "auto",
+    zIndex: 9999,
+    position: "fixed"
+  }, className: "toaster group !fixed !top-4 !right-4 !bottom-auto !left-auto !z-[9999]", toastOptions: {
+    style: {
+      background: "white",
+      border: "1px solid #e5e7eb",
+      borderRadius: "12px",
+      padding: "12px 16px",
+      fontSize: "14px",
+      fontWeight: "500",
+      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
+    },
     classNames: {
-      toast: "group toast group-[.toaster]:bg-white group-[.toaster]:text-gray-900 group-[.toaster]:border-gray-200 group-[.toaster]:shadow-lg dark:group-[.toaster]:bg-gray-800 dark:group-[.toaster]:text-gray-50 dark:group-[.toaster]:border-gray-700",
-      description: "group-[.toast]:text-gray-500 dark:group-[.toast]:text-gray-400",
-      actionButton: "group-[.toast]:bg-primary-600 group-[.toast]:text-primary-50",
-      cancelButton: "group-[.toast]:bg-gray-100 group-[.toast]:text-gray-900",
-      success: "group-[.toaster]:bg-green-50 group-[.toaster]:text-green-800 group-[.toaster]:border-green-200 dark:group-[.toaster]:bg-green-900/20 dark:group-[.toaster]:text-green-300 dark:group-[.toaster]:border-green-800",
-      error: "group-[.toaster]:bg-red-50 group-[.toaster]:text-red-800 group-[.toaster]:border-red-200 dark:group-[.toaster]:bg-red-900/20 dark:group-[.toaster]:text-red-300 dark:group-[.toaster]:border-red-800",
-      warning: "group-[.toaster]:bg-yellow-50 group-[.toaster]:text-yellow-800 group-[.toaster]:border-yellow-200 dark:group-[.toaster]:bg-yellow-900/20 dark:group-[.toaster]:text-yellow-300 dark:group-[.toaster]:border-yellow-800",
-      info: "group-[.toaster]:bg-blue-50 group-[.toaster]:text-blue-800 group-[.toaster]:border-blue-200 dark:group-[.toaster]:bg-blue-900/20 dark:group-[.toaster]:text-blue-300 dark:group-[.toaster]:border-blue-800"
+      toast: "!bg-white !text-gray-900 !border-gray-200 !shadow-lg !rounded-xl !p-3",
+      title: "!text-gray-900 !font-medium !text-sm",
+      description: "!text-gray-600 !text-sm",
+      success: "!bg-green-50 !text-green-800 !border-green-200",
+      error: "!bg-red-50 !text-red-800 !border-red-200",
+      warning: "!bg-yellow-50 !text-yellow-800 !border-yellow-200",
+      info: "!bg-blue-50 !text-blue-800 !border-blue-200"
     }
   } }, void 0, false, {
     fileName: "app/components/ui/toast.tsx",
@@ -1232,4 +1247,4 @@ export {
   toast,
   Toaster3 as Toaster
 };
-//# sourceMappingURL=/build/_shared/chunk-UYPXJME5.js.map
+//# sourceMappingURL=/build/_shared/chunk-6JM7CQRR.js.map

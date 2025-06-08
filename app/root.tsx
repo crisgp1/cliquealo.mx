@@ -13,7 +13,7 @@ import { json } from "@remix-run/node";
 import { useState } from "react";
 import { getUser } from "~/lib/session.server";
 import { Auth } from "~/lib/auth.server";
-import { X, Plus, User, LogOut, Shield } from "lucide-react";
+import { X, Plus, User, LogOut, Shield, Heart } from "lucide-react"; // 🔥 AGREGADO Heart
 
 import { Toaster } from "~/components/ui/toast";
 import styles from "./tailwind.css";
@@ -78,6 +78,18 @@ export default function App() {
               <Link to="/listings" className="text-gray-600 hover:text-black transition-colors text-sm">
                 Explorar
               </Link>
+              
+              {/* Enlace a favoritos (solo si hay usuario) */}
+              {user && (
+                <Link 
+                  to="/favorites"
+                  className="text-gray-600 hover:text-black transition-colors text-sm flex items-center gap-1"
+                >
+                  <Heart className="w-3.5 h-3.5" />
+                  <span>Favoritos</span>
+                </Link>
+              )}
+              
               <Link to="/about" className="text-gray-600 hover:text-black transition-colors text-sm">
                 Nosotros
               </Link>
@@ -120,7 +132,7 @@ export default function App() {
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                       <User className="w-4 h-4 text-gray-600" />
                     </div>
-                    {/* ✅ LOGOUT CORREGIDO - DESKTOP */}
+                    {/* LOGOUT DESKTOP */}
                     <Form method="post" action="/auth/logout" className="inline">
                       <button
                         type="submit"
@@ -180,6 +192,19 @@ export default function App() {
                 >
                   Explorar Catálogo
                 </Link>
+                
+                {/*Enlace a favoritos en móvil (solo si hay usuario) */}
+                {user && (
+                  <Link 
+                    to="/favorites"
+                    className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2 flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Heart className="w-4 h-4" />
+                    Mis Favoritos
+                  </Link>
+                )}
+                
                 <Link 
                   to="/about" 
                   className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium py-2"
@@ -205,7 +230,7 @@ export default function App() {
                     Panel de Administración
                   </Link>
                 )}
-                {/* ✅ LOGOUT CORREGIDO - MÓVIL */}
+                {/* LOGOUT */}
                 {user && (
                   <Form method="post" action="/auth/logout" className="block">
                     <button

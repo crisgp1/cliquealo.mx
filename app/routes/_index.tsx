@@ -1,7 +1,10 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
-import { useLoaderData, Link, Form } from "@remix-run/react"
+import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
+import { useLoaderData, Link, Form, useFetcher } from "@remix-run/react"
 import { ListingModel } from "~/models/Listing"
+import { UserModel } from "~/models/User"
 import { Auth } from "~/lib/auth.server"
+import { getUser, requireUser } from "~/lib/session.server"
+import { toast } from "~/components/ui/toast"
 import { 
   Search, 
   Heart, 
@@ -13,8 +16,10 @@ import {
   ArrowRight,
   Calendar
 } from 'lucide-react'
-import { useState } from 'react'
-import { getUser } from "~/lib/session.server"
+import { useState, useEffect } from 'react'
+
+// Tipo para la respuesta del action
+type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string; listingId?: string }
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -40,11 +45,191 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Check user permissions on the server side
   const canCreateListings = user ? Auth.canCreateListings(user) : false
   
-  return json({ listings, search, brand, minPrice, maxPrice, minYear, maxYear, user, canCreateListings })
+  //  Verificar qué listings tienen like del usuario actual
+  let likedListings: string[] = []
+  if (user) {
+    // Obtener los IDs de listings que el usuario ha marcado como favoritos
+    const userLikes = await UserModel.findById(user._id!.toString())
+    if (userLikes?.likedListings) {
+      likedListings = userLikes.likedListings.map(id => id.toString())
+    }
+  }
+  
+  return json({ 
+    listings, 
+    search, 
+    brand, 
+    minPrice, 
+    maxPrice, 
+    minYear, 
+    maxYear, 
+    user, 
+    canCreateListings,
+    likedListings 
+  })
+}
+
+// Action para manejar likes/unlikes
+export async function action({ request }: ActionFunctionArgs) {
+  // Verificar si hay usuario autenticado
+  let user
+  try {
+    user = await requireUser(request)
+  } catch (error) {
+    return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
+  }
+
+  const formData = await request.formData()
+  const intent = formData.get("intent") as string
+  const listingId = formData.get("listingId") as string
+
+  if (!listingId) {
+    return json({ error: "ID del listing requerido" }, { status: 400 })
+  }
+
+  try {
+    switch (intent) {
+      case "like": {
+        const success = await UserModel.likeListing(user._id!.toString(), listingId)
+        if (success) {
+          return json({ success: true, action: "liked", listingId })
+        } else {
+          return json({ error: "No puedes dar like a tu propio auto" }, { status: 400 })
+        }
+      }
+      
+      case "unlike": {
+        const success = await UserModel.unlikeListing(user._id!.toString(), listingId)
+        if (success) {
+          return json({ success: true, action: "unliked", listingId })
+        } else {
+          return json({ error: "No se pudo quitar el like" }, { status: 400 })
+        }
+      }
+      
+      default:
+        return json({ error: "Acción no válida" }, { status: 400 })
+    }
+  } catch (error) {
+    console.error("Error en action:", error)
+    return json({ error: "Error interno del servidor" }, { status: 500 })
+  }
+}
+
+//  Componente para el botón de like
+function LikeButton({ listing, isLiked: initialLiked, user }: { 
+  listing: any, 
+  isLiked: boolean, 
+  user: any 
+}) {
+  const fetcher = useFetcher()
+  const isLoading = fetcher.state !== "idle"
+
+  // Estado optimista para mostrar el like inmediatamente
+  const getCurrentlyLiked = (): boolean => {
+    // Si hay FormData pendiente (estado optimista)
+    if (fetcher.formData) {
+      const intent = fetcher.formData.get("intent")
+      const fetcherListingId = fetcher.formData.get("listingId")
+      const intentStr = typeof intent === 'string' ? intent : ''
+      const listingIdStr = typeof fetcherListingId === 'string' ? fetcherListingId : ''
+      
+      // Solo aplicar estado optimista si es para este listing
+      if (listingIdStr === listing._id) {
+        return intentStr === "like"
+      }
+    }
+    
+    // Si hay respuesta del servidor
+    if (fetcher.data) {
+      const data = fetcher.data as ActionResponse | undefined
+      // Solo aplicar si es para este listing
+      if (data?.listingId === listing._id) {
+        if (data?.action === "liked") return true
+        if (data?.action === "unliked") return false
+        if (data?.error) return initialLiked // Mantener estado original en error
+      }
+    }
+    
+    // Estado inicial del loader
+    return initialLiked
+  }
+
+  const currentlyLiked = getCurrentlyLiked()
+
+  // Mostrar feedback del fetcher
+  useEffect(() => {
+    if (fetcher.data) {
+      const data = fetcher.data as ActionResponse | undefined
+      
+      // Solo mostrar toast si es para este listing
+      if (data?.listingId === listing._id) {
+        if (data?.error) {
+          toast.error(data.error)
+        } else if (data?.success) {
+          if (data.action === "liked") {
+            toast.success("Agregado a favoritos ❤️")
+          } else if (data.action === "unliked") {
+            toast.success("Removido de favoritos")
+          }
+        }
+      }
+    }
+  }, [fetcher.data, listing._id])
+
+  // Si no hay usuario, mostrar corazón deshabilitado
+  if (!user) {
+    return (
+      <button
+        disabled
+        className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center cursor-not-allowed opacity-60"
+        title="Inicia sesión para dar like"
+      >
+        <Heart className="w-5 h-5 text-gray-400" />
+      </button>
+    )
+  }
+
+  return (
+    <fetcher.Form method="post" style={{ display: 'inline' }}>
+      <input type="hidden" name="intent" value={currentlyLiked ? "unlike" : "like"} />
+      <input type="hidden" name="listingId" value={listing._id} />
+      <button
+        type="submit"
+        disabled={isLoading}
+        className={`absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 ${
+          currentlyLiked
+            ? 'hover:bg-red-50 scale-110'
+            : 'hover:bg-white'
+        } ${isLoading ? 'opacity-50 cursor-not-allowed animate-pulse' : 'hover:scale-105'}`}
+        title={currentlyLiked ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+      >
+        <Heart 
+          className={`w-5 h-5 transition-all duration-200 ${
+            currentlyLiked 
+              ? 'fill-red-500 text-red-500' 
+              : 'text-gray-600'
+          }`} 
+        />
+      </button>
+    </fetcher.Form>
+  )
 }
 
 export default function Index() {
-  const { listings, search, brand, minPrice, maxPrice, minYear, maxYear, user, canCreateListings } = useLoaderData<typeof loader>()
+  const { 
+    listings, 
+    search, 
+    brand, 
+    minPrice, 
+    maxPrice, 
+    minYear, 
+    maxYear, 
+    user, 
+    canCreateListings,
+    likedListings
+  } = useLoaderData<typeof loader>()
+  
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
 
@@ -52,7 +237,6 @@ export default function Index() {
 
   return (
     <div>
-
       {/* Search Section */}
       <section className="border-b border-gray-100 bg-gray-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -231,99 +415,107 @@ export default function Index() {
               ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
               : 'grid-cols-1 max-w-4xl mx-auto'
           }`}>
-            {listings.map((listing) => (
-              <article
-                key={listing._id}
-                className={`group ${
-                  viewMode === 'list' ? 'flex space-x-6' : ''
-                }`}
-              >
-                <div className={`relative overflow-hidden rounded-2xl bg-gray-100 ${
-                  viewMode === 'list' ? 'w-80 h-60 flex-shrink-0' : 'aspect-[4/3]'
-                }`}>
-                  {listing.images && listing.images.length > 0 ? (
-                    <img
-                      src={listing.images[0]}
-                      alt={listing.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                      <div className="w-16 h-16 bg-gray-300 rounded-full"></div>
-                    </div>
-                  )}
-                  
-                  {listing.year && (
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
-                      {listing.year}
-                    </div>
-                  )}
-
-                  <button className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors">
-                    <Heart className="w-5 h-5 text-gray-600" />
-                  </button>
-                </div>
-
-                <div className={`${viewMode === 'list' ? 'flex-1 py-2' : 'pt-6'}`}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-medium text-gray-900 mb-1 group-hover:text-gray-600 transition-colors">
-                        {listing.title}
-                      </h3>
-                      {listing.brand && listing.model && (
-                        <p className="text-sm text-gray-500">
-                          {listing.brand} {listing.model}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {listing.description && viewMode === 'list' && (
-                    <p className="text-gray-600 mb-4 line-clamp-2">
-                      {listing.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl font-light text-gray-900">
-                      ${listing.price ? listing.price.toLocaleString() : 0}
-                    </span>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      {listing.likesCount && listing.likesCount > 0 && (
-                        <span className="flex items-center space-x-1">
-                          <Heart className="w-4 h-4" />
-                          <span>{listing.likesCount}</span>
-                        </span>
-                      )}
-                      <span className="flex items-center space-x-1">
-                        <Eye className="w-4 h-4" />
-                        <span>{Math.floor(Math.random() * 200) + 20}</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
-                      <div className="flex items-center space-x-1 mb-1">
-                        <Calendar className="w-3 h-3" />
-                        <span>{listing.createdAt ? new Date(listing.createdAt).toLocaleDateString() : 'Fecha no disponible'}</span>
+            {listings.map((listing) => {
+              //  Verificar si este listing tiene like del usuario
+              const isLiked = likedListings.includes(listing._id)
+              
+              return (
+                <article
+                  key={listing._id}
+                  className={`group ${
+                    viewMode === 'list' ? 'flex space-x-6' : ''
+                  }`}
+                >
+                  <div className={`relative overflow-hidden rounded-2xl bg-gray-100 ${
+                    viewMode === 'list' ? 'w-80 h-60 flex-shrink-0' : 'aspect-[4/3]'
+                  }`}>
+                    {listing.images && listing.images.length > 0 ? (
+                      <img
+                        src={listing.images[0]}
+                        alt={listing.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <div className="w-16 h-16 bg-gray-300 rounded-full"></div>
                       </div>
-                      {listing.owner?.name && (
-                        <div>Por {listing.owner.name}</div>
-                      )}
+                    )}
+                    
+                    {listing.year && (
+                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
+                        {listing.year}
+                      </div>
+                    )}
+
+                    {/*  Botón de like funcional */}
+                    <LikeButton 
+                      listing={listing} 
+                      isLiked={isLiked} 
+                      user={user} 
+                    />
+                  </div>
+
+                  <div className={`${viewMode === 'list' ? 'flex-1 py-2' : 'pt-6'}`}>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-gray-900 mb-1 group-hover:text-gray-600 transition-colors">
+                          {listing.title}
+                        </h3>
+                        {listing.brand && listing.model && (
+                          <p className="text-sm text-gray-500">
+                            {listing.brand} {listing.model}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
-                    <Link
-                      to={`/listings/${listing._id}`}
-                      className="flex items-center space-x-2 text-gray-900 hover:text-gray-600 transition-colors font-medium group"
-                    >
-                      <span>Ver detalles</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                    </Link>
+                    {listing.description && viewMode === 'list' && (
+                      <p className="text-gray-600 mb-4 line-clamp-2">
+                        {listing.description}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-2xl font-light text-gray-900">
+                        ${listing.price ? listing.price.toLocaleString() : 0}
+                      </span>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        {listing.likesCount && listing.likesCount > 0 && (
+                          <span className="flex items-center space-x-1">
+                            <Heart className="w-4 h-4" />
+                            <span>{listing.likesCount}</span>
+                          </span>
+                        )}
+                        <span className="flex items-center space-x-1">
+                          <Eye className="w-4 h-4" />
+                          <span>{listing.viewsCount || Math.floor(Math.random() * 200) + 20}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-500">
+                        <div className="flex items-center space-x-1 mb-1">
+                          <Calendar className="w-3 h-3" />
+                          <span>{listing.createdAt ? new Date(listing.createdAt).toLocaleDateString() : 'Fecha no disponible'}</span>
+                        </div>
+                        {listing.owner?.name && (
+                          <div>Por {listing.owner.name}</div>
+                        )}
+                      </div>
+
+                      <Link
+                        to={`/listings/${listing._id}`}
+                        className="flex items-center space-x-2 text-gray-900 hover:text-gray-600 transition-colors font-medium group"
+                      >
+                        <span>Ver detalles</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              )
+            })}
           </div>
         ) : (
           <div className="text-center py-24">
