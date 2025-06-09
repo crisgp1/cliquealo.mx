@@ -9,5 +9,4 @@ node_modules/
 .env
 
 # Script folders (depending on usage)
-scripts/
 .scripts/
