@@ -7,33 +7,13 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "devCommand": "npm run dev", 
+  "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "remix",
-  "outputDirectory": "build",
-  "functions": {
-    "app/entry.server.tsx": {
-      "includeFiles": "build/**"
-    }
-  },
-  "routes": [
-    {
-      "src": "/build/(.*)",
-      "dest": "/build/$1",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/app/entry.server.tsx"
-    }
-  ]
+  "outputDirectory": "build"
 }
 ```
+**NOTA**: Configuración simplificada para Remix 2.x - Vercel maneja automáticamente las rutas y funciones cuando `framework: "remix"` está configurado.
 
 ### 2. **Actualizado `remix.config.js`**
 - ✅ Removidas future flags obsoletas (v2_*)
