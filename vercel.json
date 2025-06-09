@@ -1,3 +1,5 @@
 {
   "framework": "remix"
+  ,
+      "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
