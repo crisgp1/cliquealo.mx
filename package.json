@@ -6,7 +6,9 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev --manual",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "verify-build": "node scripts/verify-build.js",
+    "deploy-check": "npm run verify-build && npm run build"
   },
   "dependencies": {
     "@cloudinary/react": "^1.14.3",

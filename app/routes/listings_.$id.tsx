@@ -31,10 +31,16 @@ import { useState, useEffect } from 'react'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const listingId = params.id
-  console.log('🎯 LOADER - Listing ID:', listingId)
+  
+  // 🔍 VERCEL DEBUG - Enhanced logging for deployment debugging
+  console.log('🔍 VERCEL DEBUG - Listing ID:', listingId)
+  console.log('🔍 VERCEL DEBUG - URL:', request.url)
+  console.log('🔍 VERCEL DEBUG - Params:', JSON.stringify(params))
+  console.log('🔍 VERCEL DEBUG - Environment:', process.env.NODE_ENV)
   
   if (!listingId) {
-    console.log('❌ No hay listingId en params')
+    console.log('❌ VERCEL ERROR - No listingId in params')
+    console.log('❌ VERCEL ERROR - Available params:', Object.keys(params))
     throw new Response("Not Found", { status: 404 })
   }
 
