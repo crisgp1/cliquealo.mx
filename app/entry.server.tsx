@@ -4,8 +4,17 @@
  * For more information, see https://remix.run/file-conventions/entry.server
  */
 
-import { PassThrough } from "node:stream";
+// Cargar variables de entorno en producción (no en Vercel)
+if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
+  try {
+    require('dotenv').config();
+    console.log('✅ Variables de entorno cargadas');
+  } catch (error) {
+    console.log('⚠️ dotenv no disponible, usando variables del sistema');
+  }
+}
 
+import { PassThrough } from "node:stream";
 import type { AppLoadContext, EntryContext } from "@remix-run/node";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
@@ -19,7 +28,7 @@ export default function handleRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
-  // This is ignored so we can keep it in the template for visibility.  Feel
+  // This is ignored so we can keep it in the template for visibility. Feel
   // free to delete this parameter in your app if you're not using it!
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   loadContext: AppLoadContext
@@ -58,16 +67,13 @@ function handleBotRequest(
           shellRendered = true;
           const body = new PassThrough();
           const stream = createReadableStreamFromReadable(body);
-
           responseHeaders.set("Content-Type", "text/html");
-
           resolve(
             new Response(stream, {
               headers: responseHeaders,
               status: responseStatusCode,
             })
           );
-
           pipe(body);
         },
         onShellError(error: unknown) {
@@ -75,7 +81,7 @@ function handleBotRequest(
         },
         onError(error: unknown) {
           responseStatusCode = 500;
-          // Log streaming rendering errors from inside the shell.  Don't log
+          // Log streaming rendering errors from inside the shell. Don't log
           // errors encountered during initial shell rendering since they'll
           // reject and get logged in handleDocumentRequest.
           if (shellRendered) {
@@ -84,7 +90,6 @@ function handleBotRequest(
         },
       }
     );
-
     setTimeout(abort, ABORT_DELAY);
   });
 }
@@ -108,16 +113,13 @@ function handleBrowserRequest(
           shellRendered = true;
           const body = new PassThrough();
           const stream = createReadableStreamFromReadable(body);
-
           responseHeaders.set("Content-Type", "text/html");
-
           resolve(
             new Response(stream, {
               headers: responseHeaders,
               status: responseStatusCode,
             })
           );
-
           pipe(body);
         },
         onShellError(error: unknown) {
@@ -125,7 +127,7 @@ function handleBrowserRequest(
         },
         onError(error: unknown) {
           responseStatusCode = 500;
-          // Log streaming rendering errors from inside the shell.  Don't log
+          // Log streaming rendering errors from inside the shell. Don't log
           // errors encountered during initial shell rendering since they'll
           // reject and get logged in handleDocumentRequest.
           if (shellRendered) {
@@ -134,7 +136,6 @@ function handleBrowserRequest(
         },
       }
     );
-
     setTimeout(abort, ABORT_DELAY);
   });
 }
