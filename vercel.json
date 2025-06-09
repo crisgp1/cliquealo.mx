@@ -1,8 +1,18 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
+  "devCommand": "npm run dev", 
   "installCommand": "npm install",
   "framework": "remix",
-  "outputDirectory": "build"
+  "functions": {
+    "build/index.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/build/index.js"
+    }
+  ]
 }
