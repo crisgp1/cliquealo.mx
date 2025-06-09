@@ -40,10 +40,12 @@ try {
 try {
   const remixConfigContent = fs.readFileSync(path.join(projectRoot, 'remix.config.js'), 'utf8')
   
-  if (remixConfigContent.includes('serverBuildTarget: "vercel"')) {
-    checks.push({ name: 'remix.config.js serverBuildTarget', status: '✅', details: 'Target configurado para Vercel' })
+  // En Remix 2.x, serverBuildTarget ya no es necesario para Vercel
+  // Vercel detecta automáticamente Remix cuando framework: "remix" está en vercel.json
+  if (!remixConfigContent.includes('serverBuildTarget')) {
+    checks.push({ name: 'remix.config.js configuración', status: '✅', details: 'Configuración moderna de Remix 2.x (sin serverBuildTarget)' })
   } else {
-    checks.push({ name: 'remix.config.js serverBuildTarget', status: '❌', details: 'Target no configurado para Vercel' })
+    checks.push({ name: 'remix.config.js configuración', status: '⚠️', details: 'Usando configuración legacy con serverBuildTarget' })
   }
   
   if (remixConfigContent.includes('serverModuleFormat: "esm"')) {
