@@ -6,52 +6,50 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import compression from 'compression';
 import morgan from 'morgan';
+import fs from 'fs';
 import { createRequestHandler } from '@remix-run/express';
-import * as fs from 'fs';
 
-// Convert ESM __dirname
+// Convert __dirname in ESM
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const BUILD_DIR = path.join(__dirname, "build");
 
-// Check if build directory exists
-if (!fs.existsSync(BUILD_DIR)) {
-  console.error(`Build directory does not exist: ${BUILD_DIR}`);
-  console.error("Please run 'npm run build' before starting the server");
+// Path to server build
+const BUILD_PATH = path.join(__dirname, 'build/index.js');
+
+// Check if build exists
+if (!fs.existsSync(BUILD_PATH)) {
+  console.error(`Build file not found at: ${BUILD_PATH}`);
+  console.error("⛔️ Run 'npm run build' before starting the server");
   process.exit(1);
 }
 
-// Create express app
-const app = express();
+// Import compiled Remix build (must be dynamic in ESM)
+const build = await import(`./build/index.js`);
 
-// Set port from environment variable or default to 3000
+// Create Express app
+const app = express();
 const port = process.env.PORT || 3000;
 
-// Enable for production
-app.use(compression());
+// Middlewares
+app.use(compression());             // Gzip compression
+app.use(morgan('tiny'));            // Request logging
+app.use(express.static('public', { maxAge: '1h' })); // Serve static files
 
-// HTTP request logger
-app.use(morgan('tiny'));
-
-// Static files - serve public directory only
-// Remix handles asset imports through its own mechanisms
-app.use(express.static('public', { maxAge: '1h' }));
-
-// Create request handler for all routes
+// All routes handled by Remix
 app.all(
   '*',
   createRequestHandler({
-    build: BUILD_DIR,
+    build,
     mode: process.env.NODE_ENV || 'production',
     getLoadContext(req, res) {
-      return {};
-    },
+      return {}; // Puedes pasar contexto si lo necesitas
+    }
   })
 );
 
-// Start server with explicit error handling
+// Start server
 app.listen(port, () => {
-  console.log(`Express server listening on port ${port}`);
-  console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+  console.log(`✅ Server running on http://localhost:${port}`);
+  console.log(`NODE_ENV: ${process.env.NODE_ENV || 'production'}`);
 }).on('error', (err) => {
   console.error('Server failed to start:');
   console.error(err);
