@@ -6,7 +6,7 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev --manual",
-    "start": "remix-serve build/index.js",
+     "start": "remix-serve build/index.js",
     "typecheck": "tsc",
     "verify-build": "node scripts/verify-build.js",
     "deploy-check": "npm run verify-build && npm run build"
@@ -23,7 +23,6 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mongodb": "^4.0.6",
-    "@vercel/remix": "^2.16.6",
     "autoprefixer": "^10.4.21",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
