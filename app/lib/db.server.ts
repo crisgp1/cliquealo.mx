@@ -18,18 +18,25 @@ if (!process.env.MONGODB_URI) {
 }
 
 const client = singleton('mongo', () => {
-  console.log('🔄 Conectando a MongoDB...');
-  const client = new MongoClient(process.env.MONGODB_URI!)
-  client.connect()
-  return client
-})
+  console.log('🔄 Creando cliente MongoDB...');
+  const mongoClient = new MongoClient(process.env.MONGODB_URI!, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  });
+  
+  console.log('✅ Cliente MongoDB creado (conexión lazy)');
+  return mongoClient;
+});
 
-export const db: Db = client.db('cliquealo')
+export const db: Db = client.db('cliquealo');
 
 // Helper para cerrar conexión en desarrollo
 if (process.env.NODE_ENV === 'development') {
   process.on('SIGINT', async () => {
-    await client.close()
-    process.exit(0)
-  })
+    console.log('🔄 Cerrando conexión MongoDB...');
+    await client.close();
+    console.log('✅ MongoDB desconectado');
+    process.exit(0);
+  });
 }
