@@ -17,6 +17,9 @@ export function getDB(): Db {
   return client.db('cliquealo');
 }
 
+// Export db as well for backwards compatibility
+export const db = getDB();
+
 // Cleanup en desarrollo
 if (process.env.NODE_ENV === 'development') {
   process.on('SIGINT', async () => {

@@ -1,5 +1,7 @@
 import { ObjectId } from 'mongodb'
-import { db } from '~/lib/db.server'
+import { getDB } from '~/lib/db.server'
+
+const db = getDB()
 
 export interface Listing {
   _id?: ObjectId

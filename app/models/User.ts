@@ -1,6 +1,8 @@
 import { ObjectId } from 'mongodb'
-import { db } from '~/lib/db.server'
+import { getDB } from '~/lib/db.server'
 import bcrypt from 'bcryptjs'
+
+const db = getDB()
 
 export interface User {
   _id?: ObjectId

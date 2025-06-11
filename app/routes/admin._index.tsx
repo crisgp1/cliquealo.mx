@@ -1,10 +1,12 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link } from "@remix-run/react"
 import { requireSuperAdmin } from "~/lib/auth.server"
-import { db } from "~/lib/db.server"
+import { getDB } from "~/lib/db.server"
 import { UserModel } from "~/models/User"
 import { ListingModel } from "~/models/Listing"
 import { Users, Car, TrendingUp, Plus } from 'lucide-react'
+
+const db = getDB()
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireSuperAdmin(request)
