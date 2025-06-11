@@ -6,7 +6,7 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev --manual",
-     "start": "remix-serve build/index.js",
+  "start": "node -r dotenv/config build/index.js",
     "typecheck": "tsc",
     "verify-build": "node scripts/verify-build.js",
     "deploy-check": "npm run verify-build && npm run build"
