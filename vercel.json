@@ -18,5 +18,10 @@
       "src": "/(.*)",
       "dest": "/index.js"
     }
+    ,
+    {
+      "rewrites": "/(.*)",
+      "destination" : "/"
+    }
   ]
 }
