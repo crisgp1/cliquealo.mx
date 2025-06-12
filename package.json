@@ -6,7 +6,7 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev --manual",
-  "start": "node -r dotenv/config build/index.js",
+    "start": "node -r dotenv/config build/index.js",
     "typecheck": "tsc",
     "verify-build": "node scripts/verify-build.js",
     "deploy-check": "npm run verify-build && npm run build"
@@ -20,6 +20,7 @@
     "@remix-run/node": "^2.16.8",
     "@remix-run/react": "^2.16.8",
     "@remix-run/serve": "^2.16.8",
+    "@remix-run/vercel": "^1.19.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mongodb": "^4.0.6",
