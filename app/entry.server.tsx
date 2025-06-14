@@ -4,14 +4,26 @@
  * For more information, see https://remix.run/file-conventions/entry.server
  */
 
-// Cargar variables de entorno en producción (no en Vercel)
-if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
-  try {
-    require('dotenv').config();
-    console.log('✅ Variables de entorno cargadas');
-  } catch (error) {
-    console.log('⚠️ dotenv no disponible, usando variables del sistema');
+// Intentar cargar variables de entorno si no están disponibles
+try {
+  if (!process.env.MONGODB_URI || !process.env.SESSION_SECRET || !process.env.JWT_SECRET) {
+    try {
+      require('dotenv').config();
+      console.log('✅ Variables de entorno cargadas desde .env');
+    } catch (error) {
+      console.log('⚠️ dotenv no disponible, usando variables del sistema');
+      
+      // Solo mostramos este mensaje en producción para facilitar la depuración
+      if (process.env.NODE_ENV === 'production') {
+        console.log('🔔 Para ejecutar sin npm start, use: node -r dotenv/config build/index.js');
+      }
+    }
+  } else {
+    // Evitar mensaje redundante cuando ya están cargadas las variables
+    console.log('✅ Variables de entorno ya disponibles');
   }
+} catch (error) {
+  console.error('❌ Error al verificar variables de entorno:', error);
 }
 
 import { PassThrough } from "node:stream";
