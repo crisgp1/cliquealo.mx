@@ -301,14 +301,14 @@ export function CarListingForm({
                     <SelectValue placeholder={FORM_CONFIG.placeholders.selectMake} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="toyota">{FORM_CONFIG.options.makes.toyota}</SelectItem>
-                    <SelectItem value="honda">{FORM_CONFIG.options.makes.honda}</SelectItem>
-                    <SelectItem value="ford">{FORM_CONFIG.options.makes.ford}</SelectItem>
-                    <SelectItem value="chevrolet">{FORM_CONFIG.options.makes.chevrolet}</SelectItem>
-                    <SelectItem value="bmw">{FORM_CONFIG.options.makes.bmw}</SelectItem>
-                    <SelectItem value="mercedes-benz">{FORM_CONFIG.options.makes.mercedesBenz}</SelectItem>
-                    <SelectItem value="audi">{FORM_CONFIG.options.makes.audi}</SelectItem>
-                    <SelectItem value="tesla">{FORM_CONFIG.options.makes.tesla}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.makes.toyota}>{FORM_CONFIG.options.makes.toyota}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.makes.honda}>{FORM_CONFIG.options.makes.honda}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.makes.ford}>{FORM_CONFIG.options.makes.ford}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.makes.chevrolet}>{FORM_CONFIG.options.makes.chevrolet}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.makes.bmw}>{FORM_CONFIG.options.makes.bmw}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.makes.mercedesBenz}>{FORM_CONFIG.options.makes.mercedesBenz}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.makes.audi}>{FORM_CONFIG.options.makes.audi}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.makes.tesla}>{FORM_CONFIG.options.makes.tesla}</SelectItem>
                     <SelectItem value="other">{FORM_CONFIG.options.makes.other}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -417,11 +417,11 @@ export function CarListingForm({
                     <SelectValue placeholder={FORM_CONFIG.placeholders.selectFuelType} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Gasolina">{FORM_CONFIG.options.fuelType.gasoline}</SelectItem>
-                    <SelectItem value="Disel">{FORM_CONFIG.options.fuelType.diesel}</SelectItem>
-                    <SelectItem value="Electrico">{FORM_CONFIG.options.fuelType.electric}</SelectItem>
-                    <SelectItem value="Hibrido">{FORM_CONFIG.options.fuelType.hybrid}</SelectItem>
-                    <SelectItem value="Hibrido Conectable">{FORM_CONFIG.options.fuelType.plugInHybrid}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.fuelType.gasoline}>{FORM_CONFIG.options.fuelType.gasoline}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.fuelType.diesel}>{FORM_CONFIG.options.fuelType.diesel}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.fuelType.electric}>{FORM_CONFIG.options.fuelType.electric}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.fuelType.hybrid}>{FORM_CONFIG.options.fuelType.hybrid}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.fuelType.plugInHybrid}>{FORM_CONFIG.options.fuelType.plugInHybrid}</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.fuelType && (
@@ -445,9 +445,9 @@ export function CarListingForm({
                     <SelectValue placeholder={FORM_CONFIG.placeholders.selectTransmission} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Automatico">{FORM_CONFIG.options.transmission.automatic}</SelectItem>
-                    <SelectItem value="Manual">{FORM_CONFIG.options.transmission.manual}</SelectItem>
-                    <SelectItem value="Cvt">{FORM_CONFIG.options.transmission.cvt}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.transmission.automatic}>{FORM_CONFIG.options.transmission.automatic}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.transmission.manual}>{FORM_CONFIG.options.transmission.manual}</SelectItem>
+                    <SelectItem value={FORM_CONFIG.options.transmission.cvt}>{FORM_CONFIG.options.transmission.cvt}</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.transmission && (

@@ -7,6 +7,7 @@ import { getUser } from "~/lib/session.server"
 import { requireUser, Auth } from "~/lib/auth.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus, type Listing } from "~/models/Listing"
+import { capitalizeBrandInTitle } from "~/lib/utils"
 import {
   ArrowLeft,
   Heart,
@@ -727,7 +728,7 @@ export default function ListingDetail() {
                       <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3 flex-wrap">
                           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 tracking-tight">
-                            {listing.title}
+                            {capitalizeBrandInTitle(listing.title)}
                           </h1>
                           {/* Hot Badge with HeroUI */}
                           {(() => {

@@ -6,6 +6,7 @@ import { Auth } from "~/lib/auth.server"
 import { getUser, requireUser } from "~/lib/session.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
+import { capitalizeBrandInTitle } from "~/lib/utils"
 import {
   Search,
   Heart,
@@ -651,7 +652,7 @@ export default function Index() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="text-lg font-medium text-gray-900 mb-1 group-hover:text-gray-600 transition-colors">
-                            {listing.title}
+                            {capitalizeBrandInTitle(listing.title)}
                           </h3>
                           {listing.brand && listing.model && (
                             <p className="text-sm text-gray-500">
