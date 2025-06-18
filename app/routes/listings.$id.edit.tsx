@@ -64,10 +64,13 @@ export async function action({ params, request }: ActionFunctionArgs) {
   const year = parseInt(formData.get("year") as string)
   const price = parseFloat(formData.get("price") as string)
   const images = formData.get("images") as string
+  const contactPhone = formData.get("contactPhone") as string
+  const contactEmail = formData.get("contactEmail") as string
+  const contactWhatsapp = formData.get("contactWhatsapp") as string
   
   // Validaciones
-  if (!title || !brand || !model || !year || !price) {
-    return json({ error: "Título, marca, modelo, año y precio son requeridos" }, { status: 400 })
+  if (!title || !brand || !model || !year || !price || !contactPhone || !contactEmail || !contactWhatsapp) {
+    return json({ error: "Título, marca, modelo, año, precio y información de contacto son requeridos" }, { status: 400 })
   }
   
   if (title.length < 5) {
@@ -87,7 +90,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
   }
   
   try {
-    const imageUrls = images 
+    const imageUrls = images
       ? images.split(',').map(url => url.trim()).filter(Boolean)
       : []
     
@@ -98,7 +101,12 @@ export async function action({ params, request }: ActionFunctionArgs) {
       model: model.trim(),
       year,
       price,
-      images: imageUrls
+      images: imageUrls,
+      contactInfo: {
+        phone: contactPhone.trim(),
+        email: contactEmail.trim(),
+        whatsapp: contactWhatsapp.trim()
+      }
     })
     
     if (!success) {
@@ -306,6 +314,60 @@ export default function EditListing() {
             <p className="text-sm text-gray-500">
               Una buena descripción ayuda a vender más rápido
             </p>
+          </div>
+
+          {/* Información de Contacto */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">
+              Información de Contacto
+            </h3>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Teléfono *
+                </label>
+                <input
+                  type="tel"
+                  name="contactPhone"
+                  required
+                  defaultValue={listing.contactInfo?.phone || ""}
+                  placeholder="ej: 5512345678"
+                  className="w-full px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  name="contactEmail"
+                  required
+                  defaultValue={listing.contactInfo?.email || ""}
+                  placeholder="ej: vendedor@email.com"
+                  className="w-full px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                WhatsApp *
+              </label>
+              <input
+                type="tel"
+                name="contactWhatsapp"
+                required
+                defaultValue={listing.contactInfo?.whatsapp || ""}
+                placeholder="ej: 5512345678"
+                className="w-full px-4 py-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+              />
+              <p className="text-sm text-gray-500">
+                Número de WhatsApp para contacto directo con compradores
+              </p>
+            </div>
           </div>
 
           {/* Imágenes */}

@@ -83,6 +83,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const locationValue = formData.get("location") as string;
   const description = formData.get("description") as string;
   const contactPhone = formData.get("contactPhone") as string;
+  const contactWhatsapp = formData.get("contactWhatsapp") as string;
   const contactEmail = formData.get("contactEmail") as string;
   const images = formData.get("images") as string;
   
@@ -96,6 +97,7 @@ export async function action({ request }: ActionFunctionArgs) {
   
   const contactInfo = {
     phone: contactPhone,
+    whatsapp: contactWhatsapp,
     email: contactEmail
   };
   

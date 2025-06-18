@@ -43,6 +43,7 @@ const FORM_CONFIG = {
     description: "Descripción *",
     location: "Ubicación *",
     phone: "Número de Teléfono *",
+    whatsapp: "WhatsApp *",
     email: "Email *"
   },
   placeholders: {
@@ -117,6 +118,7 @@ interface CarListingFormData {
   description: string;
   location: string;
   contactPhone: string;
+  contactWhatsapp: string;
   contactEmail: string;
   images: string[];
 }
@@ -149,6 +151,7 @@ export function CarListingForm({
     description: "",
     location: "",
     contactPhone: "",
+    contactWhatsapp: "",
     contactEmail: "",
     images: [],
     ...defaultValues
@@ -226,6 +229,10 @@ export function CarListingForm({
       
       if (!validatePhone(formData.contactPhone || "")) {
         newErrors.contactPhone = FORM_CONFIG.validation.validPhoneRequired;
+      }
+      
+      if (!validatePhone(formData.contactWhatsapp || "")) {
+        newErrors.contactWhatsapp = "Se requiere un número de WhatsApp válido";
       }
       
       if (!validateEmail(formData.contactEmail || "")) {
@@ -499,7 +506,7 @@ export function CarListingForm({
             <CardTitle>{FORM_CONFIG.ui.contactInformation}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="contactPhone">{FORM_CONFIG.fields.phone}</Label>
                 <Input
@@ -513,6 +520,23 @@ export function CarListingForm({
                 {errors.contactPhone && (
                   <p id="contactPhone-error" role="alert" className="text-sm text-red-600 mt-1">
                     {errors.contactPhone}
+                  </p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="contactWhatsapp">{FORM_CONFIG.fields.whatsapp}</Label>
+                <Input
+                  id="contactWhatsapp"
+                  type="tel"
+                  value={formData.contactWhatsapp}
+                  onChange={(e) => handleChange("contactWhatsapp", e.target.value)}
+                  aria-invalid={!!errors.contactWhatsapp}
+                  aria-describedby={errors.contactWhatsapp ? "contactWhatsapp-error" : undefined}
+                />
+                {errors.contactWhatsapp && (
+                  <p id="contactWhatsapp-error" role="alert" className="text-sm text-red-600 mt-1">
+                    {errors.contactWhatsapp}
                   </p>
                 )}
               </div>

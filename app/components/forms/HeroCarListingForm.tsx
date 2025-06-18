@@ -80,6 +80,7 @@ const FORM_CONFIG = {
     description: "Descripción",
     location: "Ubicación",
     phone: "Número de Teléfono",
+    whatsapp: "WhatsApp",
     email: "Email"
   },
   placeholders: {
@@ -95,6 +96,7 @@ const FORM_CONFIG = {
     description: "Describe las características, estado y detalles importantes del vehículo...",
     location: "Ej: Ciudad de México, CDMX",
     phone: "Ej: +52 55 1234 5678",
+    whatsapp: "Ej: +52 55 1234 5678",
     email: "Ej: contacto@ejemplo.com"
   },
   options: {
@@ -282,6 +284,7 @@ interface CarListingFormData {
   description: string;
   location: string;
   contactPhone: string;
+  contactWhatsapp: string;
   contactEmail: string;
   images: string[];
 }
@@ -316,6 +319,7 @@ export function HeroCarListingForm({
     description: "",
     location: "",
     contactPhone: "",
+    contactWhatsapp: "",
     contactEmail: "",
     images: [],
     ...defaultValues
@@ -329,7 +333,7 @@ export function HeroCarListingForm({
     let requiredFields = [
       'make', 'model', 'year', 'price', 'mileage', 'condition',
       'fuelType', 'transmission', 'description', 'location',
-      'contactPhone', 'contactEmail', 'images'
+      'contactPhone', 'contactWhatsapp', 'contactEmail', 'images'
     ];
     
     // Si seleccionó "Otra" marca, agregar customMake a los campos requeridos
@@ -464,6 +468,10 @@ export function HeroCarListingForm({
       
       if (!validatePhone(formData.contactPhone || "")) {
         newErrors.contactPhone = FORM_CONFIG.validation.validPhoneRequired;
+      }
+      
+      if (!validatePhone(formData.contactWhatsapp || "")) {
+        newErrors.contactWhatsapp = "Se requiere un número de WhatsApp válido";
       }
       
       if (!validateEmail(formData.contactEmail || "")) {
@@ -896,7 +904,7 @@ export function HeroCarListingForm({
                 </div>
               </CardHeader>
               <CardBody className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
                     label={FORM_CONFIG.fields.phone}
                     placeholder={FORM_CONFIG.placeholders.phone}
@@ -910,6 +918,27 @@ export function HeroCarListingForm({
                     startContent={
                       <div className="pointer-events-none flex items-center">
                         <Phone className="w-4 h-4 text-gray-400" />
+                      </div>
+                    }
+                    classNames={{
+                      input: "text-gray-700",
+                      inputWrapper: "border-gray-200 hover:border-purple-400 focus-within:border-purple-500",
+                    }}
+                  />
+                  
+                  <Input
+                    label={FORM_CONFIG.fields.whatsapp}
+                    placeholder={FORM_CONFIG.placeholders.whatsapp}
+                    type="tel"
+                    value={formData.contactWhatsapp || ""}
+                    onValueChange={(value) => handleChange("contactWhatsapp", value)}
+                    isInvalid={!!errors.contactWhatsapp}
+                    errorMessage={errors.contactWhatsapp}
+                    variant="bordered"
+                    size="lg"
+                    startContent={
+                      <div className="pointer-events-none flex items-center">
+                        <span className="text-gray-400 text-sm font-medium">📱</span>
                       </div>
                     }
                     classNames={{

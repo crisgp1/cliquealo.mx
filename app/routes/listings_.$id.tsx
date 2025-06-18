@@ -402,8 +402,27 @@ export default function ListingDetail() {
   // Función para abrir WhatsApp con el mensaje
   const handleWhatsAppContact = () => {
     const whatsappNumber = listing.contactInfo?.whatsapp?.replace(/\D/g, '') || ''
+    
+    // Verificar que el número existe
+    if (!whatsappNumber) {
+      toast.error('No hay número de WhatsApp disponible')
+      return
+    }
+    
+    // Asegurar que el número tenga el código de país (México +52)
+    let formattedNumber = whatsappNumber
+    if (whatsappNumber.length === 10) {
+      formattedNumber = '52' + whatsappNumber
+    } else if (whatsappNumber.startsWith('1') && whatsappNumber.length === 11) {
+      formattedNumber = '52' + whatsappNumber.substring(1)
+    }
+    
     const message = generateWhatsAppMessage()
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
+    const whatsappUrl = `https://wa.me/${formattedNumber}?text=${message}`
+    
+    console.log('WhatsApp URL:', whatsappUrl)
+    console.log('Número formateado:', formattedNumber)
+    
     window.open(whatsappUrl, '_blank')
     setShowCreditModal(false)
     setCreditStep(1)
@@ -965,7 +984,15 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                             {listing.contactInfo?.whatsapp && (
                               <Button
                                 as="a"
-                                href={`https://wa.me/${listing.contactInfo.whatsapp.replace(/\D/g, '')}`}
+                                href={`https://wa.me/${(() => {
+                                  const number = listing.contactInfo.whatsapp.replace(/\D/g, '')
+                                  if (number.length === 10) {
+                                    return '52' + number
+                                  } else if (number.startsWith('1') && number.length === 11) {
+                                    return '52' + number.substring(1)
+                                  }
+                                  return number
+                                })()}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 variant="flat"
@@ -1301,9 +1328,9 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
       {/* Modal de Solicitud de Crédito Step-by-Step */}
       {showCreditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-2">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-2 flex flex-col">
             {/* Header del Modal */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+            <div className="flex-shrink-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-gray-900">
                   Solicitud de Crédito
@@ -1335,7 +1362,7 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
             </div>
 
             {/* Contenido del Modal */}
-            <div className="p-6">
+            <div className="flex-1 p-6 overflow-y-auto">
               {/* Paso 1: Información del Crédito */}
               {creditStep === 1 && (
                 <div className="space-y-6">
@@ -1512,7 +1539,7 @@ text-yellow-600 mt-0.5" />
                         variant="bordered"
                         size="lg"
                         startContent={<Phone className="w-5 h-5" />}
-                        className="w-full"
+                        className="w-full border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
                       >
                         Llamar al {listing.contactInfo.phone}
                       </Button>
@@ -1523,13 +1550,14 @@ text-yellow-600 mt-0.5" />
             </div>
 
             {/* Footer del Modal */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 rounded-b-2xl">
+            <div className="flex-shrink-0 bg-white border-t border-gray-200 p-6 rounded-b-2xl">
               <div className="flex justify-between gap-3">
                 {creditStep > 1 && (
                   <Button
                     variant="bordered"
                     onClick={prevStep}
                     startContent={<ArrowLeft className="w-4 h-4" />}
+                    className="z-10 relative border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 px-4 py-2 font-medium"
                   >
                     Anterior
                   </Button>
@@ -1540,7 +1568,7 @@ text-yellow-600 mt-0.5" />
                     color="primary"
                     onClick={nextStep}
                     endContent={<ArrowRight className="w-4 h-4" />}
-                    className="ml-auto"
+                    className="ml-auto z-10 relative bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 font-medium border-0"
                   >
                     Siguiente
                   </Button>
@@ -1551,7 +1579,7 @@ text-yellow-600 mt-0.5" />
                       setShowCreditModal(false)
                       setCreditStep(1)
                     }}
-                    className="ml-auto"
+                    className="ml-auto z-10 relative bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 font-medium border-0"
                   >
                     Cerrar
                   </Button>
@@ -1629,7 +1657,7 @@ text-yellow-600 mt-0.5" />
                 <Button
                   variant="bordered"
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1"
+                  className="flex-1 border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
                 >
                   Cancelar
                 </Button>
