@@ -76,17 +76,22 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-medium text-gray-900">Usuarios Recientes</h2>
-              <Link 
+              <Link
                 to="/admin/users"
-                className="text-sm text-blue-600 hover:text-blue-700"
+                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
               >
-                Ver todos
+                <Users className="w-4 h-4" />
+                Gestionar Usuarios
               </Link>
             </div>
             
             <div className="space-y-3">
               {users.slice(0, 5).map((user: any) => (
-                <div key={user._id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                <Link
+                  key={user._id}
+                  to={`/admin/users/${user._id}`}
+                  className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                >
                   <div>
                     <p className="font-medium text-gray-900">{user.name}</p>
                     <p className="text-sm text-gray-500">{user.email}</p>
@@ -98,7 +103,7 @@ export default function AdminDashboard() {
                   }`}>
                     {user.role}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

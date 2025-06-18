@@ -12,6 +12,7 @@
   "dependencies": {
     "@cloudinary/react": "^1.14.3",
     "@cloudinary/url-gen": "^1.21.0",
+    "@heroicons/react": "^2.2.0",
     "@heroui/react": "^2.7.10",
     "@hookform/resolvers": "^5.0.1",
     "@nextui-org/react": "^2.6.11",
