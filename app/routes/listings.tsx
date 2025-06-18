@@ -442,7 +442,7 @@ export default function ListingsIndex() {
                       }}
                     >
                       {brands.map((brandOption: string) => (
-                        <SelectItem key={brandOption} value={brandOption}>
+                        <SelectItem key={brandOption}>
                           {brandOption}
                         </SelectItem>
                       ))}
@@ -669,7 +669,7 @@ export default function ListingsIndex() {
                         )}
                         <span className="flex items-center space-x-1">
                           <Eye className="w-4 h-4" />
-                          <span>{listing.viewsCount || Math.floor(Math.random() * 200) + 20}</span>
+                          <span>{listing.viewsCount || 0}</span>
                         </span>
                       </div>
                     </div>
