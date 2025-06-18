@@ -450,9 +450,12 @@ export default function ListingsIndex() {
                     viewMode === 'list' ? 'flex space-x-6' : ''
                   } ${(isHot || isSuperHot) ? 'ring-2 ring-red-200 rounded-2xl p-2' : ''}`}
                 >
-                  <div className={`relative overflow-hidden rounded-2xl bg-gray-100 ${
-                    viewMode === 'list' ? 'w-80 h-60 flex-shrink-0' : 'aspect-[4/3]'
-                  } ${(isHot || isSuperHot) ? 'border-2 border-red-300' : 'border border-gray-200 hover:border-red-300 transition-colors'}`}>
+                  <Link
+                    to={`/listings/${listing._id}`}
+                    className={`relative overflow-hidden rounded-2xl bg-gray-100 block ${
+                      viewMode === 'list' ? 'w-80 h-60 flex-shrink-0' : 'aspect-[4/3]'
+                    } ${(isHot || isSuperHot) ? 'border-2 border-red-300' : 'border border-gray-200 hover:border-red-300 transition-colors'}`}
+                  >
                     {listing.images && listing.images.length > 0 ? (
                       <img
                         src={listing.images[0]}
@@ -493,21 +496,26 @@ export default function ListingsIndex() {
                       isLiked={isLiked}
                       user={user}
                     />
-                  </div>
+                  </Link>
 
                   <div className={`${viewMode === 'list' ? 'flex-1 py-2' : 'pt-6'}`}>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-medium text-gray-900 mb-1 group-hover:text-gray-600 transition-colors">
-                          {listing.title}
-                        </h3>
-                        {listing.brand && listing.model && (
-                          <p className="text-sm text-gray-500">
-                            {listing.brand} {listing.model}
-                          </p>
-                        )}
+                    <Link
+                      to={`/listings/${listing._id}`}
+                      className="block"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-medium text-gray-900 mb-1 group-hover:text-gray-600 transition-colors">
+                            {listing.title}
+                          </h3>
+                          {listing.brand && listing.model && (
+                            <p className="text-sm text-gray-500">
+                              {listing.brand} {listing.model}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    </Link>
 
                     {listing.description && viewMode === 'list' && (
                       <p className="text-gray-600 mb-4 line-clamp-2">

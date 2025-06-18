@@ -38,7 +38,7 @@ import {
   ArrowRight,
   X
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const listingId = params.id
@@ -185,6 +185,12 @@ export default function ListingDetail() {
   const [activeTab, setActiveTab] = useState('info')
   const [showCreditModal, setShowCreditModal] = useState(false)
   const [creditStep, setCreditStep] = useState(1)
+  
+  // Estados para el carousel con touch
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [startX, setStartX] = useState(0)
+  const [scrollLeft, setScrollLeft] = useState(0)
   
   // Estados para calculadora de crédito
   const [creditData, setCreditData] = useState({
@@ -392,6 +398,44 @@ export default function ListingDetail() {
     }
   }
 
+  // Funciones para el carousel con touch
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!carouselRef.current) return
+    setIsDragging(true)
+    setStartX(e.pageX - carouselRef.current.offsetLeft)
+    setScrollLeft(carouselRef.current.scrollLeft)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!carouselRef.current) return
+    setIsDragging(true)
+    setStartX(e.touches[0].pageX - carouselRef.current.offsetLeft)
+    setScrollLeft(carouselRef.current.scrollLeft)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !carouselRef.current) return
+    e.preventDefault()
+    const x = e.pageX - carouselRef.current.offsetLeft
+    const walk = (x - startX) * 2
+    carouselRef.current.scrollLeft = scrollLeft - walk
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !carouselRef.current) return
+    const x = e.touches[0].pageX - carouselRef.current.offsetLeft
+    const walk = (x - startX) * 2
+    carouselRef.current.scrollLeft = scrollLeft - walk
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleTouchEnd = () => {
+    setIsDragging(false)
+  }
+
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Header */}
@@ -578,40 +622,69 @@ export default function ListingDetail() {
                       )}
                     </div>
                   ) : (
-                    // Carousel horizontal para más de 5 fotos
+                    // Carousel horizontal para más de 5 fotos con touch drag y difuminado
                     <div className="relative">
-                      <div
-                        className="flex gap-1 sm:gap-1.5 overflow-x-auto scrollbar-hide pb-1"
-                        style={{
-                          scrollbarWidth: 'none',
-                          msOverflowStyle: 'none',
-                          WebkitOverflowScrolling: 'touch'
-                        }}
-                      >
-                        {images.map((image: string, index: number) => (
-                          <button
-                            key={index}
-                            onClick={() => setCurrentImageIndex(index)}
-                            className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden border-2 transition-colors ${
-                              index === currentImageIndex ? 'border-gray-900' : 'border-transparent'
-                            }`}
-                          >
-                            <img
-                              src={image}
-                              alt={`Thumbnail ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </button>
-                        ))}
+                      {/* Contenedor del carousel con máscara de difuminado */}
+                      <div className="relative overflow-hidden">
+                        <div
+                          ref={carouselRef}
+                          className={`single-row-carousel gap-2 sm:gap-3 scrollbar-hide pb-1 touch-pan-x no-select px-4 ${
+                            isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                          }`}
+                          style={{
+                            WebkitOverflowScrolling: 'touch'
+                          }}
+                          onMouseDown={handleMouseDown}
+                          onMouseMove={handleMouseMove}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseUp}
+                          onTouchStart={handleTouchStart}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleTouchEnd}
+                        >
+                          {images.map((image: string, index: number) => (
+                            <button
+                              key={index}
+                              onClick={(e) => {
+                                // Solo cambiar imagen si no estamos arrastrando
+                                if (!isDragging) {
+                                  setCurrentImageIndex(index)
+                                } else {
+                                  e.preventDefault()
+                                }
+                              }}
+                              className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                                index === currentImageIndex
+                                  ? 'border-red-500 shadow-lg scale-110'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              } ${isDragging ? 'pointer-events-none' : ''}`}
+                            >
+                              <img
+                                src={image}
+                                alt={`Thumbnail ${index + 1}`}
+                                className="w-full h-full object-cover"
+                                draggable={false}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                        
+                        {/* Difuminado izquierdo */}
+                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none z-10"></div>
+                        
+                        {/* Difuminado derecho */}
+                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-10"></div>
                       </div>
                       
-                      {/* Indicador de scroll */}
-                      <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 text-xs text-gray-400 flex items-center gap-1">
-                        <span className="text-xs">Desliza</span>
-                        <div className="flex gap-0.5">
-                          <div className="w-0.5 h-0.5 bg-gray-300 rounded-full"></div>
-                          <div className="w-0.5 h-0.5 bg-gray-300 rounded-full"></div>
-                          <div className="w-0.5 h-0.5 bg-gray-300 rounded-full"></div>
+                      {/* Indicador de scroll mejorado */}
+                      <div className="mt-2 text-center">
+                        <div className="inline-flex items-center gap-2 text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full">
+                          <span>👆 Desliza para ver más fotos</span>
+                          <div className="flex gap-1">
+                            <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse"></div>
+                            <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -53,4 +53,44 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Safari and Chrome */
   }
+  
+  /* Mejorar experiencia táctil en carousels */
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+  
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Prevenir selección de texto durante drag */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Cursor personalizado para drag */
+  .cursor-grab {
+    cursor: grab;
+  }
+  
+  .cursor-grabbing {
+    cursor: grabbing;
+  }
+  
+  /* Forzar una sola fila horizontal en carousels */
+  .single-row-carousel {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+  }
+  
+  .single-row-carousel > * {
+    flex-shrink: 0;
+    white-space: normal;
+  }
 }
