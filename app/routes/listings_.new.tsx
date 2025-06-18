@@ -1,6 +1,6 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import { useActionData, Link, useNavigation, useLoaderData, useSubmit, Form } from "@remix-run/react";
-import { ListingModel } from "~/models/Listing";
+import { ListingModel } from "~/models/Listing.server";
 import { requireAdmin } from "~/lib/auth.server";
 import { CarListingForm } from "~/components/forms/CarListingForm";
 import { ChevronLeft } from "~/components/icons";

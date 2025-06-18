@@ -1,11 +1,12 @@
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link, Form, useNavigation, useFetcher } from "@remix-run/react"
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string }
-import { ListingModel } from "~/models/Listing"
-import { UserModel } from "~/models/User"
+import { ListingModel } from "~/models/Listing.server"
+import { UserModel } from "~/models/User.server"
 import { getUser } from "~/lib/session.server"
 import { requireUser, Auth } from "~/lib/auth.server"
 import { toast } from "~/components/ui/toast"
+import { getHotStatus } from "~/models/Listing"
 import { 
   ArrowLeft, 
   Heart, 
@@ -50,6 +51,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     throw new Response("Listing no encontrado", { status: 404 })
   }
 
+  // Add hot status to the listing on the server side
+  const listingWithHotStatus = {
+    ...listing,
+    hotStatus: getHotStatus(listing)
+  }
+
   console.log('📝 Título del listing:', listing.title)
   console.log('👨‍💼 Propietario:', listing.owner?.name)
 
@@ -72,12 +79,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   console.log('- Has liked:', hasLiked)
   console.log('- Can edit:', canEdit)
 
-  return json({ 
-    listing, 
-    similarListings, 
-    user, 
-    hasLiked, 
-    canEdit 
+  return json({
+    listing: listingWithHotStatus,
+    similarListings,
+    user,
+    hasLiked,
+    canEdit
   })
 }
 
@@ -271,7 +278,7 @@ export default function ListingDetail() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b border-gray-100 sticky top-0 bg-white z-40">
+      <header className="border-b border-red-100 sticky top-0 bg-white z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link 
@@ -380,7 +387,7 @@ export default function ListingDetail() {
             {/* Galería de imágenes */}
             <div className="space-y-4">
               {hasImages ? (
-                <div className="relative aspect-[4/3] bg-gray-100 rounded-2xl overflow-hidden group">
+                <div className="relative aspect-[4/3] bg-gray-100 rounded-2xl overflow-hidden group border-2 border-red-500/20 hover:border-red-500/40 transition-colors">
                   <img
                     src={images[currentImageIndex]}
                     alt={`${listing.title} - Imagen ${currentImageIndex + 1}`}
@@ -503,11 +510,33 @@ export default function ListingDetail() {
             </div>
 
             {/* Información principal */}
-            <div className="space-y-6">
+            <div className="space-y-6 border-l-4 border-red-500 pl-6">
               <div>
-                <h1 className="text-3xl font-light text-gray-900 mb-2 tracking-tight">
-                  {listing.title}
-                </h1>
+                <div className="flex items-center space-x-3 mb-2">
+                  <h1 className="text-3xl font-light text-gray-900 tracking-tight">
+                    {listing.title}
+                  </h1>
+                  {/* 🔥 Hot Badge para página de detalle */}
+                  {(() => {
+                    const hotStatus = listing.hotStatus
+                    if (hotStatus === 'super-hot') {
+                      return (
+                        <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-1 animate-bounce">
+                          <span>🔥🔥</span>
+                          <span>Super Hot</span>
+                        </div>
+                      )
+                    } else if (hotStatus === 'hot') {
+                      return (
+                        <div className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-1 animate-pulse">
+                          <span>🔥</span>
+                          <span>Hot</span>
+                        </div>
+                      )
+                    }
+                    return null
+                  })()}
+                </div>
                 <div className="flex items-center space-x-4 text-gray-600">
                   <span className="text-lg">{listing.brand} {listing.model}</span>
                   <span>•</span>
@@ -515,8 +544,8 @@ export default function ListingDetail() {
                 </div>
               </div>
 
-              <div className="text-4xl font-light text-gray-900">
-                ${listing.price.toLocaleString()} MXN
+              <div className="text-4xl font-light text-gray-900 bg-red-50 px-4 py-3 rounded-xl border border-red-200">
+                ${listing.price.toLocaleString()} <span className="text-lg text-red-600 font-medium">MXN</span>
               </div>
 
               {/* Características principales */}
@@ -602,7 +631,7 @@ export default function ListingDetail() {
           {/* Sidebar - Contacto e info */}
           <div className="space-y-6">
             {/* Card de contacto */}
-            <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
+            <div className="bg-gradient-to-br from-red-50 to-gray-50 rounded-2xl p-6 space-y-4 border border-red-200">
               <h3 className="text-lg font-medium text-gray-900">Información de contacto</h3>
               
               <div className="space-y-3">
@@ -643,24 +672,20 @@ export default function ListingDetail() {
                   </a>
                 )}
 
-                <button className="w-full bg-gray-900 text-white py-3 rounded-xl hover:bg-gray-800 transition-colors font-medium">
-                  Contactar vendedor
+                <button className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]">
+                  <span className="flex items-center justify-center space-x-2">
+                    <Phone className="w-4 h-4" />
+                    <span>Contactar Vendedor</span>
+                  </span>
                 </button>
               </div>
             </div>
 
             {/* Detalles adicionales */}
-            <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
+            <div className="bg-gray-50 rounded-2xl p-6 space-y-4 border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900">Detalles</h3>
               
               <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Publicado</span>
-                  <span className="text-gray-900">
-                    {new Date(listing.createdAt).toLocaleDateString('es-MX')}
-                  </span>
-                </div>
-                
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 flex items-center gap-1">
                     <Eye className="w-4 h-4" />
@@ -696,7 +721,7 @@ export default function ListingDetail() {
         {/* Autos similares */}
         {similarListings.length > 0 && (
           <div className="mt-16">
-            <h2 className="text-2xl font-light text-gray-900 mb-8">Autos similares</h2>
+            <h2 className="text-2xl font-light text-gray-900 mb-8 border-l-4 border-red-500 pl-4">Autos similares</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {similarListings.map((similarListing: any) => (
                 <Link
@@ -704,7 +729,7 @@ export default function ListingDetail() {
                   to={`/listings/${similarListing._id}`}
                   className="group"
                 >
-                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-red-300 transition-all duration-200">
                     <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
                       {similarListing.images?.[0] ? (
                         <img

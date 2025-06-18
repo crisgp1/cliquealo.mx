@@ -1,6 +1,6 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link, useFetcher } from "@remix-run/react"
-import { UserModel } from "~/models/User"
+import { UserModel } from "~/models/User.server"
 import { requireUser } from "~/lib/session.server"
 import { toast } from "~/components/ui/toast"
 import { 

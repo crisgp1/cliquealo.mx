@@ -1,9 +1,10 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link, Form, useSearchParams, useFetcher } from "@remix-run/react"
-import { ListingModel } from "~/models/Listing"
-import { UserModel } from "~/models/User"
+import { ListingModel } from "~/models/Listing.server"
+import { UserModel } from "~/models/User.server"
 import { getUser, requireUser } from "~/lib/session.server"
 import { toast } from "~/components/ui/toast"
+import { getHotStatus } from "~/models/Listing"
 import { 
   Search, 
   Heart, 
@@ -259,7 +260,7 @@ export default function ListingsIndex() {
   return (
     <div className="min-h-screen bg-white">
       {/* Search and Filters Section */}
-      <section className="border-b border-gray-100 bg-gray-50/50">
+      <section className="border-b border-red-100 bg-gradient-to-br from-red-50/30 to-gray-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-2xl mx-auto text-center mb-8">
             <h1 className="text-4xl sm:text-5xl font-light text-gray-900 mb-4 tracking-tight">
@@ -271,18 +272,18 @@ export default function ListingsIndex() {
           </div>
 
           <Form method="get" className="max-w-4xl mx-auto">
-            <div className="relative">
+            <div className="relative border-2 border-gray-200 rounded-2xl bg-white shadow-sm hover:border-gray-300 transition-colors">
               <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="search"
                 name="search"
                 defaultValue={search}
                 placeholder="Buscar por marca, modelo..."
-                className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl text-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                className="w-full pl-14 pr-6 py-4 bg-transparent border-none rounded-2xl text-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white px-6 py-2 rounded-xl hover:bg-gray-800 transition-colors text-sm font-medium"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-2 rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
               >
                 Buscar
               </button>
@@ -343,7 +344,7 @@ export default function ListingsIndex() {
 
         {/* Filters Panel */}
         {showFilters && (
-          <div className="mb-12 p-6 bg-gray-50 rounded-2xl">
+          <div className="mb-12 p-6 bg-gradient-to-br from-red-50 to-gray-50 rounded-2xl border border-red-200">
             <Form method="get" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <input type="hidden" name="search" value={search} />
               
@@ -373,7 +374,7 @@ export default function ListingsIndex() {
                   defaultValue={minYear || ''}
                   placeholder="2010"
                   min="1990"
-                  max="2024"
+                  max="2025"
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                 />
               </div>
@@ -409,7 +410,7 @@ export default function ListingsIndex() {
               <div className="sm:col-span-2 lg:col-span-4 flex items-center space-x-4 pt-4">
                 <button
                   type="submit"
-                  className="bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors font-medium"
+                  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
                 >
                   Aplicar filtros
                 </button>
@@ -437,16 +438,21 @@ export default function ListingsIndex() {
               //  Verificar si este listing tiene like del usuario
               const isLiked = likedListings.includes(listing._id)
               
+              // 🔥 Algoritmo Hot View - Usar función inteligente del modelo
+              const hotStatus = getHotStatus(listing as any)
+              const isHot = hotStatus === 'hot'
+              const isSuperHot = hotStatus === 'super-hot'
+              
               return (
                 <article
                   key={listing._id}
                   className={`group ${
                     viewMode === 'list' ? 'flex space-x-6' : ''
-                  }`}
+                  } ${(isHot || isSuperHot) ? 'ring-2 ring-red-200 rounded-2xl p-2' : ''}`}
                 >
                   <div className={`relative overflow-hidden rounded-2xl bg-gray-100 ${
                     viewMode === 'list' ? 'w-80 h-60 flex-shrink-0' : 'aspect-[4/3]'
-                  }`}>
+                  } ${(isHot || isSuperHot) ? 'border-2 border-red-300' : 'border border-gray-200 hover:border-red-300 transition-colors'}`}>
                     {listing.images && listing.images.length > 0 ? (
                       <img
                         src={listing.images[0]}
@@ -459,17 +465,33 @@ export default function ListingsIndex() {
                       </div>
                     )}
                     
-                    {listing.year && (
-                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
-                        {listing.year}
-                      </div>
-                    )}
+                    <div className="absolute top-4 left-4 flex items-center space-x-2">
+                      {listing.year && (
+                        <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
+                          {listing.year}
+                        </div>
+                      )}
+                      
+                      {/* 🔥 Hot Badge */}
+                      {isSuperHot && (
+                        <div className="bg-gradient-to-r from-red-500 to-orange-500 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 animate-bounce">
+                          <span>🔥🔥</span>
+                          <span>Super Hot</span>
+                        </div>
+                      )}
+                      {isHot && !isSuperHot && (
+                        <div className="bg-red-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 animate-pulse">
+                          <span>🔥</span>
+                          <span>Hot</span>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Botón de like funcional */}
-                    <LikeButton 
-                      listing={listing} 
-                      isLiked={isLiked} 
-                      user={user} 
+                    <LikeButton
+                      listing={listing}
+                      isLiked={isLiked}
+                      user={user}
                     />
                   </div>
 
@@ -513,10 +535,6 @@ export default function ListingsIndex() {
 
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-500">
-                        <div className="flex items-center space-x-1 mb-1">
-                          <Calendar className="w-3 h-3" />
-                          <span>{listing.createdAt ? new Date(listing.createdAt).toLocaleDateString() : 'Fecha no disponible'}</span>
-                        </div>
                         {listing.owner?.name && (
                           <div>Por {listing.owner.name}</div>
                         )}
@@ -524,7 +542,7 @@ export default function ListingsIndex() {
 
                       <Link
                         to={`/listings/${listing._id}`}
-                        className="flex items-center space-x-2 text-gray-900 hover:text-gray-600 transition-colors font-medium group"
+                        className="flex items-center space-x-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium group shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
                       >
                         <span>Ver detalles</span>
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -552,7 +570,7 @@ export default function ListingsIndex() {
             
             <Link
               to="/"
-              className="inline-flex items-center space-x-2 bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors font-medium"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
             >
               <span>Volver al inicio</span>
             </Link>

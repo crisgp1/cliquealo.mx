@@ -1,6 +1,6 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, useActionData, Link, useNavigation, useLoaderData } from "@remix-run/react"
-import { ListingModel } from "~/models/Listing"
+import { ListingModel } from "~/models/Listing.server"
 import { requireAdmin } from "~/lib/auth.server"
 import { 
   ArrowLeft, 
@@ -28,9 +28,11 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     throw new Response("Listing no encontrado", { status: 404 })
   }
   
-  // Verificar que el usuario sea el dueño del listing
+  // Verificar que el usuario sea el dueño del listing O sea admin/superadmin
   const isOwner = await ListingModel.isOwner(listingId, user._id!.toString())
-  if (!isOwner) {
+  const isAdminOrSuperAdmin = user.role === 'admin' || user.role === 'superadmin'
+  
+  if (!isOwner && !isAdminOrSuperAdmin) {
     throw new Response("No autorizado", { status: 403 })
   }
   
@@ -45,9 +47,11 @@ export async function action({ params, request }: ActionFunctionArgs) {
     throw new Response("Not Found", { status: 404 })
   }
   
-  // Verificar que el usuario sea el dueño del listing
+  // Verificar que el usuario sea el dueño del listing O sea admin/superadmin
   const isOwner = await ListingModel.isOwner(listingId, user._id!.toString())
-  if (!isOwner) {
+  const isAdminOrSuperAdmin = user.role === 'admin' || user.role === 'superadmin'
+  
+  if (!isOwner && !isAdminOrSuperAdmin) {
     throw new Response("No autorizado", { status: 403 })
   }
   

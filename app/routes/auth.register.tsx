@@ -1,6 +1,6 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, useActionData, Link, useNavigation } from "@remix-run/react"
-import { UserModel } from "~/models/User"
+import { UserModel } from "~/models/User.server"
 import { createUserSession, getUserId } from "~/lib/session.server"
 import { Eye, EyeOff, ArrowRight, Loader2, Check } from 'lucide-react'
 import { useState } from 'react'

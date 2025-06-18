@@ -1,6 +1,6 @@
 import { redirect } from '@remix-run/node'
 import { getUser, requireUser } from './session.server'
-import type { User } from '~/models/User'
+import type { User } from '~/models/User.server'
 
 // Re-export requireUser function from session.server
 export { requireUser }

@@ -2,7 +2,7 @@ import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from
 import { Form, Link, useLoaderData, useNavigation, useSearchParams, useSubmit } from "@remix-run/react"
 import { requireAdmin } from "~/lib/auth.server"
 import { db } from "~/lib/db.server"
-import { ListingModel } from "~/models/Listing"
+import { ListingModel } from "~/models/Listing.server"
 import { 
   Search, 
   Filter, 
