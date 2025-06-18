@@ -140,16 +140,11 @@ export default function Register() {
 
       {/* Right side - Form */}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-sm w-full">
+        <div className="max-w-sm w-full ">
           <div className="text-center mb-12">
-            <Link to="/" className="inline-flex items-center space-x-3 mb-8">
-              <div className="w-8 h-8 bg-black rounded-full"></div>
-              <span className="text-xl font-light tracking-tight text-gray-900">
-                Cliquealo
-              </span>
-            </Link>
-            
-            <h1 className="text-3xl font-light text-gray-900 mb-3">
+              
+       
+            <h1 className="text-3xl font-light text-gray-900 mb-3 mt-12">
               Crear cuenta
             </h1>
             <p className="text-gray-600">

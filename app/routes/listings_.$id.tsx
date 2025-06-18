@@ -7,10 +7,10 @@ import { getUser } from "~/lib/session.server"
 import { requireUser, Auth } from "~/lib/auth.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus, type Listing } from "~/models/Listing"
-import { 
-  ArrowLeft, 
-  Heart, 
-  Share2, 
+import {
+  ArrowLeft,
+  Heart,
+  Share2,
   Eye,
   Calendar,
   MapPin,
@@ -39,6 +39,7 @@ import {
   X
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
+import { Splide } from '@splidejs/splide'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const listingId = params.id
@@ -186,11 +187,9 @@ export default function ListingDetail() {
   const [showCreditModal, setShowCreditModal] = useState(false)
   const [creditStep, setCreditStep] = useState(1)
   
-  // Estados para el carousel con touch
-  const carouselRef = useRef<HTMLDivElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [startX, setStartX] = useState(0)
-  const [scrollLeft, setScrollLeft] = useState(0)
+  // Referencias para Splide
+  const mainSplideRef = useRef<HTMLDivElement>(null)
+  const thumbnailSplideRef = useRef<HTMLDivElement>(null)
   
   // Estados para calculadora de crédito
   const [creditData, setCreditData] = useState({
@@ -398,43 +397,58 @@ export default function ListingDetail() {
     }
   }
 
-  // Funciones para el carousel con touch
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!carouselRef.current) return
-    setIsDragging(true)
-    setStartX(e.pageX - carouselRef.current.offsetLeft)
-    setScrollLeft(carouselRef.current.scrollLeft)
-  }
+  // Inicializar Splide cuando las imágenes estén disponibles
+  useEffect(() => {
+    if (images.length > 1) {
+      // Inicializar el carousel principal
+      if (mainSplideRef.current) {
+        const mainSplide = new Splide(mainSplideRef.current, {
+          type: 'fade',
+          rewind: true,
+          pagination: false,
+          arrows: false,
+          cover: true,
+          height: '400px',
+        })
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!carouselRef.current) return
-    setIsDragging(true)
-    setStartX(e.touches[0].pageX - carouselRef.current.offsetLeft)
-    setScrollLeft(carouselRef.current.scrollLeft)
-  }
+        // Inicializar el carousel de thumbnails
+        if (thumbnailSplideRef.current) {
+          const thumbnailSplide = new Splide(thumbnailSplideRef.current, {
+            fixedWidth: 80,
+            fixedHeight: 80,
+            gap: 10,
+            rewind: true,
+            pagination: false,
+            arrows: false,
+            cover: true,
+            focus: 'center',
+            isNavigation: true,
+            drag: true,
+            snap: true,
+            slideFocus: true,
+          })
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !carouselRef.current) return
-    e.preventDefault()
-    const x = e.pageX - carouselRef.current.offsetLeft
-    const walk = (x - startX) * 2
-    carouselRef.current.scrollLeft = scrollLeft - walk
-  }
+          // Sincronizar ambos carousels
+          mainSplide.sync(thumbnailSplide)
+          
+          // Montar ambos carousels
+          mainSplide.mount()
+          thumbnailSplide.mount()
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !carouselRef.current) return
-    const x = e.touches[0].pageX - carouselRef.current.offsetLeft
-    const walk = (x - startX) * 2
-    carouselRef.current.scrollLeft = scrollLeft - walk
-  }
+          // Actualizar el índice actual cuando cambie la imagen
+          mainSplide.on('moved', (newIndex) => {
+            setCurrentImageIndex(newIndex)
+          })
 
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
-
-  const handleTouchEnd = () => {
-    setIsDragging(false)
-  }
+          // Cleanup
+          return () => {
+            mainSplide.destroy()
+            thumbnailSplide.destroy()
+          }
+        }
+      }
+    }
+  }, [images.length])
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
@@ -539,144 +553,55 @@ export default function ListingDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-12">
           {/* Columna principal - Imágenes e info */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-8 min-w-0">
-            {/* Galería de imágenes */}
+            {/* Galería de imágenes con Splide */}
             <div className="space-y-4">
               {hasImages ? (
-                <div className="relative aspect-[4/3] bg-gray-100 rounded-2xl overflow-hidden group border-2 border-red-500/20 hover:border-red-500/40 transition-colors">
-                  <img
-                    src={images[currentImageIndex]}
-                    alt={`${listing.title} - Imagen ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {images.length > 1 && (
-                    <>
-                      <button
-                        onClick={prevImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <ChevronLeft className="w-5 h-5" />
-                      </button>
-                      
-                      <button
-                        onClick={nextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                      
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                        {images.map((_: string, index: number) => (
-                          <button
-                            key={index}
-                            onClick={() => setCurrentImageIndex(index)}
-                            className={`w-2 h-2 rounded-full transition-colors ${
-                              index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div className="aspect-[4/3] bg-gray-100 rounded-2xl flex items-center justify-center">
-                  <Car className="w-16 h-16 text-gray-400" />
-                </div>
-              )}
-              
-              {/* Thumbnails */}
-              {images.length > 1 && (
                 <>
-                  {images.length <= 5 ? (
-                    // Grid estático para 5 fotos o menos
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 sm:gap-2">
-                      {images.slice(0, 4).map((image: string, index: number) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentImageIndex(index)}
-                          className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
-                            index === currentImageIndex ? 'border-gray-900' : 'border-transparent'
-                          }`}
-                        >
-                          <img
-                            src={image}
-                            alt={`Thumbnail ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      ))}
-                      {images.length > 4 && (
-                        <button
-                          onClick={() => setCurrentImageIndex(4)}
-                          className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
-                            currentImageIndex === 4 ? 'border-gray-900' : 'border-transparent'
-                          }`}
-                        >
-                          <img
-                            src={images[4]}
-                            alt={`Thumbnail 5`}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    // Carousel horizontal para más de 5 fotos con touch drag y difuminado
-                    <div className="relative">
-                      {/* Contenedor del carousel con máscara de difuminado */}
-                      <div className="relative overflow-hidden">
-                        <div
-                          ref={carouselRef}
-                          className={`single-row-carousel gap-2 sm:gap-3 scrollbar-hide pb-1 touch-pan-x no-select px-4 ${
-                            isDragging ? 'cursor-grabbing' : 'cursor-grab'
-                          }`}
-                          style={{
-                            WebkitOverflowScrolling: 'touch'
-                          }}
-                          onMouseDown={handleMouseDown}
-                          onMouseMove={handleMouseMove}
-                          onMouseUp={handleMouseUp}
-                          onMouseLeave={handleMouseUp}
-                          onTouchStart={handleTouchStart}
-                          onTouchMove={handleTouchMove}
-                          onTouchEnd={handleTouchEnd}
-                        >
+                  {/* Carousel principal */}
+                  <div className="relative">
+                    <div
+                      ref={mainSplideRef}
+                      className="splide border-2 border-red-500/20 hover:border-red-500/40 transition-colors rounded-2xl overflow-hidden"
+                    >
+                      <div className="splide__track">
+                        <ul className="splide__list">
                           {images.map((image: string, index: number) => (
-                            <button
-                              key={index}
-                              onClick={(e) => {
-                                // Solo cambiar imagen si no estamos arrastrando
-                                if (!isDragging) {
-                                  setCurrentImageIndex(index)
-                                } else {
-                                  e.preventDefault()
-                                }
-                              }}
-                              className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                                index === currentImageIndex
-                                  ? 'border-red-500 shadow-lg scale-110'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              } ${isDragging ? 'pointer-events-none' : ''}`}
-                            >
+                            <li key={index} className="splide__slide">
                               <img
                                 src={image}
-                                alt={`Thumbnail ${index + 1}`}
+                                alt={`${listing.title} - Imagen ${index + 1}`}
                                 className="w-full h-full object-cover"
-                                draggable={false}
                               />
-                            </button>
+                            </li>
                           ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Thumbnails con Splide */}
+                  {images.length > 1 && (
+                    <div className="relative">
+                      <div
+                        ref={thumbnailSplideRef}
+                        className="splide splide--thumbnails"
+                      >
+                        <div className="splide__track">
+                          <ul className="splide__list">
+                            {images.map((image: string, index: number) => (
+                              <li key={index} className="splide__slide">
+                                <img
+                                  src={image}
+                                  alt={`Thumbnail ${index + 1}`}
+                                  className="w-full h-full object-cover rounded-lg border-2 border-transparent hover:border-red-300 transition-colors cursor-pointer"
+                                />
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                        
-                        {/* Difuminado izquierdo */}
-                        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white via-white/80 to-transparent pointer-events-none z-10"></div>
-                        
-                        {/* Difuminado derecho */}
-                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white via-white/80 to-transparent pointer-events-none z-10"></div>
                       </div>
                       
-                      {/* Indicador de scroll mejorado */}
+                      {/* Indicador de touch */}
                       <div className="mt-2 text-center">
                         <div className="inline-flex items-center gap-2 text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full">
                           <span>👆 Desliza para ver más fotos</span>
@@ -690,6 +615,10 @@ export default function ListingDetail() {
                     </div>
                   )}
                 </>
+              ) : (
+                <div className="aspect-[4/3] bg-gray-100 rounded-2xl flex items-center justify-center">
+                  <Car className="w-16 h-16 text-gray-400" />
+                </div>
               )}
             </div>
 

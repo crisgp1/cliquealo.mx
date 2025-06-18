@@ -93,4 +93,63 @@
     flex-shrink: 0;
     white-space: normal;
   }
+  
+  /* Custom Splide styles for the listing carousel */
+  .splide {
+    visibility: visible !important;
+  }
+
+  .splide__track {
+    overflow: visible;
+    cursor: grab;
+  }
+  
+  .splide__track:active {
+    cursor: grabbing;
+  }
+
+  .splide__slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .splide__slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Thumbnail carousel styles */
+  .splide--thumbnails .splide__slide {
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+  }
+
+  .splide--thumbnails .splide__slide.is-active {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  .splide--thumbnails .splide__slide:hover {
+    opacity: 0.8;
+  }
+
+  .splide--thumbnails .splide__slide img {
+    border-radius: 0.5rem;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease;
+  }
+
+  .splide--thumbnails .splide__slide.is-active img {
+    border-color: #ef4444;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Hide default arrows and pagination */
+  .splide__arrows,
+  .splide__pagination {
+    display: none;
+  }
 }
