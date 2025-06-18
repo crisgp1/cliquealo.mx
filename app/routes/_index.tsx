@@ -452,12 +452,12 @@ export default function Index() {
                         trigger: "bg-white border-0"
                       }}
                     >
-                      <SelectItem key="Nissan" value="Nissan">Nissan</SelectItem>
-                      <SelectItem key="Honda" value="Honda">Honda</SelectItem>
-                      <SelectItem key="Toyota" value="Toyota">Toyota</SelectItem>
-                      <SelectItem key="Volkswagen" value="Volkswagen">Volkswagen</SelectItem>
-                      <SelectItem key="Ford" value="Ford">Ford</SelectItem>
-                      <SelectItem key="Chevrolet" value="Chevrolet">Chevrolet</SelectItem>
+                      <SelectItem key="Nissan">Nissan</SelectItem>
+                      <SelectItem key="Honda">Honda</SelectItem>
+                      <SelectItem key="Toyota">Toyota</SelectItem>
+                      <SelectItem key="Volkswagen">Volkswagen</SelectItem>
+                      <SelectItem key="Ford">Ford</SelectItem>
+                      <SelectItem key="Chevrolet">Chevrolet</SelectItem>
                     </Select>
                   </div>
 
@@ -681,7 +681,7 @@ export default function Index() {
                         )}
                         <span className="flex items-center space-x-1">
                           <Eye className="w-4 h-4" />
-                          <span>{listing.viewsCount || Math.floor(Math.random() * 200) + 20}</span>
+                          <span>{listing.viewsCount || 0}</span>
                         </span>
                       </div>
                     </div>
