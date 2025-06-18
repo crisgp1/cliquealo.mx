@@ -191,6 +191,10 @@ export default function ListingDetail() {
   const mainSplideRef = useRef<HTMLDivElement>(null)
   const thumbnailSplideRef = useRef<HTMLDivElement>(null)
   
+  // Estados para el lightbox
+  const [showLightbox, setShowLightbox] = useState(false)
+  const [lightboxImageIndex, setLightboxImageIndex] = useState(0)
+  
   // Estados para calculadora de crédito
   const [creditData, setCreditData] = useState({
     downPayment: Math.round(listing.price * 0.3), // 30% de enganche mínimo por defecto
@@ -397,6 +401,40 @@ export default function ListingDetail() {
     }
   }
 
+  // Funciones para el lightbox
+  const openLightbox = (index: number) => {
+    setLightboxImageIndex(index)
+    setShowLightbox(true)
+    document.body.style.overflow = 'hidden' // Prevenir scroll del body
+  }
+
+  const closeLightbox = () => {
+    setShowLightbox(false)
+    document.body.style.overflow = 'unset' // Restaurar scroll del body
+  }
+
+  const nextLightboxImage = () => {
+    setLightboxImageIndex((prev) => (prev + 1) % images.length)
+  }
+
+  const prevLightboxImage = () => {
+    setLightboxImageIndex((prev) => (prev - 1 + images.length) % images.length)
+  }
+
+  // Navegación con teclado para el lightbox
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (showLightbox) {
+        if (e.key === 'Escape') closeLightbox()
+        if (e.key === 'ArrowLeft') prevLightboxImage()
+        if (e.key === 'ArrowRight') nextLightboxImage()
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [showLightbox, images.length])
+
   // Inicializar Splide cuando las imágenes estén disponibles
   useEffect(() => {
     if (images.length > 1) {
@@ -570,7 +608,8 @@ export default function ListingDetail() {
                               <img
                                 src={image}
                                 alt={`${listing.title} - Imagen ${index + 1}`}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => openLightbox(index)}
                               />
                             </li>
                           ))}
@@ -1405,6 +1444,69 @@ export default function ListingDetail() {
         </div>
       )}
 
+      {/* Lightbox Modal */}
+      {showLightbox && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          {/* Botón de cerrar */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 z-60 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-all"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Navegación anterior */}
+          {images.length > 1 && (
+            <button
+              onClick={prevLightboxImage}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 z-60 p-3 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-all"
+            >
+              <ChevronLeft className="w-8 h-8" />
+            </button>
+          )}
+
+          {/* Imagen principal */}
+          <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center">
+            <img
+              src={images[lightboxImageIndex]}
+              alt={`${listing.title} - Imagen ${lightboxImageIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+
+          {/* Navegación siguiente */}
+          {images.length > 1 && (
+            <button
+              onClick={nextLightboxImage}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 z-60 p-3 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-all"
+            >
+              <ChevronRight className="w-8 h-8" />
+            </button>
+          )}
+
+          {/* Indicadores de imagen */}
+          {images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setLightboxImageIndex(index)}
+                  className={`w-3 h-3 rounded-full transition-all ${
+                    index === lightboxImageIndex
+                      ? 'bg-white'
+                      : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Contador de imágenes */}
+          <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+            {lightboxImageIndex + 1} / {images.length}
+          </div>
+        </div>
+      )}
     
     </div>
   )
