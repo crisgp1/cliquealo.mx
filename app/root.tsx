@@ -15,7 +15,7 @@ import { json } from "@remix-run/node";
 import { useState, useEffect } from "react";
 import { getUser } from "~/lib/session.server";
 import { Auth } from "~/lib/auth.server";
-import { X, Plus, User, LogOut, Shield, Heart, Menu } from "lucide-react"; // 🔥 AGREGADO Heart y Menu
+import { X, Plus, User, LogOut, Shield, Heart, Menu, Search, Info, Home, LogIn, UserPlus } from "lucide-react"; // 🔥 AGREGADO más iconos
 
 import { Toaster } from "~/components/ui/toast";
 import { Preloader } from "~/components/ui/preloader";
@@ -98,7 +98,7 @@ export default function App() {
           ? 'bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm'
           : 'bg-white border-b border-gray-50'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             
             {/* Logo with enhanced animation */}
@@ -113,8 +113,9 @@ export default function App() {
             <nav className="hidden md:flex items-center space-x-1">
               <Link
                 to="/listings"
-                className="relative px-4 py-2 text-gray-600 hover:text-black transition-all duration-300 text-sm font-medium rounded-lg hover:bg-gray-50 group"
+                className="relative px-4 py-2 text-gray-600 hover:text-black transition-all duration-300 text-sm font-medium rounded-lg hover:bg-gray-50 group flex items-center gap-2"
               >
+                <Search className="w-3.5 h-3.5 group-hover:text-gray-700 transition-colors duration-300" />
                 <span className="relative z-10">Explorar</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
@@ -133,8 +134,9 @@ export default function App() {
               
               <Link
                 to="/about"
-                className="relative px-4 py-2 text-gray-600 hover:text-black transition-all duration-300 text-sm font-medium rounded-lg hover:bg-gray-50 group"
+                className="relative px-4 py-2 text-gray-600 hover:text-black transition-all duration-300 text-sm font-medium rounded-lg hover:bg-gray-50 group flex items-center gap-2"
               >
+                <Info className="w-3.5 h-3.5 group-hover:text-gray-700 transition-colors duration-300" />
                 <span className="relative z-10">Nosotros</span>
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
@@ -159,6 +161,55 @@ export default function App() {
                   <Shield className="w-3.5 h-3.5 group-hover:text-purple-600 transition-colors duration-300" />
                   <span className="relative z-10">Admin</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Link>
+              )}
+            </nav>
+
+            {/* Mobile Icon Navigation - Hidden on desktop */}
+            <nav className="hidden sm:flex md:hidden items-center space-x-1">
+              <Link
+                to="/listings"
+                className="p-2 text-gray-600 hover:text-black transition-all duration-300 rounded-lg hover:bg-gray-50"
+                title="Explorar"
+              >
+                <Search className="w-5 h-5" />
+              </Link>
+              
+              {user && (
+                <Link
+                  to="/favorites"
+                  className="p-2 text-gray-600 hover:text-red-500 transition-all duration-300 rounded-lg hover:bg-red-50"
+                  title="Favoritos"
+                >
+                  <Heart className="w-5 h-5" />
+                </Link>
+              )}
+              
+              <Link
+                to="/about"
+                className="p-2 text-gray-600 hover:text-black transition-all duration-300 rounded-lg hover:bg-gray-50"
+                title="Nosotros"
+              >
+                <Info className="w-5 h-5" />
+              </Link>
+              
+              {user && canCreateListings && (
+                <Link
+                  to="/listings/new"
+                  className="p-2 text-gray-600 hover:text-blue-600 transition-all duration-300 rounded-lg hover:bg-blue-50"
+                  title="Crear"
+                >
+                  <Plus className="w-5 h-5" />
+                </Link>
+              )}
+              
+              {user?.role === 'superadmin' && (
+                <Link
+                  to="/admin"
+                  className="p-2 text-gray-600 hover:text-purple-600 transition-all duration-300 rounded-lg hover:bg-purple-50"
+                  title="Admin"
+                >
+                  <Shield className="w-5 h-5" />
                 </Link>
               )}
             </nav>
@@ -196,18 +247,39 @@ export default function App() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <Link
-                    to="/auth/login"
-                    className="text-gray-600 hover:text-black transition-all duration-300 text-sm font-medium px-3 py-2 rounded-lg hover:bg-gray-50"
-                  >
-                    Entrar
-                  </Link>
-                  <Link
-                    to="/auth/register"
-                    className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-800 text-white text-sm font-medium rounded-lg hover:from-gray-800 hover:to-gray-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
-                  >
-                    Registrarse
-                  </Link>
+                  {/* Desktop version with text */}
+                  <div className="hidden sm:flex items-center gap-3">
+                    <Link
+                      to="/auth/login"
+                      className="text-gray-600 hover:text-black transition-all duration-300 text-sm font-medium px-3 py-2 rounded-lg hover:bg-gray-50"
+                    >
+                      Entrar
+                    </Link>
+                    <Link
+                      to="/auth/register"
+                      className="px-4 py-2 bg-gradient-to-r from-gray-900 to-gray-800 text-white text-sm font-medium rounded-lg hover:from-gray-800 hover:to-gray-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                    >
+                      Registrarse
+                    </Link>
+                  </div>
+                  
+                  {/* Mobile version with icons only */}
+                  <div className="flex sm:hidden items-center gap-2">
+                    <Link
+                      to="/auth/login"
+                      className="p-2 text-gray-600 hover:text-black transition-all duration-300 rounded-lg hover:bg-gray-50"
+                      title="Entrar"
+                    >
+                      <LogIn className="w-5 h-5" />
+                    </Link>
+                    <Link
+                      to="/auth/register"
+                      className="p-2 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg hover:from-gray-800 hover:to-gray-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                      title="Registrarse"
+                    >
+                      <UserPlus className="w-5 h-5" />
+                    </Link>
+                  </div>
                 </div>
               )}
               
@@ -234,12 +306,13 @@ export default function App() {
               ? 'max-h-96 opacity-100 border-t border-gray-100'
               : 'max-h-0 opacity-0'
           }`}>
-            <nav className="py-4 space-y-1">
+            <nav className="w-full py-4 space-y-1">
               <Link
                 to="/listings"
-                className="block px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all duration-300 text-sm font-medium rounded-lg mx-2 transform hover:translate-x-1"
+                className="block px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all duration-300 text-sm font-medium rounded-lg mx-2 flex items-center gap-3 transform hover:translate-x-1"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <Search className="w-4 h-4 text-gray-500" />
                 Explorar Catálogo
               </Link>
               
@@ -256,9 +329,10 @@ export default function App() {
               
               <Link
                 to="/about"
-                className="block px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all duration-300 text-sm font-medium rounded-lg mx-2 transform hover:translate-x-1"
+                className="block px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all duration-300 text-sm font-medium rounded-lg mx-2 flex items-center gap-3 transform hover:translate-x-1"
                 onClick={() => setMobileMenuOpen(false)}
               >
+                <Info className="w-4 h-4 text-gray-500" />
                 Nosotros
               </Link>
               
@@ -305,13 +379,78 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
+      <main className="flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
 
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+        <div className="flex items-center justify-around py-2">
+          <Link
+            to="/"
+            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-gray-900 transition-colors min-w-0"
+            title="Inicio"
+          >
+            <Home className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
+            <span className="hidden sm:block text-xs font-medium">Inicio</span>
+          </Link>
+          
+          <Link
+            to="/listings"
+            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-gray-900 transition-colors min-w-0"
+            title="Explorar"
+          >
+            <Search className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
+            <span className="hidden sm:block text-xs font-medium">Explorar</span>
+          </Link>
+          
+          {user && (
+            <Link
+              to="/favorites"
+              className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-red-600 transition-colors min-w-0"
+              title="Favoritos"
+            >
+              <Heart className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
+              <span className="hidden sm:block text-xs font-medium">Favoritos</span>
+            </Link>
+          )}
+          
+          {user && canCreateListings && (
+            <Link
+              to="/listings/new"
+              className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors min-w-0"
+              title="Crear"
+            >
+              <Plus className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
+              <span className="hidden sm:block text-xs font-medium">Crear</span>
+            </Link>
+          )}
+          
+          {user?.role === 'superadmin' && (
+            <Link
+              to="/admin"
+              className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-purple-600 transition-colors min-w-0"
+              title="Admin"
+            >
+              <Shield className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
+              <span className="hidden sm:block text-xs font-medium">Admin</span>
+            </Link>
+          )}
+          
+          <Link
+            to="/about"
+            className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-gray-900 transition-colors min-w-0"
+            title="Información"
+          >
+            <Info className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
+            <span className="hidden sm:block text-xs font-medium">Info</span>
+          </Link>
+        </div>
+      </nav>
+
       {/* Footer */}
       <footer className="border-t border-gray-100 py-6 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-sm text-gray-500">
               Desarrollado por{" "}

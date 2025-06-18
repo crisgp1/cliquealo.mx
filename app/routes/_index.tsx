@@ -254,7 +254,7 @@ export default function Index() {
     <div>
       {/* Search Section */}
       <section className="border-b border-red-100 bg-gradient-to-br from-red-50/30 to-gray-50/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-2xl mx-auto text-center mb-8">
             <h1 className="text-4xl sm:text-5xl font-light text-gray-900 mb-4 tracking-tight">
               Encuentra tu auto ideal
@@ -272,20 +272,22 @@ export default function Index() {
                 name="search"
                 defaultValue={search}
                 placeholder="Buscar por marca, modelo..."
-                className="w-full pl-14 pr-6 py-4 bg-transparent border-none rounded-2xl text-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all"
+                className="w-full pl-14 pr-16 sm:pr-24 py-4 bg-transparent border-none rounded-2xl text-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-2 rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 px-3 py-2 sm:px-6"
+                title="Buscar"
               >
-                Buscar
+                <span className="hidden sm:inline text-sm">Buscar</span>
+                <Search className="w-5 h-5 sm:hidden" />
               </button>
             </div>
           </Form>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Filters and View Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12 space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-4">
@@ -597,7 +599,7 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="border-t border-gray-100 mt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-6 h-6 bg-black rounded-full"></div>
