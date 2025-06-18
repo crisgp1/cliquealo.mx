@@ -64,7 +64,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   // Add hot status to the listing on the server side
   const listingWithHotStatus = {
     ...listing,
-    hotStatus: getHotStatus(listing)
+    hotStatus: getHotStatus(listing as Listing)
   }
 
   console.log('📝 Título del listing:', listing.title)
@@ -393,21 +393,21 @@ export default function ListingDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Header */}
       <header className="border-b border-red-100 sticky top-0 bg-white z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link 
+          <div className="flex items-center justify-between h-14 sm:h-16 min-w-0">
+            <Link
               to="/"
-              className="flex items-center space-x-3 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center space-x-2 sm:space-x-3 text-gray-600 hover:text-gray-900 transition-colors min-w-0"
             >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Volver al Catálogo</span>
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="font-medium text-sm sm:text-base truncate">Volver al Catálogo</span>
             </Link>
 
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
               {/* 🔥 SOLUCIÓN: Botón de Like Corregido - SIN ERRORES TYPESCRIPT */}
               {user && (
                 <likeFetcher.Form method="post" style={{ display: 'inline' }}>
@@ -468,21 +468,21 @@ export default function ListingDetail() {
               </button>
 
               {canEdit && (
-                <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-200">
+                <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-4 pl-2 sm:pl-4 border-l border-gray-200">
                     <Link
                       to={`/listings/${listing._id}/edit`}
-                      className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors flex items-center gap-2"
+                      className="p-1.5 sm:p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors flex items-center gap-1 sm:gap-2"
                       title="Editar Listing"
                     >
-                      <Edit className="w-5 h-5" />
-                      <span className="hidden sm:inline text-sm">Editar</span>
+                      <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="hidden md:inline text-sm">Editar</span>
                   </Link>
                   
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors"
+                    className="p-1.5 sm:p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 </div>
               )}
@@ -491,10 +491,10 @@ export default function ListingDetail() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-12">
           {/* Columna principal - Imágenes e info */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-8 min-w-0">
             {/* Galería de imágenes */}
             <div className="space-y-4">
               {hasImages ? (
@@ -546,7 +546,7 @@ export default function ListingDetail() {
                 <>
                   {images.length <= 5 ? (
                     // Grid estático para 5 fotos o menos
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 sm:gap-2">
                       {images.slice(0, 4).map((image: string, index: number) => (
                         <button
                           key={index}
@@ -581,7 +581,7 @@ export default function ListingDetail() {
                     // Carousel horizontal para más de 5 fotos
                     <div className="relative">
                       <div
-                        className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1"
+                        className="flex gap-1 sm:gap-1.5 overflow-x-auto scrollbar-hide pb-1"
                         style={{
                           scrollbarWidth: 'none',
                           msOverflowStyle: 'none',
@@ -592,7 +592,7 @@ export default function ListingDetail() {
                           <button
                             key={index}
                             onClick={() => setCurrentImageIndex(index)}
-                            className={`flex-shrink-0 w-12 h-12 rounded-md overflow-hidden border-2 transition-colors ${
+                            className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden border-2 transition-colors ${
                               index === currentImageIndex ? 'border-gray-900' : 'border-transparent'
                             }`}
                           >
@@ -621,11 +621,11 @@ export default function ListingDetail() {
             </div>
 
             {/* Información principal */}
-            <div className="space-y-6 border-l-4 border-red-500 pl-6">
+            <div className="space-y-4 sm:space-y-6 border-l-4 border-red-500 pl-4 sm:pl-6">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-3">
-                    <h1 className="text-3xl font-light text-gray-900 tracking-tight">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-light text-gray-900 tracking-tight">
                       {listing.title}
                     </h1>
                     {/* 🔥 Hot Badge para página de detalle */}
@@ -651,34 +651,34 @@ export default function ListingDetail() {
                   </div>
                   
                   {/* ID único del vehículo */}
-                  <div className="bg-gray-100 px-3 py-1 rounded-lg border border-gray-200">
+                  <div className="bg-gray-100 px-2 sm:px-3 py-1 rounded-lg border border-gray-200 self-start">
                     <span className="text-xs text-gray-500 font-medium">ID:</span>
-                    <span className="text-sm font-mono text-gray-700 ml-1">
-                      {listing._id.slice(-8).toUpperCase()}
+                    <span className="text-xs sm:text-sm font-mono text-gray-700 ml-1">
+                      {listing._id?.slice(-8).toUpperCase() || 'N/A'}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-4 text-gray-600">
-                  <span className="text-lg">{listing.brand} {listing.model}</span>
-                  <span>•</span>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-gray-600">
+                  <span className="text-base sm:text-lg">{listing.brand} {listing.model}</span>
+                  <span className="hidden sm:inline">•</span>
                   <span>{listing.year}</span>
                 </div>
               </div>
 
-              <div className="text-4xl font-light text-gray-900 bg-red-50 px-4 py-3 rounded-xl border border-red-200">
-                ${listing.price.toLocaleString()} <span className="text-lg text-red-600 font-medium">MXN</span>
+              <div className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 bg-red-50 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-red-200">
+                ${listing.price.toLocaleString()} <span className="text-sm sm:text-lg text-red-600 font-medium">MXN</span>
               </div>
 
               {/* Características principales */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+                <div className="bg-gray-50 rounded-xl p-2 sm:p-4 text-center">
                   <Calendar className="w-6 h-6 text-gray-600 mx-auto mb-2" />
                   <div className="text-sm text-gray-600">Año</div>
                   <div className="font-medium">{listing.year}</div>
                 </div>
                 
                 {listing.fuelType && (
-                  <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <div className="bg-gray-50 rounded-xl p-2 sm:p-4 text-center">
                     <Fuel className="w-6 h-6 text-gray-600 mx-auto mb-2" />
                     <div className="text-sm text-gray-600">Combustible</div>
                     <div className="font-medium capitalize">{listing.fuelType}</div>
@@ -686,7 +686,7 @@ export default function ListingDetail() {
                 )}
                 
                 {listing.transmission && (
-                  <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <div className="bg-gray-50 rounded-xl p-2 sm:p-4 text-center">
                     <Settings className="w-6 h-6 text-gray-600 mx-auto mb-2" />
                     <div className="text-sm text-gray-600">Transmisión</div>
                     <div className="font-medium capitalize">{listing.transmission}</div>
@@ -694,7 +694,7 @@ export default function ListingDetail() {
                 )}
                 
                 {listing.mileage && (
-                  <div className="bg-gray-50 rounded-xl p-4 text-center">
+                  <div className="bg-gray-50 rounded-xl p-2 sm:p-4 text-center">
                     <Gauge className="w-6 h-6 text-gray-600 mx-auto mb-2" />
                     <div className="text-sm text-gray-600">Kilometraje</div>
                     <div className="font-medium">{listing.mileage.toLocaleString()} km</div>
@@ -750,7 +750,7 @@ export default function ListingDetail() {
           </div>
 
           {/* Sidebar - Tabulador con Contacto y Crédito */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 min-w-0">
             {/* Tabulador */}
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
               {/* Tabs Header */}
@@ -1130,8 +1130,8 @@ export default function ListingDetail() {
 
       {/* Modal de Solicitud de Crédito Step-by-Step */}
       {showCreditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-2">
             {/* Header del Modal */}
             <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
               <div className="flex items-center justify-between">
@@ -1371,8 +1371,8 @@ export default function ListingDetail() {
 
       {/* Modal de confirmación de eliminación */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full mx-2">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               ¿Eliminar este auto?
             </h3>
