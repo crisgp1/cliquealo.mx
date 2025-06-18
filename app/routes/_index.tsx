@@ -49,6 +49,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const maxPrice = url.searchParams.get("maxPrice") ? parseInt(url.searchParams.get("maxPrice") || "") : undefined
   const minYear = url.searchParams.get("minYear") ? parseInt(url.searchParams.get("minYear") || "") : undefined
   const maxYear = url.searchParams.get("maxYear") ? parseInt(url.searchParams.get("maxYear") || "") : undefined
+  const toastParam = url.searchParams.get("toast")
   
   const listings = await ListingModel.findMany({
     search,
@@ -91,7 +92,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     maxYear,
     user,
     canCreateListings,
-    likedListings
+    likedListings,
+    toastParam
   })
 }
 
@@ -251,23 +253,34 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
 }
 
 export default function Index() {
-  const { 
-    listings, 
-    search, 
-    brand, 
-    minPrice, 
-    maxPrice, 
-    minYear, 
-    maxYear, 
-    user, 
+  const {
+    listings,
+    search,
+    brand,
+    minPrice,
+    maxPrice,
+    minYear,
+    maxYear,
+    user,
     canCreateListings,
-    likedListings
+    likedListings,
+    toastParam
   } = useLoaderData<typeof loader>()
   
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
 
   const hasActiveFilters = brand || minPrice || maxPrice || minYear || maxYear
+
+  // Manejar toast para listing no encontrado
+  useEffect(() => {
+    if (toastParam === 'listing-not-found') {
+      toast.error('El elemento que buscas ya no existe', {
+        description: 'Es posible que haya sido eliminado o movido. Te hemos redirigido al catálogo principal.',
+        duration: 5000
+      })
+    }
+  }, [toastParam])
 
   return (
     <div>

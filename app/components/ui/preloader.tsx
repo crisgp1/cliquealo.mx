@@ -9,8 +9,8 @@ export function Preloader() {
     if (navigation.state === "loading") {
       setIsVisible(true);
     } else {
-      // Duración de 2 segundos antes de ocultar
-      const timer = setTimeout(() => setIsVisible(false), 2000);
+      // Duración de 800ms antes de ocultar (más rápido)
+      const timer = setTimeout(() => setIsVisible(false), 800);
       return () => clearTimeout(timer);
     }
   }, [navigation.state]);

@@ -70,7 +70,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   
   if (!listingId) {
     console.log('❌ No hay listingId en params')
-    throw new Response("Not Found", { status: 404 })
+    // Redirigir a home con mensaje de toast en lugar de mostrar 404
+    return redirect("/?toast=listing-not-found")
   }
 
   const user = await getUser(request)
@@ -82,7 +83,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   
   if (!listing) {
     console.log('❌ Listing no encontrado para ID:', listingId)
-    throw new Response("Listing no encontrado", { status: 404 })
+    // Redirigir a home con mensaje de toast en lugar de mostrar 404
+    return redirect("/?toast=listing-not-found")
   }
 
   // Add hot status to the listing on the server side
@@ -128,7 +130,8 @@ export async function action({ params, request }: ActionFunctionArgs) {
   
   if (!listingId) {
     console.log('❌ No listing ID')
-    throw new Response("Not Found", { status: 404 })
+    // Redirigir a home con mensaje de toast en lugar de mostrar 404
+    return redirect("/?toast=listing-not-found")
   }
 
   // Verificar si hay usuario autenticado
