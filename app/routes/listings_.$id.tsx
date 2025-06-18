@@ -776,7 +776,8 @@ export default function ListingDetail() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
                       <CardBody className="p-4 text-center">
-                        <Calendar className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                        <Calendar
+className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                         <div className="text-sm text-blue-600 font-medium">Año</div>
                         <div className="text-lg font-semibold text-gray-900">{listing.year}</div>
                       </CardBody>
@@ -816,77 +817,76 @@ export default function ListingDetail() {
               </CardBody>
             </Card>
 
-              {/* Enhanced Description */}
-              {listing.description && (
-                <Card className="shadow-md">
-                  <CardHeader className="pb-2">
-                    <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-gray-600" />
-                      Descripción
-                    </h2>
-                  </CardHeader>
-                  <CardBody className="pt-0">
-                    <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                      {listing.description}
-                    </p>
-                  </CardBody>
-                </Card>
-              )}
+            {/* Enhanced Description */}
+            {listing.description && (
+              <Card className="shadow-md">
+                <CardHeader className="pb-2">
+                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-gray-600" />
+                    Descripción
+                  </h2>
+                </CardHeader>
+                <CardBody className="pt-0">
+                  <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+                    {listing.description}
+                  </p>
+                </CardBody>
+              </Card>
+            )}
 
-              {/* Enhanced Additional Features */}
-              {(listing.color || listing.bodyType || listing.features?.length) && (
-                <Card className="shadow-md">
-                  <CardHeader className="pb-2">
-                    <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-gray-600" />
-                      Características Adicionales
-                    </h2>
-                  </CardHeader>
-                  <CardBody className="pt-0 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {listing.color && (
-                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
-                          <Palette className="w-5 h-5 text-pink-600" />
-                          <div>
-                            <div className="text-sm text-pink-600 font-medium">Color</div>
-                            <div className="text-gray-900 font-semibold">{listing.color}</div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {listing.bodyType && (
-                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
-                          <Car className="w-5 h-5 text-blue-600" />
-                          <div>
-                            <div className="text-sm text-blue-600 font-medium">Tipo de Carrocería</div>
-                            <div className="text-gray-900 font-semibold">{listing.bodyType}</div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {listing.features && listing.features.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-700 mb-3">Equipamiento</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {listing.features.map((feature: string, index: number) => (
-                            <Chip
-                              key={index}
-                              variant="flat"
-                              color="primary"
-                              size="sm"
-                              className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200"
-                            >
-                              {feature}
-                            </Chip>
-                          ))}
+            {/* Enhanced Additional Features */}
+            {(listing.color || listing.bodyType || listing.features?.length) && (
+              <Card className="shadow-md">
+                <CardHeader className="pb-2">
+                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-gray-600" />
+                    Características Adicionales
+                  </h2>
+                </CardHeader>
+                <CardBody className="pt-0 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {listing.color && (
+                      <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200">
+                        <Palette className="w-5 h-5 text-pink-600" />
+                        <div>
+                          <div className="text-sm text-pink-600 font-medium">Color</div>
+                          <div className="text-gray-900 font-semibold">{listing.color}</div>
                         </div>
                       </div>
                     )}
-                  </CardBody>
-                </Card>
-              )}
-            </div>
+                    
+                    {listing.bodyType && (
+                      <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                        <Car className="w-5 h-5 text-blue-600" />
+                        <div>
+                          <div className="text-sm text-blue-600 font-medium">Tipo de Carrocería</div>
+                          <div className="text-gray-900 font-semibold">{listing.bodyType}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {listing.features && listing.features.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 mb-3">Equipamiento</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {listing.features.map((feature: string, index: number) => (
+                          <Chip
+                            key={index}
+                            variant="flat"
+                            color="primary"
+                            size="sm"
+                            className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200"
+                          >
+                            {feature}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            )}
           </div>
 
           {/* Enhanced Sidebar with HeroUI Tabs */}
@@ -1038,6 +1038,7 @@ export default function ListingDetail() {
                       </div>
                     }
                   >
+                    <div className="p-6">
                       <div className="space-y-6">
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-2 mb-4">
@@ -1244,11 +1245,11 @@ export default function ListingDetail() {
                           * Los cálculos son estimados. Las condiciones finales pueden variar según la institución financiera.
                         </p>
                       </div>
-                    </Tab>
-                  </Tabs>
-                </CardBody>
-              </Card>
-            </div>
+                    </div>
+                  </Tab>
+                </Tabs>
+              </CardBody>
+            </Card>
           </div>
         </div>
 
@@ -1290,52 +1291,6 @@ export default function ListingDetail() {
                       </p>
                     </CardBody>
                   </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-        </div>
-
-        {/* Autos similares */}
-        {similarListings.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-2xl font-light text-gray-900 mb-8 border-l-4 border-red-500 pl-4">Autos similares</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {similarListings.map((similarListing: any) => (
-                <Link
-                  key={similarListing._id}
-                  to={`/listings/${similarListing._id}`}
-                  className="group"
-                >
-                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-red-300 transition-all duration-200">
-                    <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
-                      {similarListing.images?.[0] ? (
-                        <img
-                          src={similarListing.images[0]}
-                          alt={similarListing.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Car className="w-8 h-8 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="p-4">
-                      <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">
-                        {similarListing.title}
-                      </h3>
-                      <p className="text-lg font-light text-gray-900">
-                        ${similarListing.price.toLocaleString()}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {similarListing.brand} {similarListing.model} • {similarListing.year}
-                      </p>
-                    </div>
-                  </div>
                 </Link>
               ))}
             </div>
@@ -1449,63 +1404,72 @@ export default function ListingDetail() {
                       <Home className="w-5 h-5 text-green-600 mt-0.5" />
                       <div>
                         <h5 className="font-medium text-gray-900">Comprobante de Domicilio</h5>
-                        <p className="text-sm text-gray-600">No mayor a 3 meses (CFE, agua, teléfono, etc.)</p>
+                        <p className="text-sm text-gray-600">No mayor a 3 meses (CFE, Telmex, agua, predial)</p>
                       </div>
                     </div>
 
                     <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
-                      <Receipt className="w-5 h-5 text-yellow-600 mt-0.5" />
+                      <Receipt className="w-5 h-5
+text-yellow-600 mt-0.5" />
                       <div>
-                        <h5 className="font-medium text-gray-900">Estados de Cuenta o Nóminas</h5>
-                        <p className="text-sm text-gray-600">Últimos 6 meses para comprobar ingresos</p>
+                        <h5 className="font-medium text-gray-900">Comprobantes de Ingresos</h5>
+                        <p className="text-sm text-gray-600">Últimos 6 estados de cuenta o nóminas</p>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Paso 3: Confirmación */}
+              {/* Paso 3: Información Personal */}
               {creditStep === 3 && (
                 <div className="space-y-6">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle className="w-8 h-8 text-yellow-600" />
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-purple-600" />
                     </div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                      Confirma tu Solicitud
+                      Información Personal
                     </h4>
                     <p className="text-gray-600 text-sm">
-                      ¿Tienes todos los documentos listos?
+                      Confirma que tienes la información necesaria
                     </p>
                   </div>
 
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                    <h5 className="font-medium text-yellow-800 mb-2">📋 Lista de verificación:</h5>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-gray-700">INE (identificación oficial)</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-gray-700">Comprobante de domicilio</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-gray-700">6 estados de cuenta/nóminas</span>
-                      </div>
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-900 mb-3">Información requerida:</h5>
+                      <ul className="space-y-2 text-sm text-gray-600">
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          Nombre completo
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          Fecha de nacimiento
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          Dirección completa
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          Teléfono de contacto
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          Información laboral
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          Ingresos mensuales
+                        </li>
+                      </ul>
                     </div>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600">
-                      Al continuar, se enviará tu solicitud al vendedor junto con los detalles del crédito.
-                    </p>
                   </div>
                 </div>
               )}
 
-              {/* Paso 4: Contacto con Vendedor */}
+              {/* Paso 4: Contacto */}
               {creditStep === 4 && (
                 <div className="space-y-6">
                   <div className="text-center">
@@ -1513,106 +1477,86 @@ export default function ListingDetail() {
                       <MessageCircle className="w-8 h-8 text-green-600" />
                     </div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                      ¡Listo para Contactar!
+                      ¡Listo para Solicitar!
                     </h4>
                     <p className="text-gray-600 text-sm">
-                      Contacta al vendedor para solicitar la carta de crédito
+                      Contacta al vendedor para continuar con tu solicitud
                     </p>
                   </div>
 
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                    <h5 className="font-medium text-green-800 mb-2">📱 Qué sucederá:</h5>
-                    <div className="space-y-2 text-sm text-green-700">
-                      <p>• Se abrirá WhatsApp con un mensaje pre-escrito</p>
-                      <p>• Incluirá todos los detalles de tu crédito</p>
-                      <p>• El vendedor te enviará la carta de crédito</p>
-                      <p>• Podrás proceder con la documentación</p>
-                    </div>
+                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <h5 className="font-medium text-green-800 mb-2">Tu solicitud incluye:</h5>
+                    <ul className="text-sm text-green-700 space-y-1">
+                      <li>• Vehículo: {listing.title}</li>
+                      <li>• Enganche: ${creditData.downPayment.toLocaleString()}</li>
+                      <li>• Plazo: {creditData.loanTerm} meses</li>
+                      <li>• Pago mensual estimado: ${calculateMonthlyPayment().toLocaleString()}</li>
+                    </ul>
                   </div>
 
-                  <div className="text-center">
-                  <div className="flex items-center space-x-3 justify-center mb-4">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium text-gray-600">
-                        {listing.owner?.name?.charAt(0).toUpperCase() || 'V'}
-                      </span>
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900">{listing.owner?.name || 'Vendedor'}</div>
-                      <div className="text-sm text-gray-600">
-                        {listing.owner?.role === 'admin' ? 'Vendedor Verificado' : 'Vendedor'}
-                      </div>
-                    </div>
+                  <div className="space-y-3">
+                    <Button
+                      color="success"
+                      size="lg"
+                      startContent={<MessageCircle className="w-5 h-5" />}
+                      className="w-full font-semibold"
+                      onClick={handleWhatsAppContact}
+                    >
+                      Enviar Solicitud por WhatsApp
+                    </Button>
+                    
+                    {listing.contactInfo?.phone && (
+                      <Button
+                        as="a"
+                        href={`tel:${listing.contactInfo.phone}`}
+                        variant="bordered"
+                        size="lg"
+                        startContent={<Phone className="w-5 h-5" />}
+                        className="w-full"
+                      >
+                        Llamar al {listing.contactInfo.phone}
+                      </Button>
+                    )}
                   </div>
-                </div>
                 </div>
               )}
             </div>
 
-            {/* Footer con botones */}
+            {/* Footer del Modal */}
             <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 rounded-b-2xl">
-              <div className="flex space-x-3">
+              <div className="flex justify-between gap-3">
                 {creditStep > 1 && (
-                  <button
+                  <Button
+                    variant="bordered"
                     onClick={prevStep}
-                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                    startContent={<ArrowLeft className="w-4 h-4" />}
                   >
                     Anterior
-                  </button>
+                  </Button>
                 )}
                 
                 {creditStep < 4 ? (
-                  <button
+                  <Button
+                    color="primary"
                     onClick={nextStep}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center justify-center space-x-2"
+                    endContent={<ArrowRight className="w-4 h-4" />}
+                    className="ml-auto"
                   >
-                    <span>Continuar</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                    Siguiente
+                  </Button>
                 ) : (
-                  <button
-                    onClick={handleWhatsAppContact}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center justify-center space-x-2"
+                  <Button
+                    variant="light"
+                    onClick={() => {
+                      setShowCreditModal(false)
+                      setCreditStep(1)
+                    }}
+                    className="ml-auto"
                   >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Contactar por WhatsApp</span>
-                  </button>
+                    Cerrar
+                  </Button>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de confirmación de eliminación */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full mx-2">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              ¿Eliminar este auto?
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Esta acción no se puede deshacer. El listing será eliminado permanentemente.
-            </p>
-            
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              
-              <Form method="post" className="flex-1">
-                <input type="hidden" name="intent" value="delete" />
-                <button
-                  type="submit"
-                  disabled={isDeleting}
-                  className="w-full px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50"
-                >
-                  {isDeleting ? 'Eliminando...' : 'Eliminar'}
-                </button>
-              </Form>
             </div>
           </div>
         </div>
@@ -1621,67 +1565,91 @@ export default function ListingDetail() {
       {/* Lightbox Modal */}
       {showLightbox && (
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-          {/* Botón de cerrar */}
-          <button
-            onClick={closeLightbox}
-            className="absolute top-4 right-4 z-60 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-all"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
-          {/* Navegación anterior */}
-          {images.length > 1 && (
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            {/* Close Button */}
             <button
-              onClick={prevLightboxImage}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 z-60 p-3 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-all"
+              onClick={closeLightbox}
+              className="absolute top-4 right-4 z-10 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors"
             >
-              <ChevronLeft className="w-8 h-8" />
+              <X className="w-6 h-6" />
             </button>
-          )}
 
-          {/* Imagen principal */}
-          <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center">
+            {/* Navigation Buttons */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={prevLightboxImage}
+                  className="absolute left-4 z-10 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                
+                <button
+                  onClick={nextLightboxImage}
+                  className="absolute right-4 z-10 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
+
+            {/* Image */}
             <img
               src={images[lightboxImageIndex]}
               alt={`${listing.title} - Imagen ${lightboxImageIndex + 1}`}
               className="max-w-full max-h-full object-contain"
             />
-          </div>
 
-          {/* Navegación siguiente */}
-          {images.length > 1 && (
-            <button
-              onClick={nextLightboxImage}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 z-60 p-3 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-all"
-            >
-              <ChevronRight className="w-8 h-8" />
-            </button>
-          )}
-
-          {/* Indicadores de imagen */}
-          {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-              {images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setLightboxImageIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    index === lightboxImageIndex
-                      ? 'bg-white'
-                      : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Contador de imágenes */}
-          <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
-            {lightboxImageIndex + 1} / {images.length}
+            {/* Image Counter */}
+            {images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                {lightboxImageIndex + 1} / {images.length}
+              </div>
+            )}
           </div>
         </div>
       )}
-    
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                ¿Eliminar Listing?
+              </h3>
+              <p className="text-gray-600 text-sm mb-6">
+                Esta acción no se puede deshacer. El listing será eliminado permanentemente.
+              </p>
+              
+              <div className="flex gap-3">
+                <Button
+                  variant="bordered"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                
+                <Form method="post" className="flex-1">
+                  <input type="hidden" name="intent" value="delete" />
+                  <Button
+                    type="submit"
+                    color="danger"
+                    isLoading={isDeleting}
+                    className="w-full"
+                  >
+                    Eliminar
+                  </Button>
+                </Form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
