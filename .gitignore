@@ -3,6 +3,7 @@ node_modules/
 
 # Remix build output
 /build
+/public/build
 /.cache
 
 # Environment variables

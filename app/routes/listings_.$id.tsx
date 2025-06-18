@@ -192,6 +192,11 @@ export default function ListingDetail() {
     loanTerm: 48, // 48 meses por defecto
     interestRate: 12.5 // 12.5% anual por defecto
   })
+  
+  // Estado para el valor de display del enganche (con formato)
+  const [downPaymentDisplay, setDownPaymentDisplay] = useState(
+    Math.round(listing.price * 0.3).toLocaleString()
+  )
 
   // Calcular el enganche mínimo (30%)
   const minDownPayment = Math.round(listing.price * 0.3)
@@ -884,38 +889,60 @@ export default function ListingDetail() {
                         <div className="relative">
                           <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                           <input
-                            type="number"
-                            value={creditData.downPayment}
-                            min={minDownPayment}
-                            max={listing.price}
-                            step="1000"
+                            type="text"
+                            value={downPaymentDisplay}
                             onChange={(e) => {
-                              const value = parseFloat(e.target.value) || 0
+                              const rawValue = e.target.value.replace(/[^\d]/g, '') // Solo números
+                              const numericValue = rawValue === '' ? 0 : parseFloat(rawValue)
+                              
+                              // Actualizar el valor numérico
                               setCreditData({
                                 ...creditData,
-                                downPayment: value
+                                downPayment: numericValue
                               })
+                              
+                              // Actualizar el display (con formato si hay valor, vacío si no)
+                              if (rawValue === '') {
+                                setDownPaymentDisplay('')
+                              } else {
+                                setDownPaymentDisplay(numericValue.toLocaleString())
+                              }
                             }}
                             onBlur={(e) => {
+                              const rawValue = e.target.value.replace(/[^\d]/g, '')
+                              const numericValue = rawValue === '' ? 0 : parseFloat(rawValue)
+                              
                               // Apply constraints only when user finishes editing
-                              const value = parseFloat(e.target.value) || 0
-                              const constrainedValue = Math.max(minDownPayment, Math.min(listing.price, value))
+                              const constrainedValue = Math.max(minDownPayment, Math.min(listing.price, numericValue))
+                              
                               setCreditData({
                                 ...creditData,
                                 downPayment: constrainedValue
                               })
+                              
+                              // Actualizar display con valor restringido (siempre con formato)
+                              setDownPaymentDisplay(constrainedValue.toLocaleString())
+                            }}
+                            onFocus={(e) => {
+                              // Si está vacío al hacer focus, no mostrar nada
+                              if (creditData.downPayment === 0) {
+                                setDownPaymentDisplay('')
+                              }
                             }}
                             className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${
-                              creditData.downPayment < minDownPayment
+                              creditData.downPayment < minDownPayment || creditData.downPayment > listing.price
                                 ? 'border-red-300 bg-red-50'
                                 : 'border-gray-300'
                             }`}
-                            placeholder={minDownPayment.toString()}
+                            placeholder={`${minDownPayment.toLocaleString()} (mínimo)`}
                           />
                         </div>
                         <div className="mt-1 space-y-1">
                           <div className="text-xs text-gray-500">
-                            {((creditData.downPayment / listing.price) * 100).toFixed(1)}% del precio total
+                            {creditData.downPayment > 0
+                              ? `${((creditData.downPayment / listing.price) * 100).toFixed(1)}% del precio total`
+                              : 'Ingresa el monto del enganche'
+                            }
                           </div>
                           {creditData.downPayment > listing.price ? (
                             <div className="text-xs text-red-600">
