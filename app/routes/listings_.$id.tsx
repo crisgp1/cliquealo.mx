@@ -6,7 +6,7 @@ import { UserModel } from "~/models/User.server"
 import { getUser } from "~/lib/session.server"
 import { requireUser, Auth } from "~/lib/auth.server"
 import { toast } from "~/components/ui/toast"
-import { getHotStatus } from "~/models/Listing"
+import { getHotStatus, type Listing } from "~/models/Listing"
 import { 
   ArrowLeft, 
   Heart, 
@@ -26,7 +26,17 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Calculator,
+  CreditCard,
+  DollarSign,
+  TrendingUp,
+  FileText,
+  Home,
+  Receipt,
+  CheckCircle,
+  ArrowRight,
+  X
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -158,12 +168,33 @@ export async function action({ params, request }: ActionFunctionArgs) {
   }
 }
 
+type LoaderData = {
+  listing: Listing & { hotStatus: string }
+  similarListings: Listing[]
+  user: any
+  hasLiked: boolean
+  canEdit: boolean
+}
+
 export default function ListingDetail() {
-  const { listing, similarListings, user, hasLiked, canEdit } = useLoaderData<typeof loader>()
+  const { listing, similarListings, user, hasLiked, canEdit } = useLoaderData<LoaderData>()
   const navigation = useNavigation()
   const likeFetcher = useFetcher()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [activeTab, setActiveTab] = useState('info')
+  const [showCreditModal, setShowCreditModal] = useState(false)
+  const [creditStep, setCreditStep] = useState(1)
+  
+  // Estados para calculadora de crédito
+  const [creditData, setCreditData] = useState({
+    downPayment: Math.round(listing.price * 0.3), // 30% de enganche mínimo por defecto
+    loanTerm: 48, // 48 meses por defecto
+    interestRate: 12.5 // 12.5% anual por defecto
+  })
+
+  // Calcular el enganche mínimo (30%)
+  const minDownPayment = Math.round(listing.price * 0.3)
   
   const isLiking = likeFetcher.state !== "idle"
   const isDeleting = navigation.state === "submitting" && navigation.formData?.get("intent") === "delete"
@@ -275,6 +306,87 @@ export default function ListingDetail() {
     }
   }
 
+  // Función para calcular el pago mensual del crédito
+  const calculateMonthlyPayment = () => {
+    // Validar que el enganche sea al menos el 30%
+    if (creditData.downPayment < minDownPayment) {
+      return 0
+    }
+    
+    const principal = listing.price - creditData.downPayment
+    const monthlyRate = creditData.interestRate / 100 / 12
+    const numPayments = creditData.loanTerm
+    
+    if (monthlyRate === 0) {
+      return principal / numPayments
+    }
+    
+    const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
+                          (Math.pow(1 + monthlyRate, numPayments) - 1)
+    
+    return monthlyPayment
+  }
+
+  // Función para calcular el total a pagar
+  const calculateTotalPayment = () => {
+    return creditData.downPayment + (calculateMonthlyPayment() * creditData.loanTerm)
+  }
+
+  // Función para calcular los intereses totales
+  const calculateTotalInterest = () => {
+    return calculateTotalPayment() - listing.price
+  }
+
+  // Función para generar el mensaje de WhatsApp con la información del crédito
+  const generateWhatsAppMessage = () => {
+    const message = `🚗 *Solicitud de Crédito Automotriz*
+
+*Vehículo:* ${listing.title}
+*Precio:* $${listing.price.toLocaleString()} MXN
+*ID:* ${listing._id?.slice(-8).toUpperCase() || 'N/A'}
+
+💰 *Detalles del Crédito:*
+• Enganche: $${creditData.downPayment.toLocaleString()}
+• Plazo: ${creditData.loanTerm} meses
+• Tasa de interés: ${creditData.interestRate}% anual
+• Pago mensual: $${calculateMonthlyPayment().toLocaleString()}
+
+📋 *Documentos que tengo listos:*
+✅ INE (Identificación oficial)
+✅ Comprobante de domicilio
+✅ Últimos 6 estados de cuenta/nóminas
+
+🙋‍♂️ Estoy interesado en solicitar el crédito para este vehículo. ¿Podrías enviarme la carta de crédito y los siguientes pasos?
+
+¡Gracias!`
+
+    return encodeURIComponent(message)
+  }
+
+  // Función para abrir WhatsApp con el mensaje
+  const handleWhatsAppContact = () => {
+    const whatsappNumber = listing.contactInfo?.whatsapp?.replace(/\D/g, '') || ''
+    const message = generateWhatsAppMessage()
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
+    window.open(whatsappUrl, '_blank')
+    setShowCreditModal(false)
+    setCreditStep(1)
+  }
+
+  // Función para avanzar al siguiente paso del modal
+  const nextStep = () => {
+    if (creditStep < 4) {
+      setCreditStep(creditStep + 1)
+    }
+  }
+
+  // Función para retroceder al paso anterior
+  const prevStep = () => {
+    if (creditStep > 1) {
+      setCreditStep(creditStep - 1)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -289,12 +401,6 @@ export default function ListingDetail() {
               <span className="font-medium">Volver al Catálogo</span>
             </Link>
 
-            <Link to="/" className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-black rounded-full"></div>
-              <span className="text-lg font-light tracking-tight text-gray-900">
-                Cliquealo
-              </span>
-            </Link>
 
             <div className="flex items-center space-x-2">
               {/* 🔥 SOLUCIÓN: Botón de Like Corregido - SIN ERRORES TYPESCRIPT */}
@@ -512,30 +618,40 @@ export default function ListingDetail() {
             {/* Información principal */}
             <div className="space-y-6 border-l-4 border-red-500 pl-6">
               <div>
-                <div className="flex items-center space-x-3 mb-2">
-                  <h1 className="text-3xl font-light text-gray-900 tracking-tight">
-                    {listing.title}
-                  </h1>
-                  {/* 🔥 Hot Badge para página de detalle */}
-                  {(() => {
-                    const hotStatus = listing.hotStatus
-                    if (hotStatus === 'super-hot') {
-                      return (
-                        <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-1 animate-bounce">
-                          <span>🔥🔥</span>
-                          <span>Super Hot</span>
-                        </div>
-                      )
-                    } else if (hotStatus === 'hot') {
-                      return (
-                        <div className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-1 animate-pulse">
-                          <span>🔥</span>
-                          <span>Hot</span>
-                        </div>
-                      )
-                    }
-                    return null
-                  })()}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-3">
+                    <h1 className="text-3xl font-light text-gray-900 tracking-tight">
+                      {listing.title}
+                    </h1>
+                    {/* 🔥 Hot Badge para página de detalle */}
+                    {(() => {
+                      const hotStatus = listing.hotStatus
+                      if (hotStatus === 'super-hot') {
+                        return (
+                          <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-1 animate-bounce">
+                            <span>🔥🔥</span>
+                            <span>Super Hot</span>
+                          </div>
+                        )
+                      } else if (hotStatus === 'hot') {
+                        return (
+                          <div className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-1 animate-pulse">
+                            <span>🔥</span>
+                            <span>Hot</span>
+                          </div>
+                        )
+                      }
+                      return null
+                    })()}
+                  </div>
+                  
+                  {/* ID único del vehículo */}
+                  <div className="bg-gray-100 px-3 py-1 rounded-lg border border-gray-200">
+                    <span className="text-xs text-gray-500 font-medium">ID:</span>
+                    <span className="text-sm font-mono text-gray-700 ml-1">
+                      {listing._id.slice(-8).toUpperCase()}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-4 text-gray-600">
                   <span className="text-lg">{listing.brand} {listing.model}</span>
@@ -611,7 +727,7 @@ export default function ListingDetail() {
                     )}
                   </div>
                   
-                  {listing.features?.length > 0 && (
+                  {listing.features && listing.features.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-4">
                       {listing.features.map((feature: string, index: number) => (
                         <span
@@ -628,89 +744,311 @@ export default function ListingDetail() {
             </div>
           </div>
 
-          {/* Sidebar - Contacto e info */}
+          {/* Sidebar - Tabulador con Contacto y Crédito */}
           <div className="space-y-6">
-            {/* Card de contacto */}
-            <div className="bg-gradient-to-br from-red-50 to-gray-50 rounded-2xl p-6 space-y-4 border border-red-200">
-              <h3 className="text-lg font-medium text-gray-900">Información de contacto</h3>
-              
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-gray-600">
-                      {listing.owner.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">{listing.owner.name}</div>
-                    <div className="text-sm text-gray-600">
-                      {listing.owner.role === 'admin' ? 'Vendedor Verificado' : 'Vendedor'}
-                    </div>
-                  </div>
-                </div>
-
-                {listing.contactInfo?.phone && (
-                  <a
-                    href={`tel:${listing.contactInfo.phone}`}
-                    className="flex items-center space-x-3 p-3 bg-white rounded-xl hover:bg-gray-50 transition-colors"
-                  >
-                    <Phone className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-900">{listing.contactInfo.phone}</span>
-                  </a>
-                )}
-
-                {listing.contactInfo?.whatsapp && (
-                  <a
-                    href={`https://wa.me/${listing.contactInfo.whatsapp.replace(/\D/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-3 p-3 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-colors"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    <span>WhatsApp</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                )}
-
-                <button className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]">
-                  <span className="flex items-center justify-center space-x-2">
-                    <Phone className="w-4 h-4" />
-                    <span>Contactar Vendedor</span>
+            {/* Tabulador */}
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg">
+              {/* Tabs Header */}
+              <div className="flex border-b border-gray-200">
+                <button
+                  onClick={() => setActiveTab('info')}
+                  className={`flex-1 px-2 sm:px-4 py-3 text-xs sm:text-sm font-medium transition-colors ${
+                    activeTab === 'info'
+                      ? 'bg-red-50 text-red-600 border-b-2 border-red-600'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-1 sm:gap-2">
+                    <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Contacto</span>
+                    <span className="sm:hidden">Info</span>
+                  </span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('credit')}
+                  className={`flex-1 px-2 sm:px-4 py-3 text-xs sm:text-sm font-medium transition-colors ${
+                    activeTab === 'credit'
+                      ? 'bg-red-50 text-red-600 border-b-2 border-red-600'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-1 sm:gap-2">
+                    <Calculator className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Crédito
                   </span>
                 </button>
               </div>
-            </div>
 
-            {/* Detalles adicionales */}
-            <div className="bg-gray-50 rounded-2xl p-6 space-y-4 border border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Detalles</h3>
-              
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    Vistas
-                  </span>
-                  <span className="text-gray-900">{listing.viewsCount || 0}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 flex items-center gap-1">
-                    <Heart className="w-4 h-4" />
-                    Me gusta
-                  </span>
-                  <span className="text-gray-900">{listing.likesCount || 0}</span>
-                </div>
+              {/* Tab Content */}
+              <div className="p-4 sm:p-6">
+                {activeTab === 'info' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-900">Información de contacto</h3>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-gray-600">
+                            {listing.owner?.name?.charAt(0).toUpperCase() || 'V'}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{listing.owner?.name || 'Vendedor'}</div>
+                          <div className="text-sm text-gray-600">
+                            {listing.owner?.role === 'admin' ? 'Vendedor Verificado' : 'Vendedor'}
+                          </div>
+                        </div>
+                      </div>
 
-                {listing.location && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600 flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      Ubicación
-                    </span>
-                    <span className="text-gray-900">
-                      {listing.location.city}, {listing.location.state}
-                    </span>
+                      {listing.contactInfo?.phone && (
+                        <a
+                          href={`tel:${listing.contactInfo.phone}`}
+                          className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                        >
+                          <Phone className="w-5 h-5 text-gray-600" />
+                          <span className="text-gray-900">{listing.contactInfo.phone}</span>
+                        </a>
+                      )}
+
+                      {listing.contactInfo?.whatsapp && (
+                        <a
+                          href={`https://wa.me/${listing.contactInfo.whatsapp.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center space-x-3 p-3 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-colors"
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                          <span>WhatsApp</span>
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+
+                      <button className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]">
+                        <span className="flex items-center justify-center space-x-2">
+                          <Phone className="w-4 h-4" />
+                          <span>Contactar Vendedor</span>
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Detalles del vehículo */}
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">Detalles</h4>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600 flex items-center gap-1">
+                            <Eye className="w-4 h-4" />
+                            Vistas
+                          </span>
+                          <span className="text-gray-900">{listing.viewsCount || 0}</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600 flex items-center gap-1">
+                            <Heart className="w-4 h-4" />
+                            Me gusta
+                          </span>
+                          <span className="text-gray-900">{listing.likesCount || 0}</span>
+                        </div>
+
+                        {listing.location && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600 flex items-center gap-1">
+                              <MapPin className="w-4 h-4" />
+                              Ubicación
+                            </span>
+                            <span className="text-gray-900 text-right">
+                              {listing.location.city}, {listing.location.state}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'credit' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <CreditCard className="w-5 h-5 text-red-600" />
+                      <h3 className="text-lg font-medium text-gray-900">Calculadora de Crédito</h3>
+                    </div>
+
+                    {/* Controles de la calculadora */}
+                    <div className="space-y-4">
+                      {/* Enganche */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Enganche
+                        </label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="number"
+                            value={creditData.downPayment}
+                            min={minDownPayment}
+                            max={listing.price}
+                            step="1000"
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value) || 0
+                              setCreditData({
+                                ...creditData,
+                                downPayment: value
+                              })
+                            }}
+                            onBlur={(e) => {
+                              // Apply constraints only when user finishes editing
+                              const value = parseFloat(e.target.value) || 0
+                              const constrainedValue = Math.max(minDownPayment, Math.min(listing.price, value))
+                              setCreditData({
+                                ...creditData,
+                                downPayment: constrainedValue
+                              })
+                            }}
+                            className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${
+                              creditData.downPayment < minDownPayment
+                                ? 'border-red-300 bg-red-50'
+                                : 'border-gray-300'
+                            }`}
+                            placeholder={minDownPayment.toString()}
+                          />
+                        </div>
+                        <div className="mt-1 space-y-1">
+                          <div className="text-xs text-gray-500">
+                            {((creditData.downPayment / listing.price) * 100).toFixed(1)}% del precio total
+                          </div>
+                          {creditData.downPayment > listing.price ? (
+                            <div className="text-xs text-red-600">
+                              ⚠️ No es posible un enganche mayor al 100% del precio
+                            </div>
+                          ) : (
+                            <div className="text-xs text-red-600">
+                              Mínimo: ${minDownPayment.toLocaleString()} (30%)
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Plazo */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Plazo (meses)
+                        </label>
+                        <select
+                          value={creditData.loanTerm}
+                          onChange={(e) => setCreditData({
+                            ...creditData,
+                            loanTerm: parseInt(e.target.value)
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        >
+                          <option value={12}>12 meses</option>
+                          <option value={24}>24 meses</option>
+                          <option value={36}>36 meses</option>
+                          <option value={48}>48 meses</option>
+                          <option value={60}>60 meses</option>
+                          <option value={72}>72 meses</option>
+                        </select>
+                      </div>
+
+                      {/* Tasa de interés */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Tasa de interés anual (%)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={creditData.interestRate}
+                          onChange={(e) => setCreditData({
+                            ...creditData,
+                            interestRate: Math.max(0, Math.min(50, parseFloat(e.target.value) || 0))
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          placeholder="12.5"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Resultados */}
+                    <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-4 border border-red-200">
+                      <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-red-600" />
+                        Resumen del Crédito
+                      </h4>
+                      
+                      {creditData.downPayment < minDownPayment ? (
+                        <div className="bg-red-100 border border-red-300 rounded-lg p-3 mb-3">
+                          <p className="text-sm text-red-700 font-medium">
+                            ⚠️ Enganche insuficiente
+                          </p>
+                          <p className="text-xs text-red-600 mt-1">
+                            El enganche mínimo requerido es del 30% (${minDownPayment.toLocaleString()})
+                          </p>
+                        </div>
+                      ) : creditData.downPayment > listing.price ? (
+                        <div className="bg-red-100 border border-red-300 rounded-lg p-3 mb-3">
+                          <p className="text-sm text-red-700 font-medium">
+                            ⚠️ Enganche excesivo
+                          </p>
+                          <p className="text-xs text-red-600 mt-1">
+                            No es posible un enganche mayor al 100% del precio del vehículo
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Pago mensual:</span>
+                            <span className="text-lg font-semibold text-red-600">
+                              ${calculateMonthlyPayment().toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Total a pagar:</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              ${calculateTotalPayment().toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Intereses totales:</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              ${calculateTotalInterest().toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botón de contacto para crédito */}
+                    <button
+                      onClick={() => {
+                        if (creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price) {
+                          setShowCreditModal(true)
+                          setCreditStep(1)
+                        } else if (creditData.downPayment < minDownPayment) {
+                          toast.error("Ajusta el enganche al mínimo del 30% para continuar")
+                        } else {
+                          toast.error("El enganche no puede ser mayor al 100% del precio del vehículo")
+                        }
+                      }}
+                      disabled={creditData.downPayment < minDownPayment || creditData.downPayment > listing.price}
+                      className={`w-full py-3 rounded-xl transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] ${
+                        creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price
+                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      <span className="flex items-center justify-center space-x-2">
+                        <CreditCard className="w-4 h-4" />
+                        <span>Solicitar Crédito</span>
+                      </span>
+                    </button>
+
+                    <div className="text-xs text-gray-500 text-center">
+                      * Los cálculos son estimados. Las condiciones finales pueden variar según la institución financiera.
+                    </div>
                   </div>
                 )}
               </div>
@@ -762,6 +1100,247 @@ export default function ListingDetail() {
           </div>
         )}
       </div>
+
+      {/* Modal de Solicitud de Crédito Step-by-Step */}
+      {showCreditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            {/* Header del Modal */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Solicitud de Crédito
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowCreditModal(false)
+                    setCreditStep(1)
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                  <span>Paso {creditStep} de 4</span>
+                  <span>{Math.round((creditStep / 4) * 100)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(creditStep / 4) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contenido del Modal */}
+            <div className="p-6">
+              {/* Paso 1: Información del Crédito */}
+              {creditStep === 1 && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CreditCard className="w-8 h-8 text-green-600" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      Resumen de tu Crédito
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      Revisa los detalles de tu solicitud de crédito
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Vehículo:</span>
+                      <span className="font-medium text-gray-900">{listing.title}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Precio:</span>
+                      <span className="font-medium text-gray-900">${listing.price.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Enganche:</span>
+                      <span className="font-medium text-green-600">${creditData.downPayment.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Plazo:</span>
+                      <span className="font-medium text-gray-900">{creditData.loanTerm} meses</span>
+                    </div>
+                    <div className="flex justify-between border-t pt-3">
+                      <span className="text-gray-600">Pago mensual:</span>
+                      <span className="font-bold text-green-600 text-lg">${calculateMonthlyPayment().toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Paso 2: Documentos Requeridos */}
+              {creditStep === 2 && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      Documentos Necesarios
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      Asegúrate de tener estos documentos listos
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                      <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <h5 className="font-medium text-gray-900">INE</h5>
+                        <p className="text-sm text-gray-600">Identificación oficial vigente (ambos lados)</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                      <Home className="w-5 h-5 text-green-600 mt-0.5" />
+                      <div>
+                        <h5 className="font-medium text-gray-900">Comprobante de Domicilio</h5>
+                        <p className="text-sm text-gray-600">No mayor a 3 meses (CFE, agua, teléfono, etc.)</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
+                      <Receipt className="w-5 h-5 text-yellow-600 mt-0.5" />
+                      <div>
+                        <h5 className="font-medium text-gray-900">Estados de Cuenta o Nóminas</h5>
+                        <p className="text-sm text-gray-600">Últimos 6 meses para comprobar ingresos</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Paso 3: Confirmación */}
+              {creditStep === 3 && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-yellow-600" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      Confirma tu Solicitud
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      ¿Tienes todos los documentos listos?
+                    </p>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <h5 className="font-medium text-yellow-800 mb-2">📋 Lista de verificación:</h5>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-gray-700">INE (identificación oficial)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-gray-700">Comprobante de domicilio</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-gray-700">6 estados de cuenta/nóminas</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">
+                      Al continuar, se enviará tu solicitud al vendedor junto con los detalles del crédito.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Paso 4: Contacto con Vendedor */}
+              {creditStep === 4 && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <MessageCircle className="w-8 h-8 text-green-600" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      ¡Listo para Contactar!
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      Contacta al vendedor para solicitar la carta de crédito
+                    </p>
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <h5 className="font-medium text-green-800 mb-2">📱 Qué sucederá:</h5>
+                    <div className="space-y-2 text-sm text-green-700">
+                      <p>• Se abrirá WhatsApp con un mensaje pre-escrito</p>
+                      <p>• Incluirá todos los detalles de tu crédito</p>
+                      <p>• El vendedor te enviará la carta de crédito</p>
+                      <p>• Podrás proceder con la documentación</p>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                  <div className="flex items-center space-x-3 justify-center mb-4">
+                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-medium text-gray-600">
+                        {listing.owner?.name?.charAt(0).toUpperCase() || 'V'}
+                      </span>
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900">{listing.owner?.name || 'Vendedor'}</div>
+                      <div className="text-sm text-gray-600">
+                        {listing.owner?.role === 'admin' ? 'Vendedor Verificado' : 'Vendedor'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer con botones */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 rounded-b-2xl">
+              <div className="flex space-x-3">
+                {creditStep > 1 && (
+                  <button
+                    onClick={prevStep}
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Anterior
+                  </button>
+                )}
+                
+                {creditStep < 4 ? (
+                  <button
+                    onClick={nextStep}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center justify-center space-x-2"
+                  >
+                    <span>Continuar</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleWhatsAppContact}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium flex items-center justify-center space-x-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Contactar por WhatsApp</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de confirmación de eliminación */}
       {showDeleteConfirm && (
