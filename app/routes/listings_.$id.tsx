@@ -1217,26 +1217,6 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                                       <div className="text-sm text-green-700">Pago mensual</div>
                                     </CardBody>
                                   </Card>
-                                  
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <Card className="bg-white/50">
-                                      <CardBody className="p-2 text-center">
-                                        <div className="text-sm font-semibold text-gray-900">
-                                          ${calculateTotalPayment().toLocaleString('es-MX', { maximumFractionDigits: 0 })}
-                                        </div>
-                                        <div className="text-xs text-gray-600">Total a pagar</div>
-                                      </CardBody>
-                                    </Card>
-                                    
-                                    <Card className="bg-white/50">
-                                      <CardBody className="p-2 text-center">
-                                        <div className="text-sm font-semibold text-gray-900">
-                                          ${calculateTotalInterest().toLocaleString('es-MX', { maximumFractionDigits: 0 })}
-                                        </div>
-                                        <div className="text-xs text-gray-600">Intereses totales</div>
-                                      </CardBody>
-                                    </Card>
-                                  </div>
                                 </div>
                               </div>
                             )}
