@@ -323,14 +323,22 @@ export default function ListingDetail() {
                 </likeFetcher.Form>
               )}
               
-              {/* Si no hay usuario, mostrar corazón deshabilitado */}
+              {/* Si no hay usuario, mostrar corazón clickeable que invita a registrarse */}
               {!user && (
                 <button
-                  disabled
-                  className="p-2 rounded-full bg-gray-100 text-gray-400 cursor-not-allowed"
-                  title="Inicia sesión para dar like"
+                  onClick={() => {
+                    toast.error("¡Inicia sesión para dar like! 💖", {
+                      description: "Regístrate o inicia sesión para guardar tus autos favoritos",
+                      action: {
+                        label: "Registrarse",
+                        onClick: () => window.location.href = "/auth/register"
+                      }
+                    })
+                  }}
+                  className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition-all duration-200 hover:scale-105 cursor-pointer"
+                  title="Haz clic para registrarte y dar like"
                 >
-                  <Heart className="w-5 h-5" />
+                  <Heart className="w-5 h-5 hover:fill-current" />
                 </button>
               )}
               
@@ -417,28 +425,80 @@ export default function ListingDetail() {
               
               {/* Thumbnails */}
               {images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {images.slice(0, 4).map((image: string, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
-                        index === currentImageIndex ? 'border-gray-900' : 'border-transparent'
-                      }`}
-                    >
-                      <img
-                        src={image}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                  {images.length > 4 && (
-                    <div className="aspect-square rounded-lg bg-gray-100 flex items-center justify-center text-sm text-gray-600">
-                      +{images.length - 4}
+                <>
+                  {images.length <= 5 ? (
+                    // Grid estático para 5 fotos o menos
+                    <div className="grid grid-cols-4 gap-2">
+                      {images.slice(0, 4).map((image: string, index: number) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
+                            index === currentImageIndex ? 'border-gray-900' : 'border-transparent'
+                          }`}
+                        >
+                          <img
+                            src={image}
+                            alt={`Thumbnail ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                      {images.length > 4 && (
+                        <button
+                          onClick={() => setCurrentImageIndex(4)}
+                          className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
+                            currentImageIndex === 4 ? 'border-gray-900' : 'border-transparent'
+                          }`}
+                        >
+                          <img
+                            src={images[4]}
+                            alt={`Thumbnail 5`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    // Carousel horizontal para más de 5 fotos
+                    <div className="relative">
+                      <div
+                        className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1"
+                        style={{
+                          scrollbarWidth: 'none',
+                          msOverflowStyle: 'none',
+                          WebkitOverflowScrolling: 'touch'
+                        }}
+                      >
+                        {images.map((image: string, index: number) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`flex-shrink-0 w-12 h-12 rounded-md overflow-hidden border-2 transition-colors ${
+                              index === currentImageIndex ? 'border-gray-900' : 'border-transparent'
+                            }`}
+                          >
+                            <img
+                              src={image}
+                              alt={`Thumbnail ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {/* Indicador de scroll */}
+                      <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 text-xs text-gray-400 flex items-center gap-1">
+                        <span className="text-xs">Desliza</span>
+                        <div className="flex gap-0.5">
+                          <div className="w-0.5 h-0.5 bg-gray-300 rounded-full"></div>
+                          <div className="w-0.5 h-0.5 bg-gray-300 rounded-full"></div>
+                          <div className="w-0.5 h-0.5 bg-gray-300 rounded-full"></div>
+                        </div>
+                      </div>
                     </div>
                   )}
-                </div>
+                </>
               )}
             </div>
 

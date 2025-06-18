@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { toast } from "~/components/ui/toast";
 import { LottiePlayer } from "~/components/ui/lottie-player";
-import { X, Upload, Check, AlertCircle } from "lucide-react";
+import { X, Upload, Check, AlertCircle, GripVertical } from "lucide-react";
 
 type ImageUploadProps = {
   label?: string;
@@ -33,7 +33,7 @@ interface UploadState {
 
 export function ImageUpload({
   label = "Upload Images",
-  maxFiles = 5,
+  maxFiles = 30, // ✅ Aumentado a 30 imágenes máximo
   onImagesChange,
   initialImages = [],
   className = "",
@@ -53,6 +53,11 @@ export function ImageUpload({
     completed: [],
     failed: []
   });
+
+  // ✅ Estados para drag & drop de reordenamiento
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [isDraggingToReorder, setIsDraggingToReorder] = useState(false);
 
   // Generar ID único para archivos
   const generateFileId = useCallback(() => 
@@ -217,7 +222,7 @@ export function ImageUpload({
 
     try {
       const results = await Promise.all(uploadPromises);
-      const successfulUploads = results.filter(r => r.success).map(r => r.url);
+      const successfulUploads = results.filter(r => r.success).map(r => r.url).filter(Boolean) as string[];
       const failedCount = results.filter(r => !r.success).length;
 
       if (successfulUploads.length > 0) {
@@ -268,6 +273,49 @@ export function ImageUpload({
     });
   }, [onImagesChange]);
 
+  // ✅ Funciones para reordenar imágenes
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    setIsDraggingToReorder(true);
+    e.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    setIsDraggingToReorder(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      handleDragEnd();
+      return;
+    }
+
+    const newUrls = [...uploadedUrls];
+    const draggedItem = newUrls[draggedIndex];
+    
+    // Remover el item de su posición original
+    newUrls.splice(draggedIndex, 1);
+    
+    // Insertar en la nueva posición
+    newUrls.splice(dropIndex, 0, draggedItem);
+    
+    setUploadedUrls(newUrls);
+    onImagesChange(newUrls);
+    handleDragEnd();
+    
+    toast.success('Imagen reordenada exitosamente');
+  }, [draggedIndex, uploadedUrls, onImagesChange, handleDragEnd]);
+
   // Cleanup URLs
   useEffect(() => {
     return () => {
@@ -286,7 +334,7 @@ export function ImageUpload({
 
   return (
     <>
-      <style jsx>{`
+      <style>{`
         .upload-overlay {
           position: fixed;
           top: 0;
@@ -320,6 +368,29 @@ export function ImageUpload({
           height: 100%;
           background: #3b82f6;
           transition: width 0.5s ease-out;
+        }
+        .drag-drop-zone {
+          transition: all 0.3s ease;
+        }
+        .drag-drop-zone.drag-active {
+          transform: scale(1.02);
+          border-color: #3b82f6;
+          background-color: #eff6ff;
+        }
+        .drag-drop-zone.drag-reject {
+          border-color: #ef4444;
+          background-color: #fef2f2;
+        }
+        .image-reorder-item {
+          transition: all 0.2s ease;
+        }
+        .image-reorder-item.dragging {
+          opacity: 0.5;
+          transform: scale(0.95);
+        }
+        .image-reorder-item.drag-over {
+          transform: scale(1.05);
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
       `}</style>
 
@@ -394,13 +465,13 @@ export function ImageUpload({
           </div>
         )}
 
-        {/* Dropzone */}
+        {/* ✅ Dropzone mejorado con animación */}
         <div
           {...getRootProps()}
           className={`
-            relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200
-            ${isDragActive && !isDragReject ? 'border-blue-500 bg-blue-50' : ''}
-            ${isDragReject ? 'border-red-500 bg-red-50' : ''}
+            drag-drop-zone relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-300
+            ${isDragActive && !isDragReject ? 'drag-active' : ''}
+            ${isDragReject ? 'drag-reject' : ''}
             ${!isDragActive ? 'border-gray-300 hover:border-gray-400 hover:bg-gray-50' : ''}
             ${uploadState.uploading ? 'pointer-events-none opacity-60' : ''}
           `}
@@ -437,7 +508,7 @@ export function ImageUpload({
                   {isDragActive
                     ? isDragReject
                       ? "Algunos archivos no son válidos"
-                      : "Suelta las imágenes aquí"
+                      : "🎯 Suelta las imágenes aquí"
                     : "Arrastra y suelta imágenes aquí, o haz clic para seleccionar"
                   }
                 </p>
@@ -452,24 +523,44 @@ export function ImageUpload({
           )}
         </div>
 
-        {/* Imágenes subidas */}
+        {/* ✅ Imágenes subidas con reordenamiento */}
         {uploadedUrls.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-900 flex items-center">
               <Check className="w-4 h-4 text-green-600 mr-2" />
-              Imágenes Subidas ({uploadedUrls.length})
+              Imágenes Subidas ({uploadedUrls.length}) - Arrastra para reordenar
             </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {uploadedUrls.map((url, index) => (
                 <div
-                  key={url}
-                  className="relative rounded-lg overflow-hidden border border-gray-200 group aspect-square"
+                  key={`${url}-${index}`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`
+                    image-reorder-item relative rounded-lg overflow-hidden border border-gray-200 group aspect-square cursor-move
+                    ${draggedIndex === index ? 'dragging' : ''}
+                    ${dragOverIndex === index && draggedIndex !== index ? 'drag-over' : ''}
+                  `}
                 >
                   <img
                     src={url}
                     alt={`Imagen subida ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
+                  
+                  {/* Indicador de drag */}
+                  <div className="absolute top-2 left-2 bg-gray-800 bg-opacity-75 text-white rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <GripVertical className="w-3 h-3" />
+                  </div>
+                  
+                  {/* Número de orden */}
+                  <div className="absolute bottom-2 left-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
+                    {index + 1}
+                  </div>
+                  
                   <button
                     type="button"
                     onClick={() => removeUploadedImage(index)}
@@ -478,7 +569,7 @@ export function ImageUpload({
                   >
                     <X className="w-3 h-3" />
                   </button>
-                  <div className="absolute bottom-2 left-2 bg-green-500 text-white rounded-full p-1">
+                  <div className="absolute bottom-2 right-2 bg-green-500 text-white rounded-full p-1">
                     <Check className="w-3 h-3" />
                   </div>
                 </div>
@@ -494,7 +585,7 @@ export function ImageUpload({
               <Upload className="w-4 h-4 text-blue-600 mr-2" />
               Pendientes de Subir ({files.length})
             </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {files.map((file) => {
                 const fileId = file.id!;
                 const progress = Math.round(uploadState.progress[fileId] || 0);

@@ -177,15 +177,23 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
     }
   }, [fetcher.data, listing._id])
 
-  // Si no hay usuario, mostrar corazón deshabilitado
+  // Si no hay usuario, mostrar corazón clickeable que invita a registrarse
   if (!user) {
     return (
       <button
-        disabled
-        className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center cursor-not-allowed opacity-60"
-        title="Inicia sesión para dar like"
+        onClick={() => {
+          toast.error("¡Inicia sesión para dar like! 💖", {
+            description: "Regístrate o inicia sesión para guardar tus autos favoritos",
+            action: {
+              label: "Registrarse",
+              onClick: () => window.location.href = "/auth/register"
+            }
+          })
+        }}
+        className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-red-50 hover:scale-105 transition-all duration-200 cursor-pointer"
+        title="Haz clic para registrarte y dar like"
       >
-        <Heart className="w-5 h-5 text-gray-400" />
+        <Heart className="w-5 h-5 text-gray-600 hover:text-red-600 hover:fill-current transition-colors" />
       </button>
     )
   }

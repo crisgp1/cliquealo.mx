@@ -543,8 +543,8 @@ export function CarListingForm({
           </CardHeader>
           <CardContent>
             <ImageUpload
-              label="Subir Imágenes del Vehículo *"
-              maxFiles={5}
+              label="Subir Imágenes del Vehículo * (máximo 30)"
+              maxFiles={30}
               initialImages={formData.images as string[] || []}
               onImagesChange={(urls) => handleChange("images", urls)}
             />
