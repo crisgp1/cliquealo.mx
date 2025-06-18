@@ -6,18 +6,36 @@ import { Auth } from "~/lib/auth.server"
 import { getUser, requireUser } from "~/lib/session.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
-import { 
-  Search, 
-  Heart, 
+import {
+  Search,
+  Heart,
   Eye,
   Plus,
   Filter,
   Grid,
   List,
   ArrowRight,
-  Calendar
+  Calendar,
+  Star,
+  TrendingUp,
+  Users,
+  Shield
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Button,
+  Input,
+  Select,
+  SelectItem,
+  Chip,
+  Badge,
+  Avatar,
+  Divider,
+  Spacer
+} from "@heroui/react"
 
 // Tipo para la respuesta del action
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string; listingId?: string }
@@ -252,37 +270,105 @@ export default function Index() {
 
   return (
     <div>
-      {/* Search Section */}
-      <section className="border-b border-red-100 bg-gradient-to-br from-red-50/30 to-gray-50/50">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="max-w-2xl mx-auto text-center mb-8">
-            <h1 className="text-4xl sm:text-5xl font-light text-gray-900 mb-4 tracking-tight">
-              Encuentra tu auto ideal
+      {/* Hero Section with Stats */}
+      <section className="bg-gradient-to-br from-gray-50 via-white to-red-50/30 border-b border-gray-100">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          {/* Hero Content */}
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <Badge
+              content="Nuevo"
+              color="danger"
+              variant="flat"
+              className="mb-4"
+            >
+              <Chip
+                startContent={<Star className="w-4 h-4" />}
+                variant="flat"
+                color="warning"
+                className="mb-4"
+              >
+                Plataforma Confiable
+              </Chip>
+            </Badge>
+            
+            <h1 className="text-4xl sm:text-6xl font-light text-gray-900 mb-6 tracking-tight">
+              Encuentra tu{" "}
+              <span className="bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent font-medium">
+                auto ideal
+              </span>
             </h1>
-            <p className="text-lg text-gray-600 font-light">
-              Catálogo seleccionado de autos certificados por nuestro equipo
+            
+            <p className="text-xl text-gray-600 font-light mb-8 leading-relaxed">
+              Catálogo seleccionado de autos certificados por nuestro equipo de expertos
             </p>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12 max-w-2xl mx-auto">
+              <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-sm">
+                <CardBody className="text-center py-4">
+                  <div className="flex items-center justify-center mb-2">
+                    <TrendingUp className="w-5 h-5 text-green-600 mr-2" />
+                    <span className="text-2xl font-bold text-gray-900">500+</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Autos Disponibles</p>
+                </CardBody>
+              </Card>
+              
+              <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-sm">
+                <CardBody className="text-center py-4">
+                  <div className="flex items-center justify-center mb-2">
+                    <Users className="w-5 h-5 text-blue-600 mr-2" />
+                    <span className="text-2xl font-bold text-gray-900">1,200+</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Clientes Felices</p>
+                </CardBody>
+              </Card>
+              
+              <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-sm">
+                <CardBody className="text-center py-4">
+                  <div className="flex items-center justify-center mb-2">
+                    <Shield className="w-5 h-5 text-purple-600 mr-2" />
+                    <span className="text-2xl font-bold text-gray-900">100%</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Verificados</p>
+                </CardBody>
+              </Card>
+            </div>
           </div>
 
+          {/* Enhanced Search Form */}
           <Form method="get" className="max-w-4xl mx-auto">
-            <div className="relative border-2 border-gray-200 rounded-2xl bg-white shadow-sm hover:border-gray-300 transition-colors">
-              <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="search"
-                name="search"
-                defaultValue={search}
-                placeholder="Buscar por marca, modelo..."
-                className="w-full pl-14 pr-16 sm:pr-24 py-4 bg-transparent border-none rounded-2xl text-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 px-3 py-2 sm:px-6"
-                title="Buscar"
-              >
-                <span className="hidden sm:inline text-sm">Buscar</span>
-                <Search className="w-5 h-5 sm:hidden" />
-              </button>
-            </div>
+            <Card className="bg-white/80 backdrop-blur-md border-0 shadow-xl">
+              <CardBody className="p-6">
+                <div className="flex flex-col lg:flex-row gap-4">
+                  <div className="flex-1">
+                    <Input
+                      type="search"
+                      name="search"
+                      defaultValue={search}
+                      placeholder="Buscar por marca, modelo, año..."
+                      startContent={<Search className="w-5 h-5 text-gray-400" />}
+                      size="lg"
+                      variant="flat"
+                      className="w-full"
+                      classNames={{
+                        input: "text-lg",
+                        inputWrapper: "bg-gray-50 border-0 hover:bg-gray-100 focus-within:bg-white"
+                      }}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    color="danger"
+                    size="lg"
+                    className="px-8 font-medium"
+                    endContent={<ArrowRight className="w-5 h-5" />}
+                  >
+                    Buscar Autos
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
           </Form>
         </div>
       </section>
@@ -337,92 +423,153 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Filters Panel */}
+        {/* Enhanced Filters Panel */}
         {showFilters && (
-          <div className="mb-12 p-6 bg-gradient-to-br from-red-50 to-gray-50 rounded-2xl border border-red-200">
-            <Form method="get" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <input type="hidden" name="search" value={search} />
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Marca
-                </label>
-                <select
-                  name="brand"
-                  defaultValue={brand}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                >
-                  <option value="">Todas</option>
-                  <option value="Nissan">Nissan</option>
-                  <option value="Honda">Honda</option>
-                  <option value="Toyota">Toyota</option>
-                  <option value="Volkswagen">Volkswagen</option>
-                  <option value="Ford">Ford</option>
-                  <option value="Chevrolet">Chevrolet</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Año mínimo
-                </label>
-                <input
-                  type="number"
-                  name="minYear"
-                  defaultValue={minYear || ''}
-                  placeholder="2010"
-                  min="1990"
-                  max="2025"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Precio mínimo
-                </label>
-                <input
-                  type="number"
-                  name="minPrice"
-                  defaultValue={minPrice || ''}
-                  placeholder="50,000"
-                  step="10000"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Precio máximo
-                </label>
-                <input
-                  type="number"
-                  name="maxPrice"
-                  defaultValue={maxPrice || ''}
-                  placeholder="500,000"
-                  step="10000"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                />
-              </div>
-
-              <div className="sm:col-span-2 lg:col-span-4 flex items-center space-x-4 pt-4">
-                <button
-                  type="submit"
-                  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-                >
-                  Aplicar filtros
-                </button>
+          <Card className="mb-12 bg-gradient-to-br from-red-50/50 to-gray-50/50 border-red-200/50">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between w-full">
+                <h3 className="text-lg font-semibold text-gray-900">Filtros Avanzados</h3>
                 {hasActiveFilters && (
-                  <Link
-                    to="/"
-                    className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-                  >
-                    Limpiar filtros
-                  </Link>
+                  <Chip color="danger" variant="flat" size="sm">
+                    {[brand, minPrice, maxPrice, minYear, maxYear].filter(Boolean).length} activos
+                  </Chip>
                 )}
               </div>
-            </Form>
-          </div>
+            </CardHeader>
+            <CardBody>
+              <Form method="get" className="space-y-6">
+                <input type="hidden" name="search" value={search} />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <Select
+                      name="brand"
+                      label="Marca"
+                      placeholder="Seleccionar marca"
+                      defaultSelectedKeys={brand ? [brand] : []}
+                      variant="flat"
+                      classNames={{
+                        trigger: "bg-white border-0"
+                      }}
+                    >
+                      <SelectItem key="Nissan" value="Nissan">Nissan</SelectItem>
+                      <SelectItem key="Honda" value="Honda">Honda</SelectItem>
+                      <SelectItem key="Toyota" value="Toyota">Toyota</SelectItem>
+                      <SelectItem key="Volkswagen" value="Volkswagen">Volkswagen</SelectItem>
+                      <SelectItem key="Ford" value="Ford">Ford</SelectItem>
+                      <SelectItem key="Chevrolet" value="Chevrolet">Chevrolet</SelectItem>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Input
+                      type="number"
+                      name="minYear"
+                      label="Año mínimo"
+                      placeholder="2010"
+                      defaultValue={minYear?.toString() || ''}
+                      min="1990"
+                      max="2025"
+                      variant="flat"
+                      classNames={{
+                        inputWrapper: "bg-white border-0"
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <Input
+                      type="number"
+                      name="minPrice"
+                      label="Precio mínimo"
+                      placeholder="50,000"
+                      defaultValue={minPrice?.toString() || ''}
+                      step="10000"
+                      startContent={
+                        <div className="pointer-events-none flex items-center">
+                          <span className="text-default-400 text-small">$</span>
+                        </div>
+                      }
+                      variant="flat"
+                      classNames={{
+                        inputWrapper: "bg-white border-0"
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <Input
+                      type="number"
+                      name="maxPrice"
+                      label="Precio máximo"
+                      placeholder="500,000"
+                      defaultValue={maxPrice?.toString() || ''}
+                      step="10000"
+                      startContent={
+                        <div className="pointer-events-none flex items-center">
+                          <span className="text-default-400 text-small">$</span>
+                        </div>
+                      }
+                      variant="flat"
+                      classNames={{
+                        inputWrapper: "bg-white border-0"
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <Divider />
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <Button
+                    type="submit"
+                    color="danger"
+                    size="lg"
+                    className="font-medium"
+                    endContent={<Filter className="w-4 h-4" />}
+                  >
+                    Aplicar Filtros
+                  </Button>
+                  
+                  {hasActiveFilters && (
+                    <Button
+                      as={Link}
+                      to="/"
+                      variant="light"
+                      color="default"
+                      size="lg"
+                    >
+                      Limpiar Filtros
+                    </Button>
+                  )}
+                  
+                  <Spacer />
+                  
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>Vista:</span>
+                    <Button
+                      isIconOnly
+                      variant={viewMode === 'grid' ? 'solid' : 'light'}
+                      color="default"
+                      size="sm"
+                      onPress={() => setViewMode('grid')}
+                    >
+                      <Grid className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      variant={viewMode === 'list' ? 'solid' : 'light'}
+                      color="default"
+                      size="sm"
+                      onPress={() => setViewMode('list')}
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Form>
+            </CardBody>
+          </Card>
         )}
 
         {/* Results */}
@@ -605,30 +752,6 @@ export default function Index() {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 mt-24">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 bg-black rounded-full"></div>
-              <span className="font-light text-gray-900">Cliquéalo.mx</span>
-            </div>
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>© 2025 Todos los derechos reservados</span>
-              <span className="text-gray-300">•</span>
-              <a
-                href="https://hyrk.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-gray-600 transition-colors duration-200 font-medium tracking-wide"
-                title="Powered by Hyrk"
-              >
-                hyrk.io
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

@@ -1,5 +1,15 @@
 import { Link } from "@remix-run/react"
-import { User, Plus, Settings, Shield } from 'lucide-react'
+import { User, Plus, Shield } from 'lucide-react'
+import {
+  Button,
+  Avatar,
+  Chip,
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  Link as HeroLink
+} from "@heroui/react"
 
 interface NavigationProps {
   user?: {
@@ -13,59 +23,96 @@ export function Navigation({ user }: NavigationProps) {
   const isSuperAdmin = user?.role === 'superadmin'
 
   return (
-    <div className="flex items-center gap-2">
+    <NavbarContent justify="end" className="gap-3">
+      {/* Logo con HeroUI */}
+      <NavbarBrand className="mr-4">
+        <Link to="/" className="flex items-center space-x-3 group">
+          <div className="w-6 h-6 bg-gradient-to-br from-gray-900 to-gray-700 rounded-full transform group-hover:scale-110 transition-all duration-300 group-hover:rotate-12"></div>
+          <span className="text-lg font-light tracking-tight text-gray-900 group-hover:text-gray-700 transition-colors duration-300">
+            Cliquéalo.mx
+          </span>
+        </Link>
+      </NavbarBrand>
+
       {/* Solo admins ven el botón de crear */}
       {isAdmin && (
-        <Link 
-          to="/listings/new"
-          className="hidden md:flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Crear Listing
-        </Link>
+        <NavbarItem className="hidden md:flex">
+          <Button
+            as={Link}
+            to="/listings/new"
+            color="primary"
+            variant="solid"
+            startContent={<Plus className="w-4 h-4" />}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Crear Listing
+          </Button>
+        </NavbarItem>
       )}
       
       {/* Solo superadmins ven panel de administración */}
       {isSuperAdmin && (
-        <Link 
-          to="/admin"
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-full"
-          title="Panel de Administración"
-        >
-          <Shield className="w-5 h-5" />
-        </Link>
+        <NavbarItem>
+          <Button
+            as={Link}
+            to="/admin"
+            isIconOnly
+            variant="light"
+            aria-label="Panel de Administración"
+          >
+            <Shield className="w-5 h-5" />
+          </Button>
+        </NavbarItem>
       )}
       
       {user ? (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600 hidden sm:block">
-            {user.name}
+        <NavbarItem className="flex items-center gap-3">
+          <div className="hidden sm:flex flex-col items-end">
+            <span className="text-sm text-gray-600 font-medium">
+              {user.name}
+            </span>
             {isAdmin && (
-              <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
+              <Chip
+                size="sm"
+                color="primary"
+                variant="flat"
+                className="text-xs"
+              >
                 {user.role}
-              </span>
+              </Chip>
             )}
-          </span>
-          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-            <User className="w-4 h-4 text-gray-600" />
           </div>
-        </div>
+          <Avatar
+            size="sm"
+            icon={<User className="w-4 h-4" />}
+            classNames={{
+              base: "bg-gradient-to-br from-gray-100 to-gray-200",
+              icon: "text-gray-600"
+            }}
+          />
+        </NavbarItem>
       ) : (
-        <div className="flex items-center gap-2">
-          <Link 
+        <NavbarItem className="flex items-center gap-2">
+          <Button
+            as={Link}
             to="/auth/login"
-            className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+            variant="light"
+            size="sm"
           >
             Entrar
-          </Link>
-          <Link 
+          </Button>
+          <Button
+            as={Link}
             to="/auth/register"
-            className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+            color="default"
+            variant="solid"
+            size="sm"
+            className="bg-black text-white hover:bg-gray-800"
           >
             Registrarse
-          </Link>
-        </div>
+          </Button>
+        </NavbarItem>
       )}
-    </div>
+    </NavbarContent>
   )
 }

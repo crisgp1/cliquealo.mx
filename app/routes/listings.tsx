@@ -5,9 +5,9 @@ import { UserModel } from "~/models/User.server"
 import { getUser, requireUser } from "~/lib/session.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
-import { 
-  Search, 
-  Heart, 
+import {
+  Search,
+  Heart,
   Eye,
   Filter,
   Grid,
@@ -15,9 +15,25 @@ import {
   ArrowRight,
   Calendar,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Star,
+  TrendingUp
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Button,
+  Input,
+  Select,
+  SelectItem,
+  Chip,
+  Badge,
+  Pagination,
+  Divider,
+  Spacer
+} from "@heroui/react"
 
 // Tipo para la respuesta del action
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string; listingId?: string }
@@ -259,35 +275,89 @@ export default function ListingsIndex() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Search and Filters Section */}
-      <section className="border-b border-red-100 bg-gradient-to-br from-red-50/30 to-gray-50/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="max-w-2xl mx-auto text-center mb-8">
-            <h1 className="text-4xl sm:text-5xl font-light text-gray-900 mb-4 tracking-tight">
-              Explorar Catálogo
+      {/* Enhanced Search and Filters Section */}
+      <section className="bg-gradient-to-br from-gray-50 via-white to-red-50/30 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <Badge
+              content="Actualizado"
+              color="success"
+              variant="flat"
+              className="mb-4"
+            >
+              <Chip
+                startContent={<TrendingUp className="w-4 h-4" />}
+                variant="flat"
+                color="primary"
+                className="mb-4"
+              >
+                Catálogo Completo
+              </Chip>
+            </Badge>
+            
+            <h1 className="text-4xl sm:text-6xl font-light text-gray-900 mb-6 tracking-tight">
+              Explorar{" "}
+              <span className="bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent font-medium">
+                Catálogo
+              </span>
             </h1>
-            <p className="text-lg text-gray-600 font-light">
-              Encuentra tu auto ideal entre nuestras opciones
+            
+            <p className="text-xl text-gray-600 font-light mb-8 leading-relaxed">
+              Encuentra tu auto ideal entre nuestras {totalCount} opciones disponibles
             </p>
+
+            {/* Quick Stats */}
+            <div className="flex justify-center items-center gap-6 mb-8">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{totalCount}</div>
+                <div className="text-sm text-gray-600">Autos Disponibles</div>
+              </div>
+              <Divider orientation="vertical" className="h-12" />
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{brands.length}</div>
+                <div className="text-sm text-gray-600">Marcas</div>
+              </div>
+              <Divider orientation="vertical" className="h-12" />
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">100%</div>
+                <div className="text-sm text-gray-600">Verificados</div>
+              </div>
+            </div>
           </div>
 
+          {/* Enhanced Search Form */}
           <Form method="get" className="max-w-4xl mx-auto">
-            <div className="relative border-2 border-gray-200 rounded-2xl bg-white shadow-sm hover:border-gray-300 transition-colors">
-              <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="search"
-                name="search"
-                defaultValue={search}
-                placeholder="Buscar por marca, modelo..."
-                className="w-full pl-14 pr-6 py-4 bg-transparent border-none rounded-2xl text-lg focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-2 rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-              >
-                Buscar
-              </button>
-            </div>
+            <Card className="bg-white/80 backdrop-blur-md border-0 shadow-xl">
+              <CardBody className="p-6">
+                <div className="flex flex-col lg:flex-row gap-4">
+                  <div className="flex-1">
+                    <Input
+                      type="search"
+                      name="search"
+                      defaultValue={search}
+                      placeholder="Buscar por marca, modelo, año..."
+                      startContent={<Search className="w-5 h-5 text-gray-400" />}
+                      size="lg"
+                      variant="flat"
+                      className="w-full"
+                      classNames={{
+                        input: "text-lg",
+                        inputWrapper: "bg-gray-50 border-0 hover:bg-gray-100 focus-within:bg-white"
+                      }}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    color="danger"
+                    size="lg"
+                    className="px-8 font-medium"
+                    endContent={<ArrowRight className="w-5 h-5" />}
+                  >
+                    Buscar Autos
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
           </Form>
         </div>
       </section>
@@ -342,89 +412,152 @@ export default function ListingsIndex() {
           </div>
         </div>
 
-        {/* Filters Panel */}
+        {/* Enhanced Filters Panel */}
         {showFilters && (
-          <div className="mb-12 p-6 bg-gradient-to-br from-red-50 to-gray-50 rounded-2xl border border-red-200">
-            <Form method="get" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <input type="hidden" name="search" value={search} />
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Marca
-                </label>
-                <select
-                  name="brand"
-                  defaultValue={brand}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                >
-                  <option value="">Todas</option>
-                  {brands.map((brand: string) => (
-                    <option key={brand} value={brand}>{brand}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Año mínimo
-                </label>
-                <input
-                  type="number"
-                  name="minYear"
-                  defaultValue={minYear || ''}
-                  placeholder="2010"
-                  min="1990"
-                  max="2025"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Precio mínimo
-                </label>
-                <input
-                  type="number"
-                  name="minPrice"
-                  defaultValue={minPrice || ''}
-                  placeholder="50,000"
-                  step="10000"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Precio máximo
-                </label>
-                <input
-                  type="number"
-                  name="maxPrice"
-                  defaultValue={maxPrice || ''}
-                  placeholder="500,000"
-                  step="10000"
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                />
-              </div>
-
-              <div className="sm:col-span-2 lg:col-span-4 flex items-center space-x-4 pt-4">
-                <button
-                  type="submit"
-                  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-                >
-                  Aplicar filtros
-                </button>
+          <Card className="mb-12 bg-gradient-to-br from-red-50/50 to-gray-50/50 border-red-200/50">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between w-full">
+                <h3 className="text-lg font-semibold text-gray-900">Filtros Avanzados</h3>
                 {hasActiveFilters && (
-                  <Link
-                    to="/listings"
-                    className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-                  >
-                    Limpiar filtros
-                  </Link>
+                  <Chip color="danger" variant="flat" size="sm">
+                    {[brand, minPrice, maxPrice, minYear, maxYear].filter(Boolean).length} activos
+                  </Chip>
                 )}
               </div>
-            </Form>
-          </div>
+            </CardHeader>
+            <CardBody>
+              <Form method="get" className="space-y-6">
+                <input type="hidden" name="search" value={search} />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <Select
+                      name="brand"
+                      label="Marca"
+                      placeholder="Seleccionar marca"
+                      defaultSelectedKeys={brand ? [brand] : []}
+                      variant="flat"
+                      classNames={{
+                        trigger: "bg-white border-0"
+                      }}
+                    >
+                      {brands.map((brandOption: string) => (
+                        <SelectItem key={brandOption} value={brandOption}>
+                          {brandOption}
+                        </SelectItem>
+                      ))}
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Input
+                      type="number"
+                      name="minYear"
+                      label="Año mínimo"
+                      placeholder="2010"
+                      defaultValue={minYear?.toString() || ''}
+                      min="1990"
+                      max="2025"
+                      variant="flat"
+                      classNames={{
+                        inputWrapper: "bg-white border-0"
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <Input
+                      type="number"
+                      name="minPrice"
+                      label="Precio mínimo"
+                      placeholder="50,000"
+                      defaultValue={minPrice?.toString() || ''}
+                      step="10000"
+                      startContent={
+                        <div className="pointer-events-none flex items-center">
+                          <span className="text-default-400 text-small">$</span>
+                        </div>
+                      }
+                      variant="flat"
+                      classNames={{
+                        inputWrapper: "bg-white border-0"
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <Input
+                      type="number"
+                      name="maxPrice"
+                      label="Precio máximo"
+                      placeholder="500,000"
+                      defaultValue={maxPrice?.toString() || ''}
+                      step="10000"
+                      startContent={
+                        <div className="pointer-events-none flex items-center">
+                          <span className="text-default-400 text-small">$</span>
+                        </div>
+                      }
+                      variant="flat"
+                      classNames={{
+                        inputWrapper: "bg-white border-0"
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <Divider />
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <Button
+                    type="submit"
+                    color="danger"
+                    size="lg"
+                    className="font-medium"
+                    endContent={<Filter className="w-4 h-4" />}
+                  >
+                    Aplicar Filtros
+                  </Button>
+                  
+                  {hasActiveFilters && (
+                    <Button
+                      as={Link}
+                      to="/listings"
+                      variant="light"
+                      color="default"
+                      size="lg"
+                    >
+                      Limpiar Filtros
+                    </Button>
+                  )}
+                  
+                  <Spacer />
+                  
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>Vista:</span>
+                    <Button
+                      isIconOnly
+                      variant={viewMode === 'grid' ? 'solid' : 'light'}
+                      color="default"
+                      size="sm"
+                      onPress={() => setViewMode('grid')}
+                    >
+                      <Grid className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      variant={viewMode === 'list' ? 'solid' : 'light'}
+                      color="default"
+                      size="sm"
+                      onPress={() => setViewMode('list')}
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Form>
+            </CardBody>
+          </Card>
         )}
 
         {/* Results */}
@@ -585,87 +718,40 @@ export default function ListingsIndex() {
           </div>
         )}
 
-        {/* Pagination */}
+        {/* Enhanced Pagination with HeroUI */}
         {totalPages > 1 && (
-          <div className="mt-12 flex justify-center">
-            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-              <Link
-                to={`?${new URLSearchParams({
-                  ...Object.fromEntries(searchParams.entries()),
-                  page: (currentPage - 1).toString()
-                })}`}
-                className={`relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                  currentPage === 1
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-500 hover:bg-gray-50'
-                }`}
-                aria-disabled={currentPage === 1}
-                tabIndex={currentPage === 1 ? -1 : 0}
-              >
-                <span className="sr-only">Anterior</span>
-                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-              </Link>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(page => {
-                  // Show first page, last page, and pages around current page
-                  return page === 1 || 
-                         page === totalPages || 
-                         (page >= currentPage - 1 && page <= currentPage + 1);
-                })
-                .map((page, index, array) => {
-                  // Add ellipsis where there are gaps
-                  const showEllipsisBefore = index > 0 && array[index - 1] !== page - 1;
-                  const showEllipsisAfter = index < array.length - 1 && array[index + 1] !== page + 1;
-                  
-                  return (
-                    <div key={page}>
-                      {showEllipsisBefore && (
-                        <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                          ...
-                        </span>
-                      )}
-                      
-                      <Link
-                        to={`?${new URLSearchParams({
-                          ...Object.fromEntries(searchParams.entries()),
-                          page: page.toString()
-                        })}`}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          page === currentPage
-                            ? 'z-10 bg-gray-900 border-gray-900 text-white'
-                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </Link>
-                      
-                      {showEllipsisAfter && (
-                        <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                          ...
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              
-              <Link
-                to={`?${new URLSearchParams({
-                  ...Object.fromEntries(searchParams.entries()),
-                  page: (currentPage + 1).toString()
-                })}`}
-                className={`relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                  currentPage === totalPages
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-500 hover:bg-gray-50'
-                }`}
-                aria-disabled={currentPage === totalPages}
-                tabIndex={currentPage === totalPages ? -1 : 0}
-              >
-                <span className="sr-only">Siguiente</span>
-                <ChevronRight className="h-5 w-5" aria-hidden="true" />
-              </Link>
-            </nav>
+          <div className="mt-12 flex flex-col items-center gap-6">
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-2">
+                Página {currentPage} de {totalPages}
+              </p>
+              <p className="text-xs text-gray-500">
+                Mostrando {listings.length} de {totalCount} autos en total
+              </p>
+            </div>
+            
+            <div className="flex justify-center">
+              <Pagination
+                total={totalPages}
+                page={currentPage}
+                onChange={(page) => {
+                  const newSearchParams = new URLSearchParams(searchParams.toString())
+                  newSearchParams.set('page', page.toString())
+                  window.location.href = `?${newSearchParams.toString()}`
+                }}
+                showControls
+                showShadow
+                color="danger"
+                size="lg"
+                classNames={{
+                  wrapper: "gap-0 overflow-visible",
+                  item: "w-10 h-10 text-small rounded-none bg-transparent",
+                  cursor: "bg-gradient-to-r from-red-600 to-red-700 shadow-lg text-white font-bold",
+                  prev: "bg-white border border-gray-200 hover:bg-gray-50",
+                  next: "bg-white border border-gray-200 hover:bg-gray-50"
+                }}
+              />
+            </div>
           </div>
         )}
       </div>
