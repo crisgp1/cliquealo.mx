@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { getUser } from "~/lib/session.server";
 import { Auth } from "~/lib/auth.server";
 import { X, Plus, User, LogOut, Shield, Heart, Menu, Search, Info, Home, LogIn, UserPlus } from "lucide-react"; // 🔥 AGREGADO más iconos
+import { HeroUIProvider } from "@heroui/react";
 
 import { Toaster } from "~/components/ui/toast";
 import { Preloader } from "~/components/ui/preloader";
@@ -52,8 +53,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
-        <Toaster />
+        <HeroUIProvider>
+          {children}
+          <Toaster />
+        </HeroUIProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

@@ -1,33 +1,59 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
-import { useActionData, Link, useNavigation, useLoaderData, useSubmit, Form } from "@remix-run/react";
+import { useActionData, Link, useNavigation, useLoaderData, useSubmit } from "@remix-run/react";
 import { ListingModel } from "~/models/Listing.server";
 import { requireAdmin } from "~/lib/auth.server";
-import { CarListingForm } from "~/components/forms/CarListingForm";
-import { ChevronLeft } from "~/components/icons";
-import { Button } from "~/components/ui/button";
+import { HeroCarListingForm } from "~/components/forms/HeroCarListingForm";
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "~/components/ui/card";
-import { Badge } from "~/components/ui/badge";
+import { 
+  Card, 
+  CardBody, 
+  CardHeader,
+  Button,
+  Chip,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  Breadcrumbs,
+  BreadcrumbItem
+} from "@heroui/react";
+import { motion } from "framer-motion";
+import { 
+  ChevronLeft, 
+  Plus, 
+  CheckCircle, 
+  AlertCircle,
+  Home,
+  Car,
+  Eye
+} from "lucide-react";
 import { AnimationProvider } from "~/components/AnimationProvider";
 import { toast } from "~/components/ui/toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "~/components/ui/dialog";
 
 //  Configuración de textos en español para la página
 const PAGE_TEXTS = {
   header: {
     backToListings: "Volver a Listados",
-    title: "Agregar Nuevo Listado de Auto",
-    subtitle: "Ingresa los detalles a continuación para crear un nuevo listado de vehículo"
+    title: "Crear Nuevo Listado de Vehículo",
+    subtitle: "Completa la información para publicar tu vehículo en el marketplace"
   },
   messages: {
     success: "¡Vehículo agregado exitosamente! Puedes agregar otro o ver el listado creado.",
     error: "Error al crear el listado"
   },
   dialog: {
-    title: "Listado Creado Exitosamente",
-    description: "¡Tu listado de vehículo ha sido creado exitosamente!",
+    title: "¡Listado Creado Exitosamente!",
+    description: "Tu listado de vehículo ha sido creado y publicado exitosamente.",
     viewListing: "Ver Listado",
     createAnother: "Crear Otro Listado"
+  },
+  breadcrumbs: {
+    home: "Inicio",
+    admin: "Administración",
+    listings: "Listados",
+    new: "Nuevo"
   }
 } as const;
 
@@ -47,6 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
   
   // Extract form data
   const make = formData.get("make") as string;
+  const customMake = formData.get("customMake") as string;
   const model = formData.get("model") as string;
   const year = parseInt(formData.get("year") as string);
   const price = parseFloat(formData.get("price") as string);
@@ -72,11 +99,18 @@ export async function action({ request }: ActionFunctionArgs) {
     email: contactEmail
   };
   
-  const title = `${year} ${make} ${model}`;
+  // Determinar la marca final a usar
+  const finalMake = make === "other" ? customMake : make;
+  const title = `${year} ${finalMake} ${model}`;
   
   // Validaciones
   if (!make || !model || !year || !price) {
     return json({ error: "Marca, modelo, año y precio son requeridos" }, { status: 400 });
+  }
+  
+  // Validar marca personalizada si se seleccionó "Otra"
+  if (make === "other" && !customMake) {
+    return json({ error: "Debes especificar la marca del vehículo" }, { status: 400 });
   }
   
   if (year < 1900 || year > new Date().getFullYear() + 1) {
@@ -95,7 +129,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const listing = await ListingModel.create({
       title,
       description: description?.trim() || "",
-      brand: make.trim(),
+      brand: finalMake.trim(),
       model: model.trim(),
       year,
       price,
@@ -123,14 +157,13 @@ export default function NewListing() {
   const { user } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const submit = useSubmit(); //  Hook en el nivel superior
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const submit = useSubmit();
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">("idle");
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   
   const isSubmitting = navigation.state === "submitting";
   
-  //  Función corregida para manejar envío del formulario
+  //  Función para manejar envío del formulario
   const handleSubmit = (data: any) => {
     const formData = new FormData();
     
@@ -153,15 +186,14 @@ export default function NewListing() {
     if (actionData) {
       if ('success' in actionData && actionData.success) {
         setFormStatus("success");
-        setSuccessMessage(actionData.message || PAGE_TEXTS.messages.success);
-        setShowSuccessDialog(true);
+        onOpen();
         toast.success("¡Listado de vehículo creado exitosamente!");
       } else if ('error' in actionData) {
         setFormStatus("error");
         toast.error(actionData.error || PAGE_TEXTS.messages.error);
       }
     }
-  }, [actionData]);
+  }, [actionData, onOpen]);
 
   useEffect(() => {
     if (isSubmitting) {
@@ -171,104 +203,146 @@ export default function NewListing() {
   
   return (
     <AnimationProvider>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Header */}
-        <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-sm">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+        {/* Header moderno con HeroUI */}
+        <motion.header 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm sticky top-0 z-40"
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              <Link 
-                to="/admin/listings"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+              {/* Breadcrumbs */}
+              <Breadcrumbs 
+                size="lg"
+                classNames={{
+                  list: "gap-2",
+                }}
               >
-                <ChevronLeft className="w-5 h-5" />
-                <span className="font-medium">{PAGE_TEXTS.header.backToListings}</span>
-              </Link>
+                <BreadcrumbItem 
+                  href="/"
+                  startContent={<Home className="w-4 h-4" />}
+                >
+                  {PAGE_TEXTS.breadcrumbs.home}
+                </BreadcrumbItem>
+                <BreadcrumbItem href="/admin">
+                  {PAGE_TEXTS.breadcrumbs.admin}
+                </BreadcrumbItem>
+                <BreadcrumbItem href="/admin/listings">
+                  {PAGE_TEXTS.breadcrumbs.listings}
+                </BreadcrumbItem>
+                <BreadcrumbItem>
+                  {PAGE_TEXTS.breadcrumbs.new}
+                </BreadcrumbItem>
+              </Breadcrumbs>
 
-              <div className="flex items-center space-x-2">
-                <Badge variant={user.role === "admin" ? "default" : "secondary"}>
+              {/* User info */}
+              <div className="flex items-center space-x-3">
+                <Chip 
+                  color={user.role === "admin" ? "primary" : "secondary"}
+                  variant="flat"
+                  size="sm"
+                >
                   {user.role}
-                </Badge>
-                <span className="text-sm text-gray-600 dark:text-gray-300">{user.name}</span>
+                </Chip>
+                <span className="text-sm font-medium text-gray-700">{user.name}</span>
               </div>
             </div>
           </div>
-        </header>
+        </motion.header>
 
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="space-y-6">
-            {/* Page Title */}
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {PAGE_TEXTS.header.title}
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                {PAGE_TEXTS.header.subtitle}
-              </p>
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Hero Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-center mb-8"
+          >
+            <div className="flex items-center justify-center mb-4">
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
+                <Plus className="w-8 h-8 text-white" />
+              </div>
             </div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">
+              {PAGE_TEXTS.header.title}
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              {PAGE_TEXTS.header.subtitle}
+            </p>
+          </motion.div>
 
-            {/* Success Message */}
-            {successMessage && (
-              <Card className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
-                <CardContent className="flex justify-between items-center p-4">
-                  <p className="text-green-700 dark:text-green-300">{successMessage}</p>
-                  {actionData && 'listingId' in actionData && (
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/listings/${actionData.listingId}`}>
-                        {PAGE_TEXTS.dialog.viewListing}
-                      </Link>
-                    </Button>
-                  )}
-                </CardContent>
+          {/* Mensajes de estado */}
+          {actionData && 'error' in actionData && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mb-6"
+            >
+              <Card className="bg-danger-50 border-danger-200">
+                <CardBody className="flex flex-row items-center gap-3 p-4">
+                  <AlertCircle className="w-5 h-5 text-danger-600 flex-shrink-0" />
+                  <p className="text-danger-700 font-medium">{actionData.error}</p>
+                </CardBody>
               </Card>
-            )}
+            </motion.div>
+          )}
 
-            {/* Error Message */}
-            {actionData && 'error' in actionData && (
-              <Card className="bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800">
-                <CardContent className="p-4">
-                  <p className="text-red-700 dark:text-red-300">{actionData.error}</p>
-                </CardContent>
-              </Card>
-            )}
-
-          {/* ✅ Car Listing Form corregido */}
-          <CarListingForm
+          {/* Formulario HeroUI */}
+          <HeroCarListingForm
             onSubmit={handleSubmit}
             isLoading={isSubmitting}
             status={formStatus}
             defaultValues={{}}
           />
 
-          {/* Success Dialog */}
-          <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{PAGE_TEXTS.dialog.title}</DialogTitle>
-              </DialogHeader>
-              <div className="py-4">
-                <p className="text-gray-700">{PAGE_TEXTS.dialog.description}</p>
-              </div>
-              <DialogFooter className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
-                {actionData && 'listingId' in actionData && (
-                  <Button asChild>
-                    <Link to={`/listings/${actionData.listingId}`}>
-                      {PAGE_TEXTS.dialog.viewListing}
-                    </Link>
-                  </Button>
-                )}
+          {/* Modal de éxito */}
+          <Modal 
+            isOpen={isOpen} 
+            onClose={onClose}
+            size="md"
+            classNames={{
+              backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20"
+            }}
+          >
+            <ModalContent>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-success-100 rounded-lg">
+                    <CheckCircle className="w-6 h-6 text-success-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {PAGE_TEXTS.dialog.title}
+                  </h3>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <p className="text-gray-600 text-base">
+                  {PAGE_TEXTS.dialog.description}
+                </p>
+              </ModalBody>
+              <ModalFooter>
                 <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowSuccessDialog(false);
-                    setFormStatus("idle");
-                  }}
+                  variant="light" 
+                  onPress={onClose}
+                  className="text-gray-600"
                 >
                   {PAGE_TEXTS.dialog.createAnother}
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          </div>
+                {actionData && 'listingId' in actionData && (
+                  <Button 
+                    color="primary" 
+                    as={Link}
+                    href={`/listings/${actionData.listingId}`}
+                    startContent={<Eye className="w-4 h-4" />}
+                  >
+                    {PAGE_TEXTS.dialog.viewListing}
+                  </Button>
+                )}
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </main>
       </div>
     </AnimationProvider>
