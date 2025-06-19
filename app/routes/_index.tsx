@@ -7,6 +7,7 @@ import { getUser, requireUser } from "~/lib/session.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
+import PremiumBrandsCarousel from "~/components/ui/premium-brands-carousel"
 import {
   Search,
   Heart,
@@ -352,6 +353,9 @@ export default function Index() {
                 </CardBody>
               </Card>
             </div>
+
+            {/* Premium Brands Carousel */}
+            <PremiumBrandsCarousel />
           </div>
 
           {/* Enhanced Search Form */}
