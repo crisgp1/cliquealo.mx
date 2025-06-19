@@ -15,7 +15,7 @@ import { json } from "@remix-run/node";
 import { useState, useEffect } from "react";
 import { getUser } from "~/lib/session.server";
 import { Auth } from "~/lib/auth.server";
-import { X, Plus, User, LogOut, Shield, Heart, Menu, Search, Info, Home, LogIn, UserPlus } from "lucide-react"; // 🔥 AGREGADO más iconos
+import { X, Plus, User, LogOut, Shield, Heart, Menu, Search, Info, Home, LogIn, UserPlus, CreditCard } from "lucide-react"; // 🔥 AGREGADO más iconos
 import {
   HeroUIProvider,
   Navbar,
@@ -154,6 +154,20 @@ export default function App() {
                 className="text-gray-600 hover:text-red-500"
               >
                 Favoritos
+              </Button>
+            </NavbarItem>
+          )}
+          
+          {user && (
+            <NavbarItem>
+              <Button
+                as={Link}
+                to="/credit/my-applications"
+                variant="light"
+                startContent={<CreditCard className="w-3.5 h-3.5" />}
+                className="text-gray-600 hover:text-green-600"
+              >
+                Mis Créditos
               </Button>
             </NavbarItem>
           )}
@@ -328,6 +342,21 @@ export default function App() {
             </NavbarMenuItem>
           )}
           
+          {user && (
+            <NavbarMenuItem>
+              <Button
+                as={Link}
+                to="/credit/my-applications"
+                variant="light"
+                startContent={<CreditCard className="w-4 h-4 text-green-500" />}
+                className="w-full justify-start text-gray-600"
+                onPress={() => setMobileMenuOpen(false)}
+              >
+                Mis Solicitudes de Crédito
+              </Button>
+            </NavbarMenuItem>
+          )}
+          
           <NavbarMenuItem>
             <Button
               as={Link}
@@ -423,6 +452,17 @@ export default function App() {
             >
               <Heart className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
               <span className="hidden sm:block text-xs font-medium">Favoritos</span>
+            </Link>
+          )}
+          
+          {user && (
+            <Link
+              to="/credit/my-applications"
+              className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-green-600 transition-colors min-w-0"
+              title="Mis Créditos"
+            >
+              <CreditCard className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
+              <span className="hidden sm:block text-xs font-medium">Créditos</span>
             </Link>
           )}
           
@@ -528,11 +568,18 @@ export default function App() {
                   </Link>
                 </li>
                 {user && (
-                  <li>
-                    <Link to="/favorites" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                      Mis Favoritos
-                    </Link>
-                  </li>
+                  <>
+                    <li>
+                      <Link to="/favorites" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                        Mis Favoritos
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/credit/my-applications" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                        Mis Créditos
+                      </Link>
+                    </li>
+                  </>
                 )}
               </ul>
             </div>

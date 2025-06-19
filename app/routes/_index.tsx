@@ -20,7 +20,10 @@ import {
   Star,
   TrendingUp,
   Users,
-  Shield
+  Shield,
+  CreditCard,
+  Calculator,
+  CheckCircle
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import {

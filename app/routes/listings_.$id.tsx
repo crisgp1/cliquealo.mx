@@ -1271,30 +1271,46 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                           </CardBody>
                         </Card>
 
-                        {/* Credit Request Button */}
-                        <Button
-                          color={
-                            creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price
-                              ? "success"
-                              : "default"
-                          }
-                          size="lg"
-                          startContent={<CreditCard className="w-5 h-5" />}
-                          isDisabled={creditData.downPayment < minDownPayment || creditData.downPayment > listing.price}
-                          className="w-full font-semibold"
-                          onClick={() => {
-                            if (creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price) {
-                              setShowCreditModal(true)
-                              setCreditStep(1)
-                            } else if (creditData.downPayment < minDownPayment) {
-                              toast.error("Ajusta el enganche al mínimo del 30% para continuar")
-                            } else {
-                              toast.error("El enganche no puede ser mayor al 100% del precio del vehículo")
+                        {/* Credit Request Buttons */}
+                        <div className="space-y-3">
+                          {/* New Integrated Credit Application */}
+                          <Button
+                            as={Link}
+                            to={`/credit/apply?listing=${listing._id}`}
+                            color="primary"
+                            size="lg"
+                            startContent={<FileText className="w-5 h-5" />}
+                            className="w-full font-semibold"
+                          >
+                            Aplicar a Crédito Online
+                          </Button>
+                          
+                          {/* WhatsApp Credit Request */}
+                          <Button
+                            color={
+                              creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price
+                                ? "success"
+                                : "default"
                             }
-                          }}
-                        >
-                          Solicitar Crédito
-                        </Button>
+                            size="lg"
+                            variant="bordered"
+                            startContent={<MessageCircle className="w-5 h-5" />}
+                            isDisabled={creditData.downPayment < minDownPayment || creditData.downPayment > listing.price}
+                            className="w-full font-semibold"
+                            onClick={() => {
+                              if (creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price) {
+                                setShowCreditModal(true)
+                                setCreditStep(1)
+                              } else if (creditData.downPayment < minDownPayment) {
+                                toast.error("Ajusta el enganche al mínimo del 30% para continuar")
+                              } else {
+                                toast.error("El enganche no puede ser mayor al 100% del precio del vehículo")
+                              }
+                            }}
+                          >
+                            Solicitar por WhatsApp
+                          </Button>
+                        </div>
 
                         <p className="text-xs text-gray-500 text-center">
                           * Los cálculos son estimados. Las condiciones finales pueden variar según la institución financiera.

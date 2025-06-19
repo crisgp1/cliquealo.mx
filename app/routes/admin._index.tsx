@@ -4,27 +4,31 @@ import { requireSuperAdmin } from "~/lib/auth.server"
 import { db } from "~/lib/db.server"
 import { UserModel } from "~/models/User.server"
 import { ListingModel } from "~/models/Listing.server"
-import { Users, Car, TrendingUp, Plus } from 'lucide-react'
+import { CreditApplicationModel } from "~/models/CreditApplication.server"
+import { Users, Car, TrendingUp, Plus, CreditCard } from 'lucide-react'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireSuperAdmin(request)
   
-  const [users, listings] = await Promise.all([
+  const [users, listings, creditApplications] = await Promise.all([
     UserModel.findAll({ limit: 20, skip: 0 }),
-    ListingModel.findMany({ limit: 20 }) // En admin dashboard mostrar todos los listings
+    ListingModel.findMany({ limit: 20 }), // En admin dashboard mostrar todos los listings
+    CreditApplicationModel.findAll({ limit: 5 }) // Últimas 5 aplicaciones de crédito
   ])
   
   const stats = {
     totalUsers: await db.collection('users').countDocuments({ isActive: true }),
     totalListings: await db.collection('listings').countDocuments(),
-    totalAdmins: await db.collection('users').countDocuments({ role: { $in: ['admin', 'superadmin'] } })
+    totalAdmins: await db.collection('users').countDocuments({ role: { $in: ['admin', 'superadmin'] } }),
+    totalCreditApplications: await db.collection('creditApplications').countDocuments(),
+    pendingCreditApplications: await db.collection('creditApplications').countDocuments({ status: 'pending' })
   }
   
-  return json({ users, listings, stats })
+  return json({ users, listings, creditApplications, stats })
 }
 
 export default function AdminDashboard() {
-  const { users, listings, stats } = useLoaderData<typeof loader>()
+  const { users, listings, creditApplications, stats } = useLoaderData<typeof loader>()
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,7 +43,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl border border-gray-200">
             <div className="flex items-center">
               <Users className="w-8 h-8 text-blue-600" />
@@ -62,6 +66,21 @@ export default function AdminDashboard() {
           
           <div className="bg-white p-6 rounded-xl border border-gray-200">
             <div className="flex items-center">
+              <CreditCard className="w-8 h-8 text-orange-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Solicitudes de Crédito</p>
+                <p className="text-2xl font-light text-gray-900">{stats.totalCreditApplications}</p>
+                {stats.pendingCreditApplications > 0 && (
+                  <p className="text-xs text-orange-600 font-medium">
+                    {stats.pendingCreditApplications} pendientes
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <div className="flex items-center">
               <TrendingUp className="w-8 h-8 text-purple-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Administradores</p>
@@ -71,7 +90,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Users */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -134,6 +153,56 @@ export default function AdminDashboard() {
                   </p>
                 </Link>
               ))}
+            </div>
+          </div>
+
+          {/* Recent Credit Applications */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-medium text-gray-900">Solicitudes de Crédito</h2>
+              <Link
+                to="/admin/credit-applications"
+                className="flex items-center gap-2 px-3 py-1.5 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700"
+              >
+                <CreditCard className="w-4 h-4" />
+                Gestionar Créditos
+              </Link>
+            </div>
+            
+            <div className="space-y-3">
+              {creditApplications.slice(0, 5).map((application: any) => (
+                <div
+                  key={application._id}
+                  className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{application.personalInfo?.fullName || 'Sin nombre'}</p>
+                    <p className="text-sm text-gray-500">
+                      ${application.financialInfo?.requestedAmount?.toLocaleString() || '0'} • {application.vehicleInfo?.brand} {application.vehicleInfo?.model}
+                    </p>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    application.status === 'pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : application.status === 'approved'
+                      ? 'bg-green-100 text-green-800'
+                      : application.status === 'rejected'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {application.status === 'pending' ? 'Pendiente' :
+                     application.status === 'approved' ? 'Aprobado' :
+                     application.status === 'rejected' ? 'Rechazado' :
+                     application.status}
+                  </span>
+                </div>
+              ))}
+              {creditApplications.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <CreditCard className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>No hay solicitudes de crédito aún</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
