@@ -11,6 +11,7 @@ export interface Listing {
   year: number
   price: number
   images: string[] // array de URLs de imágenes
+  videos?: string[] // array de URLs de videos
   likesCount: number
   viewsCount: number
   status: 'active' | 'sold' | 'reserved' | 'inactive'
@@ -42,6 +43,7 @@ export const ListingModel = {
       ...listingData,
       user: new ObjectId(listingData.user),
       images: listingData.images || [],
+      videos: listingData.videos || [],
       likesCount: 0,
       viewsCount: 0,
       status: 'active' as const,
@@ -124,7 +126,7 @@ export const ListingModel = {
       bodyType,
       color,
       city,
-      status = 'active',
+      status,
       isFeatured,
       limit = 20,
       skip = 0,
@@ -132,7 +134,12 @@ export const ListingModel = {
       userId
     } = filters
 
-    const query: any = { status }
+    const query: any = {}
+    
+    // Solo filtrar por status si se proporciona uno
+    if (status) {
+      query.status = status
+    }
 
     // Filtro de búsqueda en múltiples campos
     if (search) {
@@ -292,7 +299,7 @@ export const ListingModel = {
     ]).toArray()
   },
 
-  // Estadísticas por marca
+  // Estadísticas por marca (solo activos)
   async getBrandStats() {
     return await db.collection<Listing>('listings').aggregate([
       { $match: { status: 'active' } },
@@ -307,6 +314,23 @@ export const ListingModel = {
       },
       { $sort: { count: -1 } },
       { $limit: 20 }
+    ]).toArray()
+  },
+
+  // Estadísticas por marca (todos los status) - para admin
+  async getAllBrandStats() {
+    return await db.collection<Listing>('listings').aggregate([
+      {
+        $group: {
+          _id: '$brand',
+          count: { $sum: 1 },
+          avgPrice: { $avg: '$price' },
+          totalLikes: { $sum: '$likesCount' },
+          avgYear: { $avg: '$year' }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 50 }
     ]).toArray()
   },
 

@@ -40,7 +40,7 @@ import {
   Send,
   Search
 } from "lucide-react";
-import { ImageUpload } from "~/components/ui/image-upload";
+import { MediaUpload, MediaItem } from "~/components/ui/media-upload";
 
 // 🌐 Configuración centralizada de textos en español
 const FORM_CONFIG = {
@@ -58,13 +58,14 @@ const FORM_CONFIG = {
     locationRequired: "La ubicación es requerida",
     validPhoneRequired: "Se requiere un número telefónico válido",
     validEmailRequired: "Se requiere un email válido",
-    imageRequired: "Se requiere al menos una imagen"
+    imageRequired: "Se requiere al menos una imagen",
+    mediaRequired: "Se requiere al menos una imagen o video"
   },
   ui: {
     vehicleInformation: "Información del Vehículo",
     additionalDetails: "Detalles Adicionales",
     contactInformation: "Información de Contacto",
-    vehicleImages: "Imágenes del Vehículo",
+    vehicleImages: "Imágenes y Videos del Vehículo",
     formProgress: "Progreso del Formulario"
   },
   fields: {
@@ -270,6 +271,7 @@ const validateMileage = (mileage: number) => mileage >= 0;
 const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validatePhone = (phone: string) => phone.length >= 10;
 const validateImages = (images: string[]) => images.length > 0;
+const validateMedia = (media: MediaItem[]) => media.length > 0;
 
 interface CarListingFormData {
   make: string;
@@ -287,6 +289,7 @@ interface CarListingFormData {
   contactWhatsapp: string;
   contactEmail: string;
   images: string[];
+  media: MediaItem[];
 }
 
 interface HeroCarListingFormProps {
@@ -322,6 +325,7 @@ export function HeroCarListingForm({
     contactWhatsapp: "",
     contactEmail: "",
     images: [],
+    media: [],
     ...defaultValues
   });
 
@@ -333,7 +337,7 @@ export function HeroCarListingForm({
     let requiredFields = [
       'make', 'model', 'year', 'price', 'mileage', 'condition',
       'fuelType', 'transmission', 'description', 'location',
-      'contactPhone', 'contactWhatsapp', 'contactEmail', 'images'
+      'contactPhone', 'contactWhatsapp', 'contactEmail', 'media'
     ];
     
     // Si seleccionó "Otra" marca, agregar customMake a los campos requeridos
@@ -343,7 +347,7 @@ export function HeroCarListingForm({
     
     const filledFields = requiredFields.filter(field => {
       const value = formData[field as keyof CarListingFormData];
-      if (field === 'images') {
+      if (field === 'media') {
         return Array.isArray(value) && value.length > 0;
       }
       return value !== "" && value !== 0 && value !== undefined && value !== null;
@@ -400,7 +404,7 @@ export function HeroCarListingForm({
 
   const handleChange = (
     field: keyof CarListingFormData,
-    value: string | number | string[]
+    value: string | number | string[] | MediaItem[]
   ) => {
     setFormData({
       ...formData,
@@ -478,8 +482,8 @@ export function HeroCarListingForm({
         newErrors.contactEmail = FORM_CONFIG.validation.validEmailRequired;
       }
       
-      if (!validateImages(formData.images as string[] || [])) {
-        newErrors.images = FORM_CONFIG.validation.imageRequired;
+      if (!validateMedia(formData.media as MediaItem[] || [])) {
+        newErrors.media = "Se requiere al menos una imagen o video";
       }
     } else {
       // Para borradores, solo validamos marca y modelo como mínimo
@@ -990,15 +994,15 @@ export function HeroCarListingForm({
                 </div>
               </CardHeader>
               <CardBody>
-                <ImageUpload
-                  label="Subir Imágenes del Vehículo * (máximo 30)"
+                <MediaUpload
+                  label="Subir Imágenes y Videos del Vehículo * (máximo 30)"
                   maxFiles={30}
-                  initialImages={formData.images as string[] || []}
-                  onImagesChange={(urls) => handleChange("images", urls)}
+                  initialMedia={formData.media as MediaItem[] || []}
+                  onMediaChange={(media) => handleChange("media", media)}
                 />
-                {errors.images && (
+                {errors.media && (
                   <p className="text-danger text-sm mt-2">
-                    {errors.images}
+                    {errors.media}
                   </p>
                 )}
               </CardBody>

@@ -86,6 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const contactWhatsapp = formData.get("contactWhatsapp") as string;
   const contactEmail = formData.get("contactEmail") as string;
   const images = formData.get("images") as string;
+  const videos = formData.get("videos") as string;
   
   // Convert to expected types for the model
   const fuelType = fuelTypeValue as "gasolina" | "diesel" | "hibrido" | "electrico" | undefined;
@@ -124,8 +125,12 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   
   try {
-    const imageUrls = images 
+    const imageUrls = images
       ? images.split(',').map(url => url.trim()).filter(Boolean)
+      : [];
+    
+    const videoUrls = videos
+      ? videos.split(',').map(url => url.trim()).filter(Boolean)
       : [];
     
     const listing = await ListingModel.create({
@@ -141,6 +146,7 @@ export async function action({ request }: ActionFunctionArgs) {
       location,
       contactInfo,
       images: imageUrls,
+      videos: videoUrls,
       user: user._id!
     });
     
@@ -174,7 +180,13 @@ export default function NewListing() {
       if (value !== undefined && value !== null) {
         if (key === "images" && Array.isArray(value)) {
           formData.append(key, value.join(','));
-        } else {
+        } else if (key === "media" && Array.isArray(value)) {
+          // Separar imágenes y videos del array de media
+          const images = value.filter(item => item.type === 'image').map(item => item.url);
+          const videos = value.filter(item => item.type === 'video').map(item => item.url);
+          formData.append("images", images.join(','));
+          formData.append("videos", videos.join(','));
+        } else if (key !== "media") {
           formData.append(key, String(value));
         }
       }

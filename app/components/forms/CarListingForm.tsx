@@ -6,7 +6,7 @@ import { Textarea } from "~/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "~/components/ui/dialog";
-import { ImageUpload } from "~/components/ui/image-upload";
+import { MediaUpload, type MediaItem } from "~/components/ui/media-upload";
 
 // 🌐 Configuración centralizada de textos en español
 const FORM_CONFIG = {
@@ -105,6 +105,7 @@ const validateMileage = (mileage: number) => mileage >= 0;
 const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validatePhone = (phone: string) => phone.length >= 10;
 const validateImages = (images: string[]) => images.length > 0;
+const validateMedia = (media: MediaItem[]) => media.length > 0;
 
 interface CarListingFormData {
   make: string;
@@ -121,6 +122,7 @@ interface CarListingFormData {
   contactWhatsapp: string;
   contactEmail: string;
   images: string[];
+  media: MediaItem[];
 }
 
 interface CarListingFormProps {
@@ -154,6 +156,7 @@ export function CarListingForm({
     contactWhatsapp: "",
     contactEmail: "",
     images: [],
+    media: [],
     ...defaultValues
   });
 
@@ -161,7 +164,7 @@ export function CarListingForm({
   
   const handleChange = (
     field: keyof CarListingFormData,
-    value: string | number | string[]
+    value: string | number | string[] | MediaItem[]
   ) => {
     setFormData({
       ...formData,
@@ -239,8 +242,8 @@ export function CarListingForm({
         newErrors.contactEmail = FORM_CONFIG.validation.validEmailRequired;
       }
       
-      if (!validateImages(formData.images as string[] || [])) {
-        newErrors.images = FORM_CONFIG.validation.imageRequired;
+      if (!validateMedia(formData.media as MediaItem[] || []) && !validateImages(formData.images as string[] || [])) {
+        newErrors.images = "Se requiere al menos una imagen o video";
       }
     } else {
       // Para borradores, solo validamos marca y modelo como mínimo
@@ -563,14 +566,22 @@ export function CarListingForm({
         
         <Card>
           <CardHeader>
-            <CardTitle>{FORM_CONFIG.ui.vehicleImages}</CardTitle>
+            <CardTitle>Imágenes y Videos del Vehículo</CardTitle>
           </CardHeader>
           <CardContent>
-            <ImageUpload
-              label="Subir Imágenes del Vehículo * (máximo 30)"
+            <MediaUpload
+              label="Subir Imágenes y Videos del Vehículo * (máximo 30)"
               maxFiles={30}
-              initialImages={formData.images as string[] || []}
-              onImagesChange={(urls) => handleChange("images", urls)}
+              initialMedia={formData.media || []}
+              onMediaChange={(media) => {
+                handleChange("media", media);
+                // También actualizar el campo images para compatibilidad
+                const imageUrls = media.filter(item => item.type === 'image').map(item => item.url);
+                handleChange("images", imageUrls);
+              }}
+              allowVideos={true}
+              maxVideoSize={50 * 1024 * 1024} // 50MB para videos
+              maxSize={5 * 1024 * 1024} // 5MB para imágenes
             />
             {errors.images && (
               <p role="alert" className="text-sm text-red-600 mt-1">

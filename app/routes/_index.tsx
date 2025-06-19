@@ -58,13 +58,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     maxPrice,
     minYear,
     maxYear,
+    status: 'active', // Solo mostrar listings activos en la página principal
     limit: 24
   })
 
   // Add hot status to each listing on the server side
-  const listingsWithHotStatus = listings.map(listing => ({
+  const listingsWithHotStatus = listings.map((listing: any) => ({
     ...listing,
-    hotStatus: getHotStatus(listing)
+    hotStatus: getHotStatus(listing as any)
   }))
   
   const user = await getUser(request)

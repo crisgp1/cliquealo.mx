@@ -11,7 +11,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   
   const [users, listings] = await Promise.all([
     UserModel.findAll({ limit: 20, skip: 0 }),
-    ListingModel.findMany({ limit: 20 })
+    ListingModel.findMany({ limit: 20 }) // En admin dashboard mostrar todos los listings
   ])
   
   const stats = {

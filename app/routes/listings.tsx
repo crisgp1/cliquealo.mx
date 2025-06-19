@@ -61,6 +61,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     maxPrice,
     minYear,
     maxYear,
+    status: 'active', // Solo mostrar listings activos en la página pública
     limit,
     skip
   })

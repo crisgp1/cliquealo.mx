@@ -11,6 +11,7 @@ export interface Listing {
   year: number
   price: number
   images: string[]
+  videos?: string[]
   likesCount: number
   viewsCount: number
   status: 'active' | 'sold' | 'reserved' | 'inactive'

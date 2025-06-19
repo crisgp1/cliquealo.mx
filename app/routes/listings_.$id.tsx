@@ -8,6 +8,7 @@ import { requireUser, Auth } from "~/lib/auth.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus, type Listing } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
+import { EnhancedLightbox, type MediaItem } from "~/components/ui/enhanced-lightbox"
 import {
   ArrowLeft,
   Heart,
@@ -217,9 +218,9 @@ export default function ListingDetail() {
   const mainSplideRef = useRef<HTMLDivElement>(null)
   const thumbnailSplideRef = useRef<HTMLDivElement>(null)
   
-  // Estados para el lightbox
-  const [showLightbox, setShowLightbox] = useState(false)
-  const [lightboxImageIndex, setLightboxImageIndex] = useState(0)
+  // Estados para el enhanced lightbox
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
   
   // Estados para calculadora de crédito
   const [creditData, setCreditData] = useState({
@@ -285,31 +286,36 @@ export default function ListingDetail() {
   }, [likeFetcher.data])
 
   const images = listing.images || []
-  const hasImages = images.length > 0
+  const videos = listing.videos || []
+  const allMedia = [
+    ...images.map((url: string, index: number) => ({ url, type: 'image' as const, index })),
+    ...videos.map((url: string, index: number) => ({ url, type: 'video' as const, index: index + images.length }))
+  ]
+  const hasMedia = allMedia.length > 0
 
   // Navegación de imágenes
-  const nextImage = () => {
-    if (images.length > 1) {
-      setCurrentImageIndex((prev) => (prev + 1) % images.length)
+  const nextMedia = () => {
+    if (allMedia.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % allMedia.length)
     }
   }
 
-  const prevImage = () => {
-    if (images.length > 1) {
-      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
+  const prevMedia = () => {
+    if (allMedia.length > 1) {
+      setCurrentImageIndex((prev) => (prev - 1 + allMedia.length) % allMedia.length)
     }
   }
 
   // Keyboard navigation para imágenes
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') prevImage()
-      if (e.key === 'ArrowRight') nextImage()
+      if (e.key === 'ArrowLeft') prevMedia()
+      if (e.key === 'ArrowRight') nextMedia()
     }
     
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [images.length])
+  }, [allMedia.length])
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -446,43 +452,37 @@ export default function ListingDetail() {
     }
   }
 
-  // Funciones para el lightbox
+  // Convertir imágenes y videos a formato MediaItem para el lightbox
+  const mediaItems: MediaItem[] = [
+    ...images.map((image: string, index: number) => ({
+      id: `image-${index}`,
+      src: image,
+      type: 'image' as const,
+      title: `${listing.title} - Imagen ${index + 1}`,
+      description: `Imagen ${index + 1} de ${images.length + videos.length}`
+    })),
+    ...videos.map((video: string, index: number) => ({
+      id: `video-${index}`,
+      src: video,
+      type: 'video' as const,
+      title: `${listing.title} - Video ${index + 1}`,
+      description: `Video ${index + 1} de ${images.length + videos.length}`
+    }))
+  ]
+
+  // Funciones para el enhanced lightbox
   const openLightbox = (index: number) => {
-    setLightboxImageIndex(index)
-    setShowLightbox(true)
-    document.body.style.overflow = 'hidden' // Prevenir scroll del body
+    setLightboxIndex(index)
+    setLightboxOpen(true)
   }
 
   const closeLightbox = () => {
-    setShowLightbox(false)
-    document.body.style.overflow = 'unset' // Restaurar scroll del body
+    setLightboxOpen(false)
   }
 
-  const nextLightboxImage = () => {
-    setLightboxImageIndex((prev) => (prev + 1) % images.length)
-  }
-
-  const prevLightboxImage = () => {
-    setLightboxImageIndex((prev) => (prev - 1 + images.length) % images.length)
-  }
-
-  // Navegación con teclado para el lightbox
+  // Inicializar Splide cuando los medios estén disponibles
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (showLightbox) {
-        if (e.key === 'Escape') closeLightbox()
-        if (e.key === 'ArrowLeft') prevLightboxImage()
-        if (e.key === 'ArrowRight') nextLightboxImage()
-      }
-    }
-    
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [showLightbox, images.length])
-
-  // Inicializar Splide cuando las imágenes estén disponibles
-  useEffect(() => {
-    if (images.length > 1) {
+    if (allMedia.length > 1) {
       // Inicializar el carousel principal
       if (mainSplideRef.current) {
         const mainSplide = new Splide(mainSplideRef.current, {
@@ -531,7 +531,7 @@ export default function ListingDetail() {
         }
       }
     }
-  }, [images.length])
+  }, [allMedia.length])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-red-50/30 overflow-x-hidden">
@@ -652,9 +652,9 @@ export default function ListingDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-12">
           {/* Columna principal - Imágenes e info */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-8 min-w-0">
-            {/* Galería de imágenes con Splide */}
+            {/* Galería de imágenes y videos con Splide */}
             <div className="space-y-4">
-              {hasImages ? (
+              {hasMedia ? (
                 <>
                   {/* Carousel principal */}
                   <div className="relative">
@@ -664,14 +664,33 @@ export default function ListingDetail() {
                     >
                       <div className="splide__track">
                         <ul className="splide__list">
-                          {images.map((image: string, index: number) => (
+                          {allMedia.map((media, index: number) => (
                             <li key={index} className="splide__slide">
-                              <img
-                                src={image}
-                                alt={`${listing.title} - Imagen ${index + 1}`}
-                                className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => openLightbox(index)}
-                              />
+                              {media.type === 'image' ? (
+                                <img
+                                  src={media.url}
+                                  alt={`${listing.title} - Imagen ${index + 1}`}
+                                  className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                  onClick={() => openLightbox(index)}
+                                />
+                              ) : (
+                                <div className="relative w-full h-full">
+                                  <video
+                                    src={media.url}
+                                    className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => openLightbox(index)}
+                                    muted
+                                    playsInline
+                                  />
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 hover:bg-opacity-10 transition-all">
+                                    <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
+                                      <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z"/>
+                                      </svg>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -680,7 +699,7 @@ export default function ListingDetail() {
                   </div>
 
                   {/* Thumbnails con Splide */}
-                  {images.length > 1 && (
+                  {allMedia.length > 1 && (
                     <div className="relative">
                       <div
                         ref={thumbnailSplideRef}
@@ -688,13 +707,31 @@ export default function ListingDetail() {
                       >
                         <div className="splide__track">
                           <ul className="splide__list">
-                            {images.map((image: string, index: number) => (
+                            {allMedia.map((media, index: number) => (
                               <li key={index} className="splide__slide">
-                                <img
-                                  src={image}
-                                  alt={`Thumbnail ${index + 1}`}
-                                  className="w-full h-full object-cover rounded-lg border-2 border-transparent hover:border-red-300 transition-colors cursor-pointer"
-                                />
+                                {media.type === 'image' ? (
+                                  <img
+                                    src={media.url}
+                                    alt={`Thumbnail ${index + 1}`}
+                                    className="w-full h-full object-cover rounded-lg border-2 border-transparent hover:border-red-300 transition-colors cursor-pointer"
+                                  />
+                                ) : (
+                                  <div className="relative w-full h-full">
+                                    <video
+                                      src={media.url}
+                                      className="w-full h-full object-cover rounded-lg border-2 border-transparent hover:border-red-300 transition-colors cursor-pointer"
+                                      muted
+                                      playsInline
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-lg">
+                                      <div className="w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
+                                        <svg className="w-3 h-3 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                          <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -704,7 +741,7 @@ export default function ListingDetail() {
                       {/* Indicador de touch */}
                       <div className="mt-2 text-center">
                         <div className="inline-flex items-center gap-2 text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full">
-                          <span>👆 Desliza para ver más fotos</span>
+                          <span>👆 Desliza para ver más {allMedia.some(m => m.type === 'video') ? 'fotos y videos' : 'fotos'}</span>
                           <div className="flex gap-1">
                             <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse"></div>
                             <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
@@ -1574,53 +1611,14 @@ text-yellow-600 mt-0.5" />
         </div>
       )}
 
-      {/* Lightbox Modal */}
-      {showLightbox && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-          <div className="relative w-full h-full flex items-center justify-center p-4">
-            {/* Close Button */}
-            <button
-              onClick={closeLightbox}
-              className="absolute top-4 right-4 z-10 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            {/* Navigation Buttons */}
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={prevLightboxImage}
-                  className="absolute left-4 z-10 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                
-                <button
-                  onClick={nextLightboxImage}
-                  className="absolute right-4 z-10 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-colors"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-              </>
-            )}
-
-            {/* Image */}
-            <img
-              src={images[lightboxImageIndex]}
-              alt={`${listing.title} - Imagen ${lightboxImageIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
-            />
-
-            {/* Image Counter */}
-            {images.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
-                {lightboxImageIndex + 1} / {images.length}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Enhanced Lightbox */}
+      <EnhancedLightbox
+        slides={mediaItems}
+        isOpen={lightboxOpen}
+        onClose={closeLightbox}
+        index={lightboxIndex}
+        onIndexChange={setLightboxIndex}
+      />
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (

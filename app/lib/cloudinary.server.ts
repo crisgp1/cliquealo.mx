@@ -19,6 +19,13 @@ export async function uploadImage(
   fileBuffer: Buffer,
   folder = "car-listings"
 ): Promise<UploadApiResponse> {
+  return uploadMedia(fileBuffer, folder);
+}
+
+export async function uploadMedia(
+  fileBuffer: Buffer,
+  folder = "car-listings"
+): Promise<UploadApiResponse> {
   return new Promise((resolve, reject) => {
     const uploadOptions = {
       folder,

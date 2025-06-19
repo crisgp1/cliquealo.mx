@@ -44,7 +44,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const listings = await ListingModel.findMany({
     search,
     brand,
-    status: status as any,
+    status: status ? (status as 'active' | 'sold' | 'reserved' | 'inactive') : undefined, // Si no hay status, mostrar todos
     sortBy: sortBy as any,
     limit,
     skip
@@ -53,8 +53,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // Get total count for pagination
   const totalCount = await ListingModel.getStats()
   
-  // Get brands for filter dropdown
-  const brands = await ListingModel.getBrandStats()
+  // Get brands for filter dropdown (todas las marcas, no solo activas)
+  const brands = await ListingModel.getAllBrandStats()
   
   return json({ 
     listings, 

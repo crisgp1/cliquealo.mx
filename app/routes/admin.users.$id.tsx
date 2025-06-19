@@ -39,10 +39,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Usuario no encontrado", { status: 404 })
   }
   
-  // Get user's listings
-  const userListings = await ListingModel.findMany({ 
+  // Get user's listings (todos los status para ver el historial completo del usuario)
+  const userListings = await ListingModel.findMany({
     userId: userId,
-    limit: 10 
+    limit: 10
   })
   
   // Get user's liked listings
