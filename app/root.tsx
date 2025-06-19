@@ -123,10 +123,7 @@ export default function App() {
         {/* Logo */}
         <NavbarBrand>
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-6 h-6 bg-gradient-to-br from-gray-900 to-gray-700 rounded-full transform group-hover:scale-110 transition-all duration-300 group-hover:rotate-12"></div>
-            <span className="text-lg font-light tracking-tight text-gray-900 group-hover:text-gray-700 transition-colors duration-300">
-              Cliquéalo.mx
-            </span>
+            <img src="/assets/logo.webp" alt="Cliquéalo.mx" className="w-48" />
           </Link>
         </NavbarBrand>
 
