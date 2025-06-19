@@ -622,6 +622,25 @@ export default function Index() {
                         alt={listing.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                    ) : listing.videos && listing.videos.length > 0 ? (
+                      <div className="relative w-full h-full bg-black flex items-center justify-center">
+                        <video
+                          src={listing.videos[0]}
+                          className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                          muted
+                          playsInline
+                          preload="metadata"
+                          autoPlay
+                          loop
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center pointer-events-none">
+                          <div className="w-12 h-12 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
+                            <svg className="w-6 h-6 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                         <div className="w-16 h-16 bg-gray-300 rounded-full"></div>

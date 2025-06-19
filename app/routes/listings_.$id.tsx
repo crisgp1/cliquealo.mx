@@ -674,20 +674,26 @@ export default function ListingDetail() {
                                   onClick={() => openLightbox(index)}
                                 />
                               ) : (
-                                <div className="relative w-full h-full">
+                                <div className="relative w-full h-full bg-black rounded-lg overflow-hidden flex items-center justify-center">
                                   <video
                                     src={media.url}
-                                    className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                    onClick={() => openLightbox(index)}
+                                    className="max-w-full max-h-full object-contain"
+                                    controls
                                     muted
                                     playsInline
+                                    preload="metadata"
+                                    autoPlay
+                                    loop
+                                    style={{ maxHeight: '400px' }}
                                   />
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 hover:bg-opacity-10 transition-all">
-                                    <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                                      <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M8 5v14l11-7z"/>
-                                      </svg>
-                                    </div>
+                                  <div
+                                    className="absolute top-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 cursor-pointer transition-all"
+                                    onClick={() => openLightbox(index)}
+                                    title="Ver en pantalla completa"
+                                  >
+                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                    </svg>
                                   </div>
                                 </div>
                               )}
@@ -716,14 +722,15 @@ export default function ListingDetail() {
                                     className="w-full h-full object-cover rounded-lg border-2 border-transparent hover:border-red-300 transition-colors cursor-pointer"
                                   />
                                 ) : (
-                                  <div className="relative w-full h-full">
+                                  <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
                                     <video
                                       src={media.url}
                                       className="w-full h-full object-cover rounded-lg border-2 border-transparent hover:border-red-300 transition-colors cursor-pointer"
                                       muted
                                       playsInline
+                                      preload="metadata"
                                     />
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-lg">
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-lg pointer-events-none">
                                       <div className="w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
                                         <svg className="w-3 h-3 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                                           <path d="M8 5v14l11-7z"/>

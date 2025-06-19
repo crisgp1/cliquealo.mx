@@ -46,6 +46,7 @@
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.57.0",
+    "react-player": "^2.16.0",
     "react-router-dom": "^7.6.2",
     "remix-auth": "^4.2.0",
     "remix-auth-form": "^3.0.0",

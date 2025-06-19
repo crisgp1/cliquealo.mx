@@ -17,6 +17,7 @@ export interface MediaItem {
   preview?: string;
   name?: string;
   size?: number;
+  uploadedAt?: Date;
 }
 
 type MediaUploadProps = {
@@ -347,6 +348,11 @@ export function MediaUpload({
       return newMedia;
     });
   }, [onMediaChange]);
+
+  // Actualizar uploadedMedia cuando cambian los initialMedia
+  useEffect(() => {
+    setUploadedMedia(initialMedia);
+  }, [initialMedia]);
 
   // Cleanup URLs
   useEffect(() => {

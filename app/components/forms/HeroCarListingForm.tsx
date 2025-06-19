@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Card,
   CardBody,
@@ -331,6 +331,16 @@ export function HeroCarListingForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [makeSearchValue, setMakeSearchValue] = useState("");
+  
+  // Sincronizar defaultValues con el estado del formulario cuando cambien
+  useEffect(() => {
+    if (defaultValues && Object.keys(defaultValues).length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        ...defaultValues
+      }));
+    }
+  }, [defaultValues]);
   
   // Calcular progreso del formulario
   const calculateProgress = useCallback(() => {

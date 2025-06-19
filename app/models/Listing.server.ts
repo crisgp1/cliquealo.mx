@@ -1,6 +1,15 @@
 import { ObjectId } from 'mongodb'
 import { db } from '~/lib/db.server'
 
+export interface MediaFile {
+  id: string
+  url: string
+  type: 'image' | 'video'
+  name?: string
+  size?: number
+  uploadedAt: Date
+}
+
 export interface Listing {
   _id?: ObjectId
   user: ObjectId // admin que publicó
@@ -10,8 +19,9 @@ export interface Listing {
   model: string
   year: number
   price: number
-  images: string[] // array de URLs de imágenes
-  videos?: string[] // array de URLs de videos
+  images: string[] // array de URLs de imágenes (mantenido para compatibilidad)
+  videos?: string[] // array de URLs de videos (mantenido para compatibilidad)
+  media?: MediaFile[] // nuevo campo para manejar archivos con metadata
   likesCount: number
   viewsCount: number
   status: 'active' | 'sold' | 'reserved' | 'inactive'
@@ -39,11 +49,39 @@ export interface Listing {
 export const ListingModel = {
   // Crear listing (solo admins)
   async create(listingData: Omit<Listing, '_id' | 'likesCount' | 'viewsCount' | 'createdAt' | 'updatedAt' | 'status'>) {
+    // Crear el array de media si se proporcionan imágenes y videos
+    const mediaFiles: MediaFile[] = []
+    
+    // Agregar imágenes
+    if (listingData.images) {
+      listingData.images.forEach((url, index) => {
+        mediaFiles.push({
+          id: `image-${Date.now()}-${index}`,
+          url,
+          type: 'image',
+          uploadedAt: new Date()
+        })
+      })
+    }
+    
+    // Agregar videos
+    if (listingData.videos) {
+      listingData.videos.forEach((url, index) => {
+        mediaFiles.push({
+          id: `video-${Date.now()}-${index}`,
+          url,
+          type: 'video',
+          uploadedAt: new Date()
+        })
+      })
+    }
+
     const listing = {
       ...listingData,
       user: new ObjectId(listingData.user),
       images: listingData.images || [],
       videos: listingData.videos || [],
+      media: mediaFiles,
       likesCount: 0,
       viewsCount: 0,
       status: 'active' as const,
@@ -371,13 +409,44 @@ export const ListingModel = {
 
   // Actualizar listing
   async update(id: string, updateData: Partial<Omit<Listing, '_id' | 'user' | 'createdAt' | 'likesCount' | 'viewsCount'>>) {
+    // Si no se proporciona un campo media explícito pero sí imágenes/videos, crear el array de media
+    if (!updateData.media && (updateData.images || updateData.videos)) {
+      const mediaFiles: MediaFile[] = []
+      
+      // Agregar imágenes
+      if (updateData.images) {
+        updateData.images.forEach((url, index) => {
+          mediaFiles.push({
+            id: `image-${Date.now()}-${index}`,
+            url,
+            type: 'image',
+            uploadedAt: new Date()
+          })
+        })
+      }
+      
+      // Agregar videos
+      if (updateData.videos) {
+        updateData.videos.forEach((url, index) => {
+          mediaFiles.push({
+            id: `video-${Date.now()}-${index}`,
+            url,
+            type: 'video',
+            uploadedAt: new Date()
+          })
+        })
+      }
+      
+      updateData.media = mediaFiles
+    }
+
     const result = await db.collection<Listing>('listings').updateOne(
       { _id: new ObjectId(id) },
-      { 
-        $set: { 
+      {
+        $set: {
           ...updateData,
           updatedAt: new Date()
-        } 
+        }
       }
     )
     return result.modifiedCount > 0

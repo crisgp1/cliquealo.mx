@@ -113,6 +113,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
   const contactEmail = formData.get("contactEmail") as string
   const images = formData.get("images") as string
   const videos = formData.get("videos") as string
+  const mediaData = formData.get("mediaData") as string
   
   // Convert to expected types for the model
   const fuelType = fuelTypeValue as "gasolina" | "diesel" | "hibrido" | "electrico" | undefined
@@ -159,7 +160,27 @@ export async function action({ params, request }: ActionFunctionArgs) {
       ? videos.split(',').map(url => url.trim()).filter(Boolean)
       : []
     
-    const success = await ListingModel.update(listingId, {
+    // Procesar mediaData si está disponible
+    let mediaFiles = undefined
+    if (mediaData) {
+      try {
+        const parsedMediaData = JSON.parse(mediaData)
+        if (Array.isArray(parsedMediaData)) {
+          mediaFiles = parsedMediaData.map(item => ({
+            id: item.id || `${item.type}-${Date.now()}-${Math.random()}`,
+            url: item.url,
+            type: item.type,
+            name: item.name,
+            size: item.size,
+            uploadedAt: item.uploadedAt ? new Date(item.uploadedAt) : new Date()
+          }))
+        }
+      } catch (error) {
+        console.error('Error parsing mediaData:', error)
+      }
+    }
+    
+    const updateData: any = {
       title,
       description: description?.trim() || "",
       brand: finalMake.trim(),
@@ -173,7 +194,14 @@ export async function action({ params, request }: ActionFunctionArgs) {
       contactInfo,
       images: imageUrls,
       videos: videoUrls
-    })
+    }
+    
+    // Solo agregar media si se procesó correctamente
+    if (mediaFiles) {
+      updateData.media = mediaFiles
+    }
+    
+    const success = await ListingModel.update(listingId, updateData)
     
     if (!success) {
       return json({ error: "Error al actualizar la publicación" }, { status: 500 })
@@ -210,16 +238,38 @@ export default function EditListing() {
         if (key === "images" && Array.isArray(value)) {
           formData.append(key, value.join(','))
         } else if (key === "media" && Array.isArray(value)) {
-          // Separar imágenes y videos del array de media
+          // Separar imágenes y videos del array de media, preservando IDs
           const images = value.filter(item => item.type === 'image').map(item => item.url)
           const videos = value.filter(item => item.type === 'video').map(item => item.url)
+          
+          // También enviar la información completa de media para preservar IDs
+          formData.append("mediaData", JSON.stringify(value))
           formData.append("images", images.join(','))
           formData.append("videos", videos.join(','))
-        } else if (key !== "media") {
+        } else if (key !== "media" && key !== "images" && key !== "videos" && key !== "mediaData") {
+          // Excluir campos que ya se procesan arriba
           formData.append(key, String(value))
         }
       }
     })
+    
+    // Si no hay campo media pero hay defaultValues con imágenes/videos, preservarlos
+    if (!data.media || !Array.isArray(data.media) || data.media.length === 0) {
+      // Usar las imágenes y videos existentes del listing
+      const existingMedia = defaultValues.media || []
+      const existingImages = existingMedia.filter(item => item.type === 'image').map(item => item.url)
+      const existingVideos = existingMedia.filter(item => item.type === 'video').map(item => item.url)
+      
+      if (!formData.has("images")) {
+        formData.append("images", existingImages.join(','))
+      }
+      if (!formData.has("videos")) {
+        formData.append("videos", existingVideos.join(','))
+      }
+      if (!formData.has("mediaData")) {
+        formData.append("mediaData", JSON.stringify(existingMedia))
+      }
+    }
     
     // Enviar el formulario
     submit(formData, { method: "post" })
@@ -259,7 +309,15 @@ export default function EditListing() {
     contactPhone: listing.contactInfo?.phone || "",
     contactWhatsapp: listing.contactInfo?.whatsapp || "",
     contactEmail: listing.contactInfo?.email || "",
-    media: [
+    images: listing.images || [],
+    media: listing.media ? listing.media.map(mediaFile => ({
+      id: mediaFile.id,
+      url: mediaFile.url,
+      type: mediaFile.type,
+      name: mediaFile.name,
+      size: mediaFile.size
+    })) : [
+      // Fallback para listings antiguos sin campo media
       ...(listing.images || []).map((url, index) => ({
         id: `existing-image-${index}`,
         url,
