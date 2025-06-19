@@ -122,6 +122,7 @@ interface CarListingFormData {
   contactWhatsapp: string;
   contactEmail: string;
   images: string[];
+  videos: string[];
   media: MediaItem[];
 }
 
@@ -156,6 +157,7 @@ export function CarListingForm({
     contactWhatsapp: "",
     contactEmail: "",
     images: [],
+    videos: [],
     media: [],
     ...defaultValues
   });
@@ -578,6 +580,9 @@ export function CarListingForm({
                 // También actualizar el campo images para compatibilidad
                 const imageUrls = media.filter(item => item.type === 'image').map(item => item.url);
                 handleChange("images", imageUrls);
+                // También actualizar el campo videos para compatibilidad
+                const videoUrls = media.filter(item => item.type === 'video').map(item => item.url);
+                handleChange("videos", videoUrls);
               }}
               allowVideos={true}
               maxVideoSize={50 * 1024 * 1024} // 50MB para videos

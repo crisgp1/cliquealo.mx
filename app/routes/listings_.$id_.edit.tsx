@@ -235,14 +235,13 @@ export default function EditListing() {
     // Agregar todos los campos del formulario
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        if (key === "images" && Array.isArray(value)) {
-          formData.append(key, value.join(','))
-        } else if (key === "media" && Array.isArray(value)) {
+        if (key === "media" && Array.isArray(value)) {
+          // El MediaUpload component ya maneja correctamente tanto imágenes existentes como nuevas
           // Separar imágenes y videos del array de media, preservando IDs
           const images = value.filter(item => item.type === 'image').map(item => item.url)
           const videos = value.filter(item => item.type === 'video').map(item => item.url)
           
-          // También enviar la información completa de media para preservar IDs
+          // Enviar la información completa de media para preservar IDs y metadatos
           formData.append("mediaData", JSON.stringify(value))
           formData.append("images", images.join(','))
           formData.append("videos", videos.join(','))
@@ -252,24 +251,6 @@ export default function EditListing() {
         }
       }
     })
-    
-    // Si no hay campo media pero hay defaultValues con imágenes/videos, preservarlos
-    if (!data.media || !Array.isArray(data.media) || data.media.length === 0) {
-      // Usar las imágenes y videos existentes del listing
-      const existingMedia = defaultValues.media || []
-      const existingImages = existingMedia.filter(item => item.type === 'image').map(item => item.url)
-      const existingVideos = existingMedia.filter(item => item.type === 'video').map(item => item.url)
-      
-      if (!formData.has("images")) {
-        formData.append("images", existingImages.join(','))
-      }
-      if (!formData.has("videos")) {
-        formData.append("videos", existingVideos.join(','))
-      }
-      if (!formData.has("mediaData")) {
-        formData.append("mediaData", JSON.stringify(existingMedia))
-      }
-    }
     
     // Enviar el formulario
     submit(formData, { method: "post" })

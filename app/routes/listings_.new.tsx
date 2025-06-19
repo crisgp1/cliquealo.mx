@@ -87,6 +87,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const contactEmail = formData.get("contactEmail") as string;
   const images = formData.get("images") as string;
   const videos = formData.get("videos") as string;
+  const mediaData = formData.get("mediaData") as string;
   
   // Convert to expected types for the model
   const fuelType = fuelTypeValue as "gasolina" | "diesel" | "hibrido" | "electrico" | undefined;
@@ -133,7 +134,27 @@ export async function action({ request }: ActionFunctionArgs) {
       ? videos.split(',').map(url => url.trim()).filter(Boolean)
       : [];
     
-    const listing = await ListingModel.create({
+    // Procesar mediaData si está disponible
+    let mediaFiles = undefined;
+    if (mediaData) {
+      try {
+        const parsedMediaData = JSON.parse(mediaData);
+        if (Array.isArray(parsedMediaData)) {
+          mediaFiles = parsedMediaData.map(item => ({
+            id: item.id || `${item.type}-${Date.now()}-${Math.random()}`,
+            url: item.url,
+            type: item.type,
+            name: item.name,
+            size: item.size,
+            uploadedAt: item.uploadedAt ? new Date(item.uploadedAt) : new Date()
+          }));
+        }
+      } catch (error) {
+        console.error('Error parsing mediaData:', error);
+      }
+    }
+    
+    const createData: any = {
       title,
       description: description?.trim() || "",
       brand: finalMake.trim(),
@@ -148,7 +169,14 @@ export async function action({ request }: ActionFunctionArgs) {
       images: imageUrls,
       videos: videoUrls,
       user: user._id!
-    });
+    };
+    
+    // Solo agregar media si se procesó correctamente
+    if (mediaFiles) {
+      createData.media = mediaFiles;
+    }
+    
+    const listing = await ListingModel.create(createData);
     
     return json({
       success: true,
@@ -178,15 +206,17 @@ export default function NewListing() {
     // Agregar todos los campos del formulario
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        if (key === "images" && Array.isArray(value)) {
-          formData.append(key, value.join(','));
-        } else if (key === "media" && Array.isArray(value)) {
-          // Separar imágenes y videos del array de media
+        if (key === "media" && Array.isArray(value)) {
+          // Separar imágenes y videos del array de media, preservando IDs
           const images = value.filter(item => item.type === 'image').map(item => item.url);
           const videos = value.filter(item => item.type === 'video').map(item => item.url);
+          
+          // Enviar la información completa de media para preservar IDs y metadatos
+          formData.append("mediaData", JSON.stringify(value));
           formData.append("images", images.join(','));
           formData.append("videos", videos.join(','));
-        } else if (key !== "media") {
+        } else if (key !== "media" && key !== "images" && key !== "videos" && key !== "mediaData") {
+          // Excluir campos que ya se procesan arriba
           formData.append(key, String(value));
         }
       }
