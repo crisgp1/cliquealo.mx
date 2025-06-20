@@ -418,17 +418,26 @@ export function HeroCarListingForm({
     field: keyof CarListingFormData,
     value: string | number | string[] | MediaItem[]
   ) => {
-    setFormData({
-      ...formData,
+    console.log(`HeroCarListingForm: handleChange called for ${field}:`, value);
+    setFormData(prev => ({
+      ...prev,
       [field]: value
-    });
+    }));
     
     // Limpiar error cuando el campo se actualiza
     if (errors[field]) {
-      setErrors({
-        ...errors,
+      setErrors(prev => ({
+        ...prev,
         [field]: ""
-      });
+      }));
+    }
+    
+    // Limpiar error de media si se están agregando archivos
+    if (field === 'media' && Array.isArray(value) && value.length > 0 && errors.media) {
+      setErrors(prev => ({
+        ...prev,
+        media: ""
+      }));
     }
   };
   
@@ -494,8 +503,12 @@ export function HeroCarListingForm({
         newErrors.contactEmail = FORM_CONFIG.validation.validEmailRequired;
       }
       
-      if (!validateMedia(formData.media as MediaItem[] || [])) {
-        newErrors.media = "Se requiere al menos una imagen o video";
+      // Validar que hay al menos una imagen o video
+      const mediaItems = formData.media as MediaItem[] || [];
+      const imageUrls = formData.images as string[] || [];
+      
+      if (!validateMedia(mediaItems) && !validateImages(imageUrls)) {
+        newErrors.media = FORM_CONFIG.validation.mediaRequired;
       }
     } else {
       // Para borradores, solo validamos marca y modelo como mínimo
@@ -1011,6 +1024,7 @@ export function HeroCarListingForm({
                   maxFiles={30}
                   initialMedia={formData.media as MediaItem[] || []}
                   onMediaChange={(media) => {
+                    console.log('MediaUpload: onMediaChange called with:', media);
                     handleChange("media", media);
                     // También actualizar el campo images para compatibilidad
                     const imageUrls = media.filter(item => item.type === 'image').map(item => item.url);
@@ -1019,6 +1033,9 @@ export function HeroCarListingForm({
                     const videoUrls = media.filter(item => item.type === 'video').map(item => item.url);
                     handleChange("videos", videoUrls);
                   }}
+                  allowVideos={true}
+                  maxVideoSize={50 * 1024 * 1024} // 50MB para videos
+                  maxSize={5 * 1024 * 1024} // 5MB para imágenes
                 />
                 {errors.media && (
                   <p className="text-danger text-sm mt-2">

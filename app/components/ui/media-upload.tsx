@@ -292,6 +292,7 @@ export function MediaUpload({
 
       if (successfulUploads.length > 0) {
         const newMedia = [...uploadedMedia, ...successfulUploads];
+        console.log('MediaUpload: Setting new media after upload:', newMedia);
         setUploadedMedia(newMedia);
         onMediaChange(newMedia);
         toast.success(`${successfulUploads.length} archivo(s) subido(s) exitosamente`);
@@ -349,10 +350,19 @@ export function MediaUpload({
     });
   }, [onMediaChange]);
 
-  // Actualizar uploadedMedia cuando cambian los initialMedia
+  // Actualizar uploadedMedia cuando cambian los initialMedia (solo en mount inicial)
   useEffect(() => {
+    console.log('MediaUpload: Initial mount, setting uploadedMedia:', initialMedia);
     setUploadedMedia(initialMedia);
-  }, [initialMedia]);
+  }, []); // Solo ejecutar en mount inicial
+
+  // Sincronizar con initialMedia solo si hay cambios externos (no durante upload)
+  useEffect(() => {
+    if (!uploadState.uploading && initialMedia.length !== uploadedMedia.length) {
+      console.log('MediaUpload: External change detected, updating uploadedMedia:', initialMedia);
+      setUploadedMedia(initialMedia);
+    }
+  }, [initialMedia.length, uploadState.uploading]);
 
   // Cleanup URLs
   useEffect(() => {
