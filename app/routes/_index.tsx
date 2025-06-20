@@ -1,5 +1,6 @@
-import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
+import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from "@remix-run/node"
 import { useLoaderData, Link, Form, useFetcher } from "@remix-run/react"
+import { DEFAULT_SEO, generateBasicMeta } from "~/lib/seo"
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
 import { Auth } from "~/lib/auth.server"
@@ -44,6 +45,16 @@ import {
 
 // Tipo para la respuesta del action
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string; listingId?: string }
+
+// Meta function para SEO específico de la página de inicio
+export const meta: MetaFunction = () => {
+  return generateBasicMeta({
+    title: DEFAULT_SEO.title,
+    description: "Encuentra tu auto ideal en Cliquéalo.mx. Catálogo seleccionado de autos usados certificados con opciones de financiamiento y precios competitivos. La mejor experiencia de compra de autos en México.",
+    url: DEFAULT_SEO.url,
+    keywords: "autos usados, venta de carros, compra de vehículos, financiamiento automotriz, autos seminuevos, carros usados méxico, vehículos certificados, cliquéalo"
+  });
+};
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)

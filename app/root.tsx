@@ -6,12 +6,18 @@ import {
   ScrollRestoration,
   useLoaderData,
   Link,
-  Form, // ← IMPORT AGREGADO
+  Form,
   useRouteError,
   isRouteErrorResponse,
 } from "@remix-run/react";
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
+import { 
+  DEFAULT_SEO, 
+  generateBasicMeta,
+  generateOrganizationJsonLd,
+  generateWebsiteJsonLd
+} from "~/lib/seo";
 import { useState, useEffect } from "react";
 import { getUser } from "~/lib/session.server";
 import { Auth } from "~/lib/auth.server";
@@ -34,6 +40,15 @@ import {
 import { Toaster } from "~/components/ui/toast";
 import { Preloader } from "~/components/ui/preloader";
 import styles from "./tailwind.css";
+
+// Meta function para SEO por defecto en toda la aplicación
+export const meta: MetaFunction = () => {
+  return generateBasicMeta({
+    title: DEFAULT_SEO.title,
+    description: DEFAULT_SEO.description,
+    url: DEFAULT_SEO.url,
+  });
+};
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const user = await getUser(request);
@@ -58,12 +73,26 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="es">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {/* JSON-LD para Organization */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: generateOrganizationJsonLd()
+          }}
+        />
+        {/* JSON-LD para Website */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: generateWebsiteJsonLd()
+          }}
+        />
       </head>
       <body>
         <HeroUIProvider>

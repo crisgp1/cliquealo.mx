@@ -1,6 +1,11 @@
-import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
+import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from "@remix-run/node"
 import { useLoaderData, Link, Form, useNavigation, useFetcher } from "@remix-run/react"
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string }
+import { 
+  generateCarListingMeta, 
+  generateCarListingJsonLd,
+  DEFAULT_SEO
+} from "~/lib/seo"
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
 import { getUser } from "~/lib/session.server"
@@ -64,6 +69,43 @@ import {
   Tabs,
   Tab
 } from "@heroui/react"
+
+export const meta: MetaFunction = ({ data }) => {
+  if (!data || !data.listing) {
+    return generateCarListingMeta({
+      title: "Auto no encontrado | Cliquéalo.mx",
+      description: "El auto que buscas no se encuentra disponible o ha sido eliminado.",
+      url: `${DEFAULT_SEO.url}/listings`,
+    });
+  }
+
+  const listing = data.listing;
+  
+  // Construir description optimizada para SEO
+  const description = `${listing.year} ${listing.brand} ${listing.model} en venta. ${
+    listing.price ? `$${listing.price.toLocaleString()} MXN.` : ''
+  } ${listing.mileage ? `${listing.mileage.toLocaleString()} km.` : ''} ${
+    listing.description ? listing.description.substring(0, 150) + (listing.description.length > 150 ? '...' : '') : 'Encuentra este y más vehículos en Cliquéalo.mx'
+  }`;
+
+  // Construir título optimizado para SEO
+  const title = `${listing.year} ${listing.brand} ${listing.model} ${
+    listing.color ? `${listing.color}` : ''
+  } | Cliquéalo.mx`;
+
+  return generateCarListingMeta({
+    title,
+    description,
+    url: `${DEFAULT_SEO.url}/listings/${listing._id}`,
+    brand: listing.brand,
+    model: listing.model,
+    year: listing.year,
+    price: listing.price,
+    image: listing.images && listing.images.length > 0 ? listing.images[0] : undefined,
+    condition: "Usado",
+    location: listing.location,
+  });
+};
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const listingId = params.id
@@ -203,6 +245,32 @@ type LoaderData = {
   hasLiked: boolean
   canEdit: boolean
 }
+
+// Script para JSON-LD estructurado
+const ListingJsonLd = ({ listing }: { listing: any }) => {
+  // Solo renderizar si hay un listing válido
+  if (!listing) return null;
+
+  const jsonLdData = generateCarListingJsonLd({
+    title: `${listing.year} ${listing.brand} ${listing.model}`,
+    description: listing.description || `${listing.year} ${listing.brand} ${listing.model} en venta en Cliquéalo.mx`,
+    url: `${DEFAULT_SEO.url}/listings/${listing._id}`,
+    brand: listing.brand,
+    model: listing.model,
+    year: listing.year,
+    price: listing.price,
+    image: listing.images && listing.images.length > 0 ? listing.images[0] : undefined,
+    condition: "UsedCondition",
+    location: listing.location,
+  });
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: jsonLdData }}
+    />
+  );
+};
 
 export default function ListingDetail() {
   const { listing, similarListings, user, hasLiked, canEdit } = useLoaderData<LoaderData>()
@@ -535,6 +603,8 @@ export default function ListingDetail() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-red-50/30 overflow-x-hidden">
+      {/* JSON-LD estructurado para SEO */}
+      <ListingJsonLd listing={listing} />
       {/* Enhanced Header with HeroUI */}
       <header className="border-b border-red-100 sticky top-0 bg-white/80 backdrop-blur-md z-40 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
