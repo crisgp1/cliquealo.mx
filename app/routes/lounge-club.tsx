@@ -1,4 +1,4 @@
-import { json, type MetaFunction } from "@remix-run/node";
+import { json, type MetaFunction, type LinksFunction } from "@remix-run/node";
 import { Form, useActionData } from "@remix-run/react";
 import { useState, useEffect, type ReactNode } from "react";
 import { CreditCard, Crown, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
@@ -11,6 +11,14 @@ import {
   Divider
 } from "@heroui/react";
 import { toast } from "~/components/ui/toast";
+
+// Import Google Font
+export const links: LinksFunction = () => [
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&display=swap",
+  },
+];
 
 export const meta: MetaFunction = () => {
   return [
@@ -115,7 +123,17 @@ export default function LoungeClub() {
           </div>
           
           <h1 className="text-3xl md:text-5xl font-serif font-light tracking-wider mb-8 text-stone-100">
-            THE CLIQUÉALO <span className="text-amber-700">LOUNGE</span>
+            THE CLIQUÉALO <span 
+              className="text-amber-700" 
+              style={{ 
+                fontFamily: '"Mrs Saint Delafield", cursive',
+                fontSize: '1.2em',
+                fontWeight: '400',
+                letterSpacing: '0.02em',
+                transform: 'translateY(4px)',
+                display: 'inline-block'
+              }}
+            >Lounge</span>
           </h1>
           
           <p className="max-w-xl mx-auto text-stone-400 text-sm font-light leading-relaxed font-serif tracking-wide">
