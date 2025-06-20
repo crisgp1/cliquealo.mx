@@ -504,10 +504,10 @@ export default function App() {
             {/* Brand Section */}
             <div className="lg:col-span-2">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-gray-900 to-gray-700 rounded-full"></div>
-                <span className="text-xl font-light tracking-tight text-gray-900">
-                  Cliquéalo.mx
-                </span>
+                <img src="/assets/logo.webp" alt="Cliquéalo.mx" className="w-32 h-auto" />
+             
+
+      
               </div>
               <p className="text-gray-600 mb-6 max-w-md leading-relaxed">
                 Tu plataforma confiable para encontrar el auto perfecto. Conectamos compradores y vendedores con la mejor experiencia del mercado.
@@ -786,8 +786,7 @@ export function ErrorBoundary() {
                   to="/"
                   className="inline-flex items-center space-x-2 text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                  <div className="w-4 h-4 bg-slate-400 rounded-full"></div>
-                  <span className="text-sm font-light tracking-wide">Cliquéalo.mx</span>
+                  <img src="/assets/logo.webp" alt="Cliquéalo.mx" className="w-8 h-8" />
                 </Link>
               </div>
 
