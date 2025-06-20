@@ -199,6 +199,18 @@ export default function LoungeClub() {
                 </p>
               </div>
             </CollapsibleSection>
+            
+            <CollapsibleSection 
+              title="Marketplace Ultra Exclusivo"
+              defaultOpen={false}
+            >
+              <p className="text-stone-400 font-serif text-sm leading-relaxed tracking-wide">
+                Acceso al marketplace más exclusivo de México, donde solo los miembros selectos pueden descubrir oportunidades discretas reservadas para la élite. Un espacio donde la exclusividad trasciende lo convencional.
+              </p>
+              <p className="text-stone-400 font-serif text-sm italic mt-3 leading-relaxed tracking-wide">
+                "Las verdaderas joyas nunca se exhiben públicamente."
+              </p>
+            </CollapsibleSection>
           </div>
           
           {/* Right column: Refined form */}
@@ -278,11 +290,23 @@ export default function LoungeClub() {
                 </p>
               </div>
             </MobileCollapsibleSection>
+            
+            <MobileCollapsibleSection 
+              title="Oportunidades Reservadas"
+              defaultOpen={false}
+            >
+              <div className="flex items-start gap-3">
+                <CreditCard className="w-4 h-4 text-amber-800 flex-shrink-0 mt-0.5" />
+                <p className="text-stone-400 font-serif text-sm leading-relaxed tracking-wide">
+                  Opciones de financiamiento exclusivas y oportunidades de inversión para vehículos de colección seleccionados.
+                </p>
+              </div>
+            </MobileCollapsibleSection>
           </div>
         </div>
         
         {/* Desktop-only feature section - hidden on mobile */}
-        <div className="hidden md:grid grid-cols-2 gap-8 mb-20">
+        <div className="hidden md:grid grid-cols-3 gap-8 mb-20">
           <div className="p-8 border-t border-amber-900/20">
             <p className="text-amber-800 font-serif text-xs tracking-wider mb-4">EXPERIENCIA EXCLUSIVA</p>
             <h3 className="text-lg font-serif mb-4 text-stone-200 tracking-wide">Acceso Premium</h3>
@@ -297,6 +321,14 @@ export default function LoungeClub() {
             <p className="text-stone-400 font-serif text-sm leading-relaxed tracking-wide">
               <CreditCard className="w-4 h-4 text-amber-800 inline-block mr-2" />
               Opciones de financiamiento exclusivas y oportunidades de inversión para vehículos de colección seleccionados.
+            </p>
+          </div>
+          
+          <div className="p-8 border-t border-amber-900/20">
+            <p className="text-amber-800 font-serif text-xs tracking-wider mb-4">MARKETPLACE ÉLITE</p>
+            <h3 className="text-lg font-serif mb-4 text-stone-200 tracking-wide">Círculo Reservado</h3>
+            <p className="text-stone-400 font-serif text-sm leading-relaxed tracking-wide">
+              El marketplace más exclusivo de México, donde solo los privilegiados acceden a oportunidades que nunca llegarán al público. Por invitación exclusiva.
             </p>
           </div>
         </div>
