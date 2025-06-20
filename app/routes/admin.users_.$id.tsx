@@ -16,7 +16,11 @@ import {
   Cog6ToothIcon,
   EyeIcon,
   HeartIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  PencilIcon,
+  TrashIcon,
+  KeyIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline'
 import {
   UserIcon as UserIconSolid,
@@ -34,7 +38,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw new Response("Usuario no encontrado", { status: 404 })
   }
   
-  const user = await UserModel.findById(userId)
+  const user = await UserModel.findByIdForAdmin(userId)
   if (!user) {
     throw new Response("Usuario no encontrado", { status: 404 })
   }
@@ -98,6 +102,45 @@ export async function action({ request, params }: ActionFunctionArgs) {
           return json({ error: "Error al reactivar usuario" }, { status: 500 })
         }
         return json({ success: true, message: "Usuario reactivado exitosamente" })
+      }
+      
+      case "update-profile": {
+        const name = formData.get("name") as string
+        const phone = formData.get("phone") as string
+        
+        if (!name || name.trim().length < 2) {
+          return json({ error: "El nombre debe tener al menos 2 caracteres" }, { status: 400 })
+        }
+        
+        if (!phone || phone.trim().length < 10) {
+          return json({ error: "El teléfono debe tener al menos 10 dígitos" }, { status: 400 })
+        }
+        
+        const success = await UserModel.updateProfile(userId, {
+          name: name.trim(),
+          phone: phone.trim()
+        })
+        
+        if (!success) {
+          return json({ error: "Error al actualizar el perfil del usuario" }, { status: 500 })
+        }
+        
+        return json({ success: true, message: "Perfil del usuario actualizado exitosamente" })
+      }
+      
+      case "reset-password": {
+        const newPassword = formData.get("newPassword") as string
+        
+        if (!newPassword || newPassword.length < 6) {
+          return json({ error: "La nueva contraseña debe tener al menos 6 caracteres" }, { status: 400 })
+        }
+        
+        const success = await UserModel.changePassword(userId, newPassword)
+        if (!success) {
+          return json({ error: "Error al cambiar la contraseña del usuario" }, { status: 500 })
+        }
+        
+        return json({ success: true, message: "Contraseña del usuario cambiada exitosamente" })
       }
       
       default:
@@ -345,9 +388,118 @@ export default function AdminUserDetail() {
             </div>
           </div>
           
-          {/* User Activity */}
+          {/* User Management Forms */}
           <div className="lg:col-span-2 space-y-6">
-            {/* User's Listings */}
+            {/* Edit User Profile */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <PencilIcon className="w-5 h-5" />
+                Editar Información del Usuario
+              </h3>
+              
+              <Form method="post" className="space-y-4">
+                <input type="hidden" name="intent" value="update-profile" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nombre Completo
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      defaultValue={user.name}
+                      required
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Nombre completo del usuario"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                      Teléfono
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      defaultValue={user.phone || ""}
+                      required
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Número de teléfono"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email (No editable)
+                  </label>
+                  <input
+                    type="email"
+                    value={user.email}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  <PencilIcon className="w-4 h-4" />
+                  {isSubmitting ? 'Guardando...' : 'Actualizar Información'}
+                </button>
+              </Form>
+            </div>
+            
+            {/* Reset Password */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <KeyIcon className="w-5 h-5" />
+                Restablecer Contraseña
+              </h3>
+              
+              <Form method="post" className="space-y-4">
+                <input type="hidden" name="intent" value="reset-password" />
+                
+                <div>
+                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nueva Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    required
+                    minLength={6}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Nueva contraseña (mínimo 6 caracteres)"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    El usuario deberá usar esta nueva contraseña para acceder
+                  </p>
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  onClick={(e) => {
+                    if (!confirm("¿Estás seguro de cambiar la contraseña de este usuario?")) {
+                      e.preventDefault()
+                    }
+                  }}
+                >
+                  <KeyIcon className="w-4 h-4" />
+                  {isSubmitting ? 'Cambiando...' : 'Restablecer Contraseña'}
+                </button>
+              </Form>
+            </div>
+
+            {/* User Activity */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
                 <Car className="w-5 h-5" />

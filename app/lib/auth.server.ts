@@ -58,7 +58,7 @@ export const Auth = {
    */
   canAccessAdminPanel(user: User | null) {
     if (!user) return false
-    return user.role === 'superadmin'
+    return user.role === 'admin' || user.role === 'superadmin'
   }
 }
 

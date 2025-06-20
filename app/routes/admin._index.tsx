@@ -1,6 +1,6 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link } from "@remix-run/react"
-import { requireSuperAdmin } from "~/lib/auth.server"
+import { requireAdmin, requireSuperAdmin } from "~/lib/auth.server"
 import { db } from "~/lib/db.server"
 import { UserModel } from "~/models/User.server"
 import { ListingModel } from "~/models/Listing.server"
@@ -8,27 +8,28 @@ import { CreditApplicationModel } from "~/models/CreditApplication.server"
 import { Users, Car, TrendingUp, Plus, CreditCard } from 'lucide-react'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireSuperAdmin(request)
+  const user = await requireAdmin(request)
   
   const [users, listings, creditApplications] = await Promise.all([
-    UserModel.findAll({ limit: 20, skip: 0 }),
+    user.role === 'superadmin' ? UserModel.findAll({ limit: 20, skip: 0 }) : [],
     ListingModel.findMany({ limit: 20 }), // En admin dashboard mostrar todos los listings
     CreditApplicationModel.findAll({ limit: 5 }) // Últimas 5 aplicaciones de crédito
   ])
   
   const stats = {
-    totalUsers: await db.collection('users').countDocuments({ isActive: true }),
+    totalUsers: user.role === 'superadmin' ? await db.collection('users').countDocuments({ isActive: true }) : 0,
     totalListings: await db.collection('listings').countDocuments(),
-    totalAdmins: await db.collection('users').countDocuments({ role: { $in: ['admin', 'superadmin'] } }),
+    totalAdmins: user.role === 'superadmin' ? await db.collection('users').countDocuments({ role: { $in: ['admin', 'superadmin'] } }) : 0,
     totalCreditApplications: await db.collection('creditApplications').countDocuments(),
     pendingCreditApplications: await db.collection('creditApplications').countDocuments({ status: 'pending' })
   }
   
-  return json({ users, listings, creditApplications, stats })
+  return json({ users, listings, creditApplications, stats, currentUser: user })
 }
 
 export default function AdminDashboard() {
-  const { users, listings, creditApplications, stats } = useLoaderData<typeof loader>()
+  const { users, listings, creditApplications, stats, currentUser } = useLoaderData<typeof loader>()
+  const isSuperAdmin = currentUser.role === 'superadmin'
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,16 +44,18 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="flex items-center">
-              <Users className="w-8 h-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Usuarios</p>
-                <p className="text-2xl font-light text-gray-900">{stats.totalUsers}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {isSuperAdmin && (
+            <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="flex items-center">
+                <Users className="w-8 h-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Usuarios</p>
+                  <p className="text-2xl font-light text-gray-900">{stats.totalUsers}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           
           <div className="bg-white p-6 rounded-xl border border-gray-200">
             <div className="flex items-center">
@@ -79,53 +82,57 @@ export default function AdminDashboard() {
             </div>
           </div>
           
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="flex items-center">
-              <TrendingUp className="w-8 h-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Administradores</p>
-                <p className="text-2xl font-light text-gray-900">{stats.totalAdmins}</p>
+          {isSuperAdmin && (
+            <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <div className="flex items-center">
+                <TrendingUp className="w-8 h-8 text-purple-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Administradores</p>
+                  <p className="text-2xl font-light text-gray-900">{stats.totalAdmins}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Users */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium text-gray-900">Usuarios Recientes</h2>
-              <Link
-                to="/admin/users"
-                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
-              >
-                <Users className="w-4 h-4" />
-                Gestionar Usuarios
-              </Link>
-            </div>
-            
-            <div className="space-y-3">
-              {users.slice(0, 5).map((user: any) => (
+        <div className={`grid grid-cols-1 ${isSuperAdmin ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-8`}>
+          {/* Recent Users - Only for SuperAdmin */}
+          {isSuperAdmin && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-medium text-gray-900">Usuarios Recientes</h2>
                 <Link
-                  key={user._id}
-                  to={`/admin/users/${user._id}`}
-                  className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                  to="/admin/users"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
                 >
-                  <div>
-                    <p className="font-medium text-gray-900">{user.name}</p>
-                    <p className="text-sm text-gray-500">{user.email}</p>
-                  </div>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    user.role === 'admin' || user.role === 'superadmin'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {user.role}
-                  </span>
+                  <Users className="w-4 h-4" />
+                  Gestionar Usuarios
                 </Link>
-              ))}
+              </div>
+              
+              <div className="space-y-3">
+                {users.slice(0, 5).map((user: any) => (
+                  <Link
+                    key={user._id}
+                    to={`/admin/users/${user._id}`}
+                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-900">{user.name}</p>
+                      <p className="text-sm text-gray-500">{user.email}</p>
+                    </div>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      user.role === 'admin' || user.role === 'superadmin'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {user.role}
+                    </span>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Recent Listings */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">

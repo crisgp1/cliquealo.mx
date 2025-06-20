@@ -1,5 +1,5 @@
 import { Link } from "@remix-run/react"
-import { User, Plus, Shield } from 'lucide-react'
+import { User, Plus, Shield, Settings } from 'lucide-react'
 import {
   Button,
   Avatar,
@@ -8,7 +8,11 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-  Link as HeroLink
+  Link as HeroLink,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem
 } from "@heroui/react"
 
 interface NavigationProps {
@@ -47,8 +51,8 @@ export function Navigation({ user }: NavigationProps) {
         </NavbarItem>
       )}
       
-      {/* Solo superadmins ven panel de administración */}
-      {isSuperAdmin && (
+      {/* Admins y superadmins ven panel de administración */}
+      {isAdmin && (
         <NavbarItem>
           <Button
             as={Link}
@@ -79,14 +83,40 @@ export function Navigation({ user }: NavigationProps) {
               </Chip>
             )}
           </div>
-          <Avatar
-            size="sm"
-            icon={<User className="w-4 h-4" />}
-            classNames={{
-              base: "bg-gradient-to-br from-gray-100 to-gray-200",
-              icon: "text-gray-600"
-            }}
-          />
+          
+          <Dropdown placement="bottom-end">
+            <DropdownTrigger>
+              <Avatar
+                size="sm"
+                icon={<User className="w-4 h-4" />}
+                classNames={{
+                  base: "bg-gradient-to-br from-gray-100 to-gray-200 cursor-pointer",
+                  icon: "text-gray-600"
+                }}
+              />
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Profile Actions">
+              {isAdmin && (
+                <DropdownItem
+                  key="profile"
+                  startContent={<Settings className="w-4 h-4" />}
+                >
+                  <Link to="/profile/edit" className="w-full block">
+                    Editar Perfil
+                  </Link>
+                </DropdownItem>
+              )}
+              <DropdownItem
+                key="logout"
+                color="danger"
+                startContent={<User className="w-4 h-4" />}
+              >
+                <Link to="/auth/logout" className="w-full block">
+                  Cerrar Sesión
+                </Link>
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
         </NavbarItem>
       ) : (
         <NavbarItem className="flex items-center gap-2">

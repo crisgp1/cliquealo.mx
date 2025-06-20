@@ -69,9 +69,16 @@ export const UserModel = {
 
   // Buscar por ID
   async findById(id: string) {
-    return await db.collection<User>('users').findOne({ 
+    return await db.collection<User>('users').findOne({
       _id: new ObjectId(id),
-      isActive: true 
+      isActive: true
+    })
+  },
+
+  // Buscar por ID para admin (incluye usuarios inactivos)
+  async findByIdForAdmin(id: string) {
+    return await db.collection<User>('users').findOne({
+      _id: new ObjectId(id)
     })
   },
 
