@@ -21,7 +21,7 @@ import {
 import { useState, useEffect } from "react";
 import { getUser } from "~/lib/session.server";
 import { Auth } from "~/lib/auth.server";
-import { X, Plus, User, LogOut, Shield, Heart, Menu, Search, Info, Home, LogIn, UserPlus, CreditCard } from "lucide-react"; // 🔥 AGREGADO más iconos
+import { X, Plus, User, LogOut, Shield, Heart, Menu, Search, Info, Home, LogIn, UserPlus, CreditCard, Crown } from "lucide-react"; // 🔥 AGREGADO más iconos
 import {
   HeroUIProvider,
   Navbar,
@@ -207,6 +207,19 @@ export default function App() {
               className="text-gray-600 hover:text-black"
             >
               Nosotros
+            </Button>
+          </NavbarItem>
+          
+          {/* Lounge Club - Link discreto pero lujoso */}
+          <NavbarItem>
+            <Button
+              as={Link}
+              to="/lounge-club"
+              variant="light"
+              startContent={<Crown className="w-3.5 h-3.5 text-amber-500" />}
+              className="text-gray-800 font-medium hover:text-black"
+            >
+              Lounge Club
             </Button>
           </NavbarItem>
           
@@ -396,6 +409,20 @@ export default function App() {
             </Button>
           </NavbarMenuItem>
           
+          {/* Lounge Club en menú móvil */}
+          <NavbarMenuItem>
+            <Button
+              as={Link}
+              to="/lounge-club"
+              variant="light"
+              startContent={<Crown className="w-4 h-4 text-amber-500" />}
+              className="w-full justify-start text-gray-800 font-medium"
+              onPress={() => setMobileMenuOpen(false)}
+            >
+              The Lounge Club
+            </Button>
+          </NavbarMenuItem>
+          
           {user && canCreateListings && (
             <NavbarMenuItem>
               <Button
@@ -522,6 +549,16 @@ export default function App() {
             <Info className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
             <span className="hidden sm:block text-xs font-medium">Info</span>
           </Link>
+          
+          {/* Lounge Club en navegación inferior móvil */}
+          <Link
+            to="/lounge-club"
+            className="flex flex-col items-center py-2 px-1 text-gray-800 hover:text-black transition-colors min-w-0"
+            title="Lounge Club"
+          >
+            <Crown className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1 text-amber-500" />
+            <span className="hidden sm:block text-xs font-medium">Club</span>
+          </Link>
         </div>
       </nav>
 
@@ -591,6 +628,11 @@ export default function App() {
                 <li>
                   <Link to="/about" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
                     Nosotros
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/lounge-club" className="text-gray-800 hover:text-black transition-colors text-sm font-medium">
+                    Lounge Club <span className="inline-block ml-1 text-amber-500">★</span>
                   </Link>
                 </li>
                 {user && (
