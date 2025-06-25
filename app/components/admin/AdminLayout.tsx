@@ -17,6 +17,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { Button } from '~/components/ui/button';
+import { TicketCatalog } from '~/components/ui/ticket-catalog';
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
@@ -273,6 +274,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 />
               </div>
             </div>
+
+            {/* Ticket Catalog */}
+            <TicketCatalog />
 
             {/* Notifications */}
             <Button variant="ghost" size="sm" className="relative">
