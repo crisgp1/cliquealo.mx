@@ -25,6 +25,7 @@ interface CreditApplicationFormProps {
   listingTitle?: string;
   listingPrice?: number;
   onSuccess?: () => void;
+  initialFormData?: Partial<FormData>;
 }
 
 interface FormData {
@@ -92,14 +93,18 @@ const initialFormData: FormData = {
   emergencyContactAddress: ""
 };
 
-export function CreditApplicationForm({ 
-  listingId, 
-  listingTitle, 
+export function CreditApplicationForm({
+  listingId,
+  listingTitle,
   listingPrice,
-  onSuccess 
+  onSuccess,
+  initialFormData: propInitialFormData
 }: CreditApplicationFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [formData, setFormData] = useState<FormData>({
+    ...initialFormData,
+    ...propInitialFormData
+  });
   const [documents, setDocuments] = useState<MediaItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -576,14 +581,21 @@ export function CreditApplicationForm({
                 />
               </div>
               <div>
-                <Label htmlFor="bankName">Banco Principal *</Label>
+                <Label htmlFor="bankName">Banco Seleccionado *</Label>
                 <Input
                   id="bankName"
                   value={formData.bankName}
                   onChange={(e) => handleInputChange('bankName', e.target.value)}
                   placeholder="Nombre del banco"
                   required
+                  readOnly={!!formData.bankName}
+                  className={formData.bankName ? "bg-gray-50" : ""}
                 />
+                {formData.bankName && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Banco seleccionado desde el simulador
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="accountType">Tipo de Cuenta *</Label>

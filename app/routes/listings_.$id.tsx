@@ -8,6 +8,7 @@ import {
 } from "~/lib/seo"
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
+import { BankPartnerModel } from "~/models/BankPartner.server"
 import { getUser } from "~/lib/session.server"
 import { requireUser, Auth } from "~/lib/auth.server"
 import { toast } from "~/components/ui/toast"
@@ -70,7 +71,7 @@ import {
   Tab
 } from "@heroui/react"
 
-export const meta: MetaFunction = ({ data }) => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data || !data.listing) {
     return generateCarListingMeta({
       title: "Auto no encontrado | Cliquéalo.mx",
@@ -150,6 +151,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   // Obtener autos similares
   const similarListings = await ListingModel.findSimilar(listingId, 4)
   
+  // Obtener aliados bancarios activos para la calculadora de crédito
+  const bankPartners = await BankPartnerModel.findActiveForSimulator()
+  
   // Verificar permisos de edición
   const canEdit = user ? Auth.canEditListing(user, listing) : false
 
@@ -161,6 +165,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return json({
     listing: listingWithHotStatus,
     similarListings,
+    bankPartners,
     user,
     hasLiked,
     canEdit
@@ -241,10 +246,13 @@ export async function action({ params, request }: ActionFunctionArgs) {
 type LoaderData = {
   listing: Listing & { hotStatus: string }
   similarListings: Listing[]
+  bankPartners: any[]
   user: any
   hasLiked: boolean
   canEdit: boolean
 }
+
+type MetaData = LoaderData | {}
 
 // Script para JSON-LD estructurado
 const ListingJsonLd = ({ listing }: { listing: any }) => {
@@ -273,7 +281,7 @@ const ListingJsonLd = ({ listing }: { listing: any }) => {
 };
 
 export default function ListingDetail() {
-  const { listing, similarListings, user, hasLiked, canEdit } = useLoaderData<LoaderData>()
+  const { listing, similarListings, bankPartners, user, hasLiked, canEdit } = useLoaderData<LoaderData>()
   const navigation = useNavigation()
   const likeFetcher = useFetcher()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -294,7 +302,7 @@ export default function ListingDetail() {
   const [creditData, setCreditData] = useState({
     downPayment: Math.round(listing.price * 0.3), // 30% de enganche mínimo por defecto
     loanTerm: 48, // 48 meses por defecto
-    interestRate: 12.5 // 12.5% anual por defecto
+    selectedBankId: '' // Banco seleccionado
   })
   
   // Estado para el valor de display del enganche (con formato)
@@ -427,8 +435,24 @@ export default function ListingDetail() {
       return 0
     }
     
+    // Validar que haya un banco seleccionado
+    if (!creditData.selectedBankId) {
+      return 0
+    }
+    
+    // Obtener la tasa del banco seleccionado
+    const selectedBank = bankPartners.find(bank => bank._id === creditData.selectedBankId)
+    if (!selectedBank) {
+      return 0
+    }
+    
+    // Validar que el plazo esté dentro del rango del banco
+    if (creditData.loanTerm < selectedBank.minTerm || creditData.loanTerm > selectedBank.maxTerm) {
+      return 0
+    }
+    
     const principal = listing.price - creditData.downPayment
-    const monthlyRate = creditData.interestRate / 100 / 12
+    const monthlyRate = selectedBank.creditRate / 100 / 12
     const numPayments = creditData.loanTerm
     
     if (monthlyRate === 0) {
@@ -453,6 +477,10 @@ export default function ListingDetail() {
 
   // Función para generar el mensaje de WhatsApp con la información del crédito
   const generateWhatsAppMessage = () => {
+    const selectedBank = bankPartners.find(bank => bank._id === creditData.selectedBankId)
+    const bankName = selectedBank ? selectedBank.name : 'Banco seleccionado'
+    const interestRate = selectedBank ? selectedBank.creditRate : 0
+    
     const message = `🚗 *Solicitud de Crédito Automotriz*
 
 *Vehículo:* ${listing.title}
@@ -460,9 +488,10 @@ export default function ListingDetail() {
 *ID:* ${listing._id?.slice(-8).toUpperCase() || 'N/A'}
 
 💰 *Detalles del Crédito:*
+• Banco: ${bankName}
 • Enganche: $${creditData.downPayment.toLocaleString()}
 • Plazo: ${creditData.loanTerm} meses
-• Tasa de interés: ${creditData.interestRate}% anual
+• Tasa de interés: ${interestRate}% anual
 • Pago mensual: $${calculateMonthlyPayment().toLocaleString()}
 
 📋 *Documentos que tengo listos:*
@@ -1277,19 +1306,31 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                             </Select>
                           </div>
 
-                          {/* Interest Rate Input */}
+                          {/* Bank Partner Selector */}
                           <div>
-                            <Input
-                              type="number"
-                              step="0.1"
-                              label="Tasa de interés anual (%)"
-                              placeholder="12.5"
-                              value={creditData.interestRate.toString()}
-                              onChange={(e) => setCreditData({
-                                ...creditData,
-                                interestRate: Math.max(0, Math.min(50, parseFloat(e.target.value) || 0))
-                              })}
-                            />
+                            <Select
+                              label="Escoge tu Aliado Bancario"
+                              placeholder="Selecciona un banco"
+                              selectedKeys={creditData.selectedBankId ? [creditData.selectedBankId] : []}
+                              onSelectionChange={(keys) => {
+                                const selectedKey = Array.from(keys)[0] as string
+                                setCreditData({
+                                  ...creditData,
+                                  selectedBankId: selectedKey || ''
+                                })
+                              }}
+                              description={
+                                creditData.selectedBankId && bankPartners.find(bank => bank._id === creditData.selectedBankId)
+                                  ? `Tasa: ${bankPartners.find(bank => bank._id === creditData.selectedBankId)?.creditRate}% anual`
+                                  : 'Selecciona un banco para ver la tasa de interés'
+                              }
+                            >
+                              {bankPartners.map((bank) => (
+                                <SelectItem key={bank._id}>
+                                  {bank.name} - {bank.creditRate}% anual
+                                </SelectItem>
+                              ))}
+                            </Select>
                           </div>
                         </div>
 

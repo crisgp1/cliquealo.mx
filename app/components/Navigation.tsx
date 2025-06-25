@@ -1,5 +1,5 @@
 import { Link } from "@remix-run/react"
-import { User, Plus, Shield, Settings } from 'lucide-react'
+import { User, Plus, Shield, Settings, Calculator } from 'lucide-react'
 import {
   Button,
   Avatar,
@@ -51,6 +51,19 @@ export function Navigation({ user }: NavigationProps) {
         </NavbarItem>
       )}
       
+      {/* Simulador de Crédito - visible para todos */}
+      <NavbarItem className="hidden md:flex">
+        <Button
+          as={Link}
+          to="/credit/simulator"
+          variant="light"
+          startContent={<Calculator className="w-4 h-4" />}
+          className="text-gray-600 hover:text-blue-600"
+        >
+          Simulador
+        </Button>
+      </NavbarItem>
+      
       {/* Admins y superadmins ven panel de administración */}
       {isAdmin && (
         <NavbarItem>
@@ -96,7 +109,7 @@ export function Navigation({ user }: NavigationProps) {
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="Profile Actions">
-              {isAdmin && (
+              {isAdmin ? (
                 <DropdownItem
                   key="profile"
                   startContent={<Settings className="w-4 h-4" />}
@@ -105,7 +118,7 @@ export function Navigation({ user }: NavigationProps) {
                     Editar Perfil
                   </Link>
                 </DropdownItem>
-              )}
+              ) : null}
               <DropdownItem
                 key="logout"
                 color="danger"

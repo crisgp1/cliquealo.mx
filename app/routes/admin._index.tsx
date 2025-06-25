@@ -5,7 +5,7 @@ import { db } from "~/lib/db.server"
 import { UserModel } from "~/models/User.server"
 import { ListingModel } from "~/models/Listing.server"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
-import { Users, Car, TrendingUp, Plus, CreditCard } from 'lucide-react'
+import { Users, Car, TrendingUp, Plus, CreditCard, Building2 } from 'lucide-react'
 import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -52,7 +52,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {isSuperAdmin && (
             <div className="bg-white p-6 rounded-xl border border-gray-200">
               <div className="flex items-center">
@@ -85,6 +85,26 @@ export default function AdminDashboard() {
                   <p className="text-xs text-orange-600 font-medium">
                     {stats.pendingCreditApplications} pendientes
                   </p>
+                )}
+                
+                {isSuperAdmin && (
+                  <div className="bg-white p-6 rounded-xl border border-gray-200">
+                    <div className="flex items-center">
+                      <Building2 className="w-8 h-8 text-indigo-600" />
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-gray-600">Aliados Bancarios</p>
+                        <div className="flex items-center space-x-2">
+                          <p className="text-2xl font-light text-gray-900">Gestionar</p>
+                          <Link
+                            to="/admin/bank-partners"
+                            className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full hover:bg-indigo-200"
+                          >
+                            Ver todos
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
