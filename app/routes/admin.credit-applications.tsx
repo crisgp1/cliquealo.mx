@@ -27,9 +27,40 @@ import {
   Building,
   Download,
   MessageSquare,
-  TrendingUp
+  TrendingUp,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  CreditCard,
+  Users,
+  Briefcase,
+  Heart,
+  FileImage,
+  ExternalLink,
+  List,
+  Grid3X3,
+  LayoutGrid
 } from "lucide-react"
 import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import {
+  Card as HeroCard,
+  CardBody,
+  CardHeader,
+  Button as HeroButton,
+  Chip,
+  Divider,
+  ButtonGroup,
+  Tooltip,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  Tabs,
+  Tab
+} from "@heroui/react"
 
 export async function loader(args: LoaderFunctionArgs) {
   const user = await requireClerkAdmin(args)
@@ -143,12 +174,16 @@ const statusConfig = {
   }
 }
 
+type ViewType = 'list' | 'grid'
+
 export default function AdminCreditApplications() {
   const { applications, stats, filters } = useLoaderData<typeof loader>()
   const submit = useSubmit()
   const [selectedApplication, setSelectedApplication] = useState<any>(null)
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [showRejectionModal, setShowRejectionModal] = useState(false)
+  const [viewType, setViewType] = useState<ViewType>('list')
+  const {isOpen: isDetailModalOpen, onOpen: onDetailModalOpen, onOpenChange: onDetailModalOpenChange} = useDisclosure()
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -201,6 +236,22 @@ export default function AdminCreditApplications() {
     submit(formData, { method: "post" })
     setShowRejectionModal(false)
     setSelectedApplication(null)
+  }
+
+  const handleViewDetails = (application: any) => {
+    setSelectedApplication(application)
+    onDetailModalOpen()
+  }
+
+  const getDocumentTypeLabel = (type: string) => {
+    const labels = {
+      identification: 'Identificación',
+      income_proof: 'Comprobante de Ingresos',
+      address_proof: 'Comprobante de Domicilio',
+      bank_statement: 'Estado de Cuenta',
+      other: 'Otro'
+    }
+    return labels[type as keyof typeof labels] || type
   }
 
   return (
@@ -328,199 +379,226 @@ export default function AdminCreditApplications() {
           </Form>
         </Card>
 
+        {/* View Controls */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <span className="text-sm font-medium text-gray-700">Vista:</span>
+            <ButtonGroup size="sm" variant="bordered">
+              <HeroButton
+                isIconOnly
+                variant={viewType === 'list' ? 'solid' : 'bordered'}
+                color={viewType === 'list' ? 'primary' : 'default'}
+                onClick={() => setViewType('list')}
+              >
+                <List className="w-4 h-4" />
+              </HeroButton>
+              <HeroButton
+                isIconOnly
+                variant={viewType === 'grid' ? 'solid' : 'bordered'}
+                color={viewType === 'grid' ? 'primary' : 'default'}
+                onClick={() => setViewType('grid')}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </HeroButton>
+            </ButtonGroup>
+          </div>
+          <div className="text-sm text-gray-500">
+            {applications.length} solicitud{applications.length !== 1 ? 'es' : ''}
+          </div>
+        </div>
+
         {/* Applications List */}
-        <div className="space-y-6">
-          {applications.map((application) => {
-            const status = statusConfig[application.status as keyof typeof statusConfig]
-            const StatusIcon = status.icon
-            
-            return (
-              <Card key={application._id?.toString()} className="p-6">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {application.personalInfo.fullName}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Solicitud #{application._id?.toString().slice(-6).toUpperCase()}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatDate(application.createdAt.toString())}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <Badge className={status.color}>
-                    <StatusIcon className="w-3 h-3 mr-1" />
-                    {status.label}
-                  </Badge>
-                </div>
-
-                {/* Contact Info */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Mail className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">{application.personalInfo.email}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">{application.personalInfo.phone}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Building className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                      {application.employmentInfo.companyName || 'No especificado'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Financial Summary */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="text-xs text-gray-500">Monto Solicitado</p>
-                    <p className="text-sm font-semibold text-green-600">
-                      {formatCurrency(application.financialInfo.requestedAmount)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Ingresos Mensuales</p>
-                    <p className="text-sm font-semibold">
-                      {formatCurrency(application.employmentInfo.monthlyIncome)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Enganche</p>
-                    <p className="text-sm font-semibold">
-                      {formatCurrency(application.financialInfo.downPayment)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Plazo</p>
-                    <p className="text-sm font-semibold">
-                      {application.financialInfo.preferredTerm} meses
-                    </p>
-                  </div>
-                </div>
-
-                {/* Vehicle Info */}
-                {application.listing && application.listing.length > 0 && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm font-medium text-blue-900 mb-1">Vehículo de Interés:</p>
-                    <p className="text-sm text-blue-800">
-                      {application.listing[0].brand} {application.listing[0].model} {application.listing[0].year} - 
-                      <span className="font-semibold ml-1">
-                        {formatCurrency(application.listing[0].price)}
-                      </span>
-                    </p>
-                  </div>
-                )}
-
-                {/* Review Info */}
-                {application.reviewInfo && (
-                  <div className={`mb-4 p-4 rounded-lg ${
-                    application.status === 'approved' ? 'bg-green-50 border border-green-200' :
-                    application.status === 'rejected' ? 'bg-red-50 border border-red-200' :
-                    'bg-blue-50 border border-blue-200'
-                  }`}>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <MessageSquare className="w-4 h-4" />
-                      <span className="text-sm font-medium">Información de Revisión</span>
-                    </div>
-                    
-                    {application.status === 'approved' && (
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-green-700">Monto Aprobado: </span>
-                          <span className="font-semibold">
-                            {formatCurrency(application.reviewInfo.approvedAmount || 0)}
-                          </span>
+        <motion.div 
+          layout
+          className={viewType === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' : 'space-y-6'}
+        >
+          <AnimatePresence mode="popLayout">
+            {applications.map((application) => {
+              const status = statusConfig[application.status as keyof typeof statusConfig]
+              const StatusIcon = status.icon
+              
+              return (
+                <motion.div
+                  key={application._id?.toString()}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className={viewType === 'grid' ? 'h-fit' : ''}
+                >
+                  <HeroCard className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                    {/* Header Section */}
+                    <CardHeader className="pb-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <FileText className="w-6 h-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {application.personalInfo.fullName}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Solicitud #{application._id?.toString().slice(-6).toUpperCase()}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatDate(application.createdAt.toString())}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-green-700">Pago Mensual: </span>
-                          <span className="font-semibold">
-                            {formatCurrency(application.reviewInfo.monthlyPayment || 0)}
-                          </span>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Chip
+                            color={
+                              application.status === 'approved' ? 'success' :
+                              application.status === 'rejected' ? 'danger' :
+                              application.status === 'under_review' ? 'primary' :
+                              'warning'
+                            }
+                            variant="flat"
+                            startContent={<StatusIcon className="w-3 h-3" />}
+                          >
+                            {status.label}
+                          </Chip>
                         </div>
                       </div>
-                    )}
-                    
-                    {application.reviewInfo.comments && (
-                      <p className="text-sm mt-2">
-                        <span className="font-medium">Comentarios: </span>
-                        {application.reviewInfo.comments}
-                      </p>
-                    )}
-                    
-                    <p className="text-xs text-gray-500 mt-2">
-                      Revisado el {formatDate(application.reviewInfo.reviewedAt.toString())}
-                    </p>
-                  </div>
-                )}
+                    </CardHeader>
 
-                {/* Actions */}
-                <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                  <div className="text-sm text-gray-500">
-                    {application.documents.length} documento(s) • 
-                    CURP: {application.personalInfo.curp}
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    {application.status === 'pending' && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleStatusChange(application._id!.toString(), "review")}
-                        >
-                          Marcar en Revisión
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => handleStatusChange(application._id!.toString(), "reject")}
-                        >
-                          Rechazar
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                          onClick={() => handleStatusChange(application._id!.toString(), "approve")}
-                        >
-                          Aprobar
-                        </Button>
-                      </>
-                    )}
-                    
-                    {application.status === 'under_review' && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => handleStatusChange(application._id!.toString(), "reject")}
-                        >
-                          Rechazar
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                          onClick={() => handleStatusChange(application._id!.toString(), "approve")}
-                        >
-                          Aprobar
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            )
-          })}
-        </div>
+                    <CardBody className="pt-0">
+                      {/* Vista compacta - Solo información básica */}
+                      <div className="space-y-4">
+                        {/* Información básica */}
+                        <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                          <div className="text-center">
+                            <p className="text-lg font-bold text-green-600">
+                              {formatCurrency(application.financialInfo.requestedAmount)}
+                            </p>
+                            <p className="text-xs text-gray-500">Monto Solicitado</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-lg font-bold text-blue-600">
+                              {formatCurrency(application.employmentInfo.monthlyIncome)}
+                            </p>
+                            <p className="text-xs text-gray-500">Ingresos Mensuales</p>
+                          </div>
+                        </div>
+                        
+                        {/* Estado de la solicitud */}
+                        {application.reviewInfo && (
+                          <div className={`p-3 rounded-lg text-center ${
+                            application.status === 'approved' ? 'bg-green-50 border border-green-200' :
+                            application.status === 'rejected' ? 'bg-red-50 border border-red-200' :
+                            'bg-blue-50 border border-blue-200'
+                          }`}>
+                            {application.status === 'approved' && (
+                              <div>
+                                <p className="text-sm font-semibold text-green-700">
+                                  Aprobado: {formatCurrency(application.reviewInfo.approvedAmount || 0)}
+                                </p>
+                                <p className="text-xs text-green-600">
+                                  Pago mensual: {formatCurrency(application.reviewInfo.monthlyPayment || 0)}
+                                </p>
+                              </div>
+                            )}
+                            {application.status === 'rejected' && (
+                              <p className="text-sm font-semibold text-red-700">
+                                {application.reviewInfo.rejectionReason || 'Solicitud Rechazada'}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Información del vehículo */}
+                        {application.listing && application.listing.length > 0 && (
+                          <div className="p-3 bg-blue-50 rounded-lg">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Building className="w-4 h-4 text-blue-600" />
+                              <p className="text-sm font-medium text-blue-900">Vehículo de Interés</p>
+                            </div>
+                            <p className="text-sm text-blue-800">
+                              {application.listing[0].brand} {application.listing[0].model} {application.listing[0].year}
+                            </p>
+                            <p className="text-sm font-semibold text-blue-900">
+                              {formatCurrency(application.listing[0].price)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex justify-between items-center pt-4 border-t border-gray-200 mt-4">
+                        <div className="text-sm text-gray-500">
+                          {application.documents.length} documento(s)
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <HeroButton
+                            size="sm"
+                            variant="bordered"
+                            color="primary"
+                            startContent={<Eye className="w-4 h-4" />}
+                            onClick={() => handleViewDetails(application)}
+                          >
+                            Ver Detalles
+                          </HeroButton>
+                          
+                          {application.status === 'pending' && (
+                            <>
+                              <HeroButton
+                                size="sm"
+                                variant="bordered"
+                                color="warning"
+                                onClick={() => handleStatusChange(application._id!.toString(), "review")}
+                              >
+                                En Revisión
+                              </HeroButton>
+                              <HeroButton
+                                size="sm"
+                                variant="bordered"
+                                color="danger"
+                                onClick={() => handleStatusChange(application._id!.toString(), "reject")}
+                              >
+                                Rechazar
+                              </HeroButton>
+                              <HeroButton
+                                size="sm"
+                                color="success"
+                                onClick={() => handleStatusChange(application._id!.toString(), "approve")}
+                              >
+                                Aprobar
+                              </HeroButton>
+                            </>
+                          )}
+                          
+                          {application.status === 'under_review' && (
+                            <>
+                              <HeroButton
+                                size="sm"
+                                variant="bordered"
+                                color="danger"
+                                onClick={() => handleStatusChange(application._id!.toString(), "reject")}
+                              >
+                                Rechazar
+                              </HeroButton>
+                              <HeroButton
+                                size="sm"
+                                color="success"
+                                onClick={() => handleStatusChange(application._id!.toString(), "approve")}
+                              >
+                                Aprobar
+                              </HeroButton>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </CardBody>
+                  </HeroCard>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        </motion.div>
 
         {applications.length === 0 && (
           <Card className="p-12 text-center">
@@ -534,6 +612,398 @@ export default function AdminCreditApplications() {
           </Card>
         )}
       </div>
+
+      {/* Detail Modal */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onOpenChange={onDetailModalOpenChange}
+        size="5xl"
+        scrollBehavior="inside"
+        classNames={{
+          base: "max-h-[90vh]",
+          body: "p-0",
+          header: "border-b border-gray-200"
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                {selectedApplication && (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                      <FileText className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold">
+                        {selectedApplication.personalInfo.fullName}
+                      </h2>
+                      <p className="text-blue-100 text-sm">
+                        Solicitud #{selectedApplication._id?.toString().slice(-6).toUpperCase()} •
+                        {formatDate(selectedApplication.createdAt.toString())}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </ModalHeader>
+              <ModalBody>
+                {selectedApplication && (
+                  <Tabs
+                    aria-label="Información de la solicitud"
+                    color="primary"
+                    variant="underlined"
+                    classNames={{
+                      tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
+                      cursor: "w-full bg-primary",
+                      tab: "max-w-fit px-4 h-12",
+                      tabContent: "group-data-[selected=true]:text-primary"
+                    }}
+                  >
+                    {/* Resumen Tab */}
+                    <Tab
+                      key="resumen"
+                      title={
+                        <div className="flex items-center space-x-2">
+                          <TrendingUp className="w-4 h-4" />
+                          <span>Resumen</span>
+                        </div>
+                      }
+                    >
+                      <div className="p-6 space-y-6">
+                        {/* Status y Financial Summary */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4">
+                            <div className={`p-4 rounded-lg border ${
+                              selectedApplication.status === 'approved' ? 'bg-green-50 border-green-200' :
+                              selectedApplication.status === 'rejected' ? 'bg-red-50 border-red-200' :
+                              selectedApplication.status === 'under_review' ? 'bg-blue-50 border-blue-200' :
+                              'bg-yellow-50 border-yellow-200'
+                            }`}>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                  selectedApplication.status === 'approved' ? 'bg-green-100' :
+                                  selectedApplication.status === 'rejected' ? 'bg-red-100' :
+                                  selectedApplication.status === 'under_review' ? 'bg-blue-100' :
+                                  'bg-yellow-100'
+                                }`}>
+                                  {selectedApplication.status === 'approved' && <CheckCircle className="w-4 h-4 text-green-600" />}
+                                  {selectedApplication.status === 'rejected' && <XCircle className="w-4 h-4 text-red-600" />}
+                                  {selectedApplication.status === 'under_review' && <Eye className="w-4 h-4 text-blue-600" />}
+                                  {selectedApplication.status === 'pending' && <Clock className="w-4 h-4 text-yellow-600" />}
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold">Estado de la Solicitud</h3>
+                                  <p className="text-sm text-gray-600">
+                                    {statusConfig[selectedApplication.status as keyof typeof statusConfig]?.label}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              {selectedApplication.reviewInfo && (
+                                <div className="mt-4 space-y-2">
+                                  {selectedApplication.status === 'approved' && (
+                                    <>
+                                      <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600">Monto Aprobado:</span>
+                                        <span className="font-semibold text-green-600">
+                                          {formatCurrency(selectedApplication.reviewInfo.approvedAmount || 0)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600">Pago Mensual:</span>
+                                        <span className="font-semibold">
+                                          {formatCurrency(selectedApplication.reviewInfo.monthlyPayment || 0)}
+                                        </span>
+                                      </div>
+                                    </>
+                                  )}
+                                  {selectedApplication.reviewInfo.comments && (
+                                    <div className="mt-3 p-3 bg-gray-50 rounded">
+                                      <p className="text-sm"><strong>Comentarios:</strong> {selectedApplication.reviewInfo.comments}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <DollarSign className="w-5 h-5 text-green-600" />
+                                  <span className="text-sm font-medium text-green-800">Monto Solicitado</span>
+                                </div>
+                                <p className="text-xl font-bold text-green-700">
+                                  {formatCurrency(selectedApplication.financialInfo.requestedAmount)}
+                                </p>
+                              </div>
+                              
+                              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                                  <span className="text-sm font-medium text-blue-800">Ingresos Mensuales</span>
+                                </div>
+                                <p className="text-xl font-bold text-blue-700">
+                                  {formatCurrency(selectedApplication.employmentInfo.monthlyIncome)}
+                                </p>
+                              </div>
+                              
+                              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <CreditCard className="w-5 h-5 text-purple-600" />
+                                  <span className="text-sm font-medium text-purple-800">Enganche</span>
+                                </div>
+                                <p className="text-xl font-bold text-purple-700">
+                                  {formatCurrency(selectedApplication.financialInfo.downPayment)}
+                                </p>
+                              </div>
+                              
+                              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <Calendar className="w-5 h-5 text-orange-600" />
+                                  <span className="text-sm font-medium text-orange-800">Plazo</span>
+                                </div>
+                                <p className="text-xl font-bold text-orange-700">
+                                  {selectedApplication.financialInfo.preferredTerm} meses
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Vehicle Info */}
+                        {selectedApplication.listing && selectedApplication.listing.length > 0 && (
+                          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center space-x-2 mb-3">
+                              <Building className="w-5 h-5 text-blue-600" />
+                              <h3 className="font-semibold text-blue-900">Vehículo de Interés</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-lg font-bold text-blue-800">
+                                  {selectedApplication.listing[0].brand} {selectedApplication.listing[0].model} {selectedApplication.listing[0].year}
+                                </p>
+                                <p className="text-sm text-blue-600">Modelo y Año</p>
+                              </div>
+                              <div>
+                                <p className="text-lg font-bold text-green-600">
+                                  {formatCurrency(selectedApplication.listing[0].price)}
+                                </p>
+                                <p className="text-sm text-blue-600">Precio del Vehículo</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </Tab>
+
+                    {/* Personal Info Tab */}
+                    <Tab
+                      key="personal"
+                      title={
+                        <div className="flex items-center space-x-2">
+                          <User className="w-4 h-4" />
+                          <span>Personal</span>
+                        </div>
+                      }
+                    >
+                      <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <User className="w-4 h-4 text-gray-400" />
+                              <label className="text-sm font-medium text-gray-500">Nombre Completo</label>
+                            </div>
+                            <p className="text-sm text-gray-900 font-semibold">{selectedApplication.personalInfo.fullName}</p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Mail className="w-4 h-4 text-gray-400" />
+                              <label className="text-sm font-medium text-gray-500">Email</label>
+                            </div>
+                            <p className="text-sm text-gray-900">{selectedApplication.personalInfo.email}</p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Phone className="w-4 h-4 text-gray-400" />
+                              <label className="text-sm font-medium text-gray-500">Teléfono</label>
+                            </div>
+                            <p className="text-sm text-gray-900">{selectedApplication.personalInfo.phone}</p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Calendar className="w-4 h-4 text-gray-400" />
+                              <label className="text-sm font-medium text-gray-500">Fecha de Nacimiento</label>
+                            </div>
+                            <p className="text-sm text-gray-900">
+                              {new Date(selectedApplication.personalInfo.dateOfBirth).toLocaleDateString('es-MX')}
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <FileText className="w-4 h-4 text-gray-400" />
+                              <label className="text-sm font-medium text-gray-500">CURP</label>
+                            </div>
+                            <p className="text-sm text-gray-900 font-mono bg-gray-50 p-2 rounded">{selectedApplication.personalInfo.curp}</p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <FileText className="w-4 h-4 text-gray-400" />
+                              <label className="text-sm font-medium text-gray-500">RFC</label>
+                            </div>
+                            <p className="text-sm text-gray-900 font-mono bg-gray-50 p-2 rounded">
+                              {selectedApplication.personalInfo.rfc || 'No proporcionado'}
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Heart className="w-4 h-4 text-gray-400" />
+                              <label className="text-sm font-medium text-gray-500">Estado Civil</label>
+                            </div>
+                            <p className="text-sm text-gray-900 capitalize">{selectedApplication.personalInfo.maritalStatus}</p>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Users className="w-4 h-4 text-gray-400" />
+                              <label className="text-sm font-medium text-gray-500">Dependientes</label>
+                            </div>
+                            <p className="text-sm text-gray-900">{selectedApplication.personalInfo.dependents}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </Tab>
+
+                    {/* Documents Tab */}
+                    <Tab
+                      key="documents"
+                      title={
+                        <div className="flex items-center space-x-2">
+                          <FileImage className="w-4 h-4" />
+                          <span>Documentos ({selectedApplication.documents.length})</span>
+                        </div>
+                      }
+                    >
+                      <div className="p-6">
+                        {selectedApplication.documents.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {selectedApplication.documents.map((doc: any, index: number) => (
+                              <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                      <FileText className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <div>
+                                      <span className="text-sm font-medium text-gray-900 block">{getDocumentTypeLabel(doc.type)}</span>
+                                      <span className="text-xs text-gray-500">{doc.name}</span>
+                                    </div>
+                                  </div>
+                                  <HeroButton
+                                    size="sm"
+                                    variant="bordered"
+                                    isIconOnly
+                                    onClick={() => window.open(doc.url, '_blank')}
+                                  >
+                                    <ExternalLink className="w-4 h-4" />
+                                  </HeroButton>
+                                </div>
+                                <div className="text-xs text-gray-500 space-y-1">
+                                  <p>Tamaño: {(doc.size / 1024 / 1024).toFixed(2)} MB</p>
+                                  <p>Subido: {new Date(doc.uploadedAt).toLocaleDateString('es-MX')}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 text-gray-500">
+                            <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay documentos adjuntos</h3>
+                            <p>Esta solicitud no tiene documentos cargados.</p>
+                          </div>
+                        )}
+                      </div>
+                    </Tab>
+                  </Tabs>
+                )}
+              </ModalBody>
+              <ModalFooter className="border-t border-gray-200">
+                <HeroButton color="danger" variant="light" onPress={onClose}>
+                  Cerrar
+                </HeroButton>
+                {selectedApplication && (
+                  <div className="flex space-x-2">
+                    {selectedApplication.status === 'pending' && (
+                      <>
+                        <HeroButton
+                          color="warning"
+                          variant="bordered"
+                          onClick={() => {
+                            handleStatusChange(selectedApplication._id!.toString(), "review")
+                            onClose()
+                          }}
+                        >
+                          Marcar en Revisión
+                        </HeroButton>
+                        <HeroButton
+                          color="danger"
+                          variant="bordered"
+                          onClick={() => {
+                            handleStatusChange(selectedApplication._id!.toString(), "reject")
+                            onClose()
+                          }}
+                        >
+                          Rechazar
+                        </HeroButton>
+                        <HeroButton
+                          color="success"
+                          onClick={() => {
+                            handleStatusChange(selectedApplication._id!.toString(), "approve")
+                            onClose()
+                          }}
+                        >
+                          Aprobar
+                        </HeroButton>
+                      </>
+                    )}
+                    
+                    {selectedApplication.status === 'under_review' && (
+                      <>
+                        <HeroButton
+                          color="danger"
+                          variant="bordered"
+                          onClick={() => {
+                            handleStatusChange(selectedApplication._id!.toString(), "reject")
+                            onClose()
+                          }}
+                        >
+                          Rechazar
+                        </HeroButton>
+                        <HeroButton
+                          color="success"
+                          onClick={() => {
+                            handleStatusChange(selectedApplication._id!.toString(), "approve")
+                            onClose()
+                          }}
+                        >
+                          Aprobar
+                        </HeroButton>
+                      </>
+                    )}
+                  </div>
+                )}
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
       {/* Approval Modal */}
       {showApprovalModal && selectedApplication && (

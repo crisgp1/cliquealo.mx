@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from "@remix-run/node"
+import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from "@remix-run/node"
 import { useLoaderData, Link, Form, useFetcher } from "@remix-run/react"
 import { DEFAULT_SEO, generateBasicMeta } from "~/lib/seo"
 import { ListingModel } from "~/models/Listing.server"
@@ -65,6 +65,19 @@ export async function loader(args: LoaderFunctionArgs) {
   const minYear = url.searchParams.get("minYear") ? parseInt(url.searchParams.get("minYear") || "") : undefined
   const maxYear = url.searchParams.get("maxYear") ? parseInt(url.searchParams.get("maxYear") || "") : undefined
   const toastParam = url.searchParams.get("toast")
+  const redirectTo = url.searchParams.get("redirectTo")
+  
+  // Get user first to check authentication status
+  const user = await getClerkUser(args)
+  
+  // If user is authenticated and there's a redirectTo parameter, redirect them
+  if (user && redirectTo) {
+    const decodedRedirectTo = decodeURIComponent(redirectTo)
+    // Validate that the redirect URL is safe (internal to our app)
+    if (decodedRedirectTo.startsWith('/') && !decodedRedirectTo.startsWith('//')) {
+      throw redirect(decodedRedirectTo)
+    }
+  }
   
   const listings = await ListingModel.findMany({
     search,
@@ -82,8 +95,6 @@ export async function loader(args: LoaderFunctionArgs) {
     ...listing,
     hotStatus: getHotStatus(listing as any)
   }))
-  
-  const user = await getClerkUser(args)
   
   // Check user permissions on the server side
   const canCreateListings = user ? ClerkAuth.canCreateListings(user) : false
@@ -289,6 +300,21 @@ export default function Index() {
   const [showFilters, setShowFilters] = useState(false)
 
   const hasActiveFilters = brand || minPrice || maxPrice || minYear || maxYear
+
+  // Detectar si se debe mostrar un mensaje de sign-in
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const shouldSignIn = urlParams.get('signin') === 'true'
+    const redirectTo = urlParams.get('redirectTo')
+    
+    if (shouldSignIn && !user) {
+      // Mostrar un toast informativo para que el usuario sepa que debe iniciar sesión
+      toast.error(
+        'Inicia sesión para continuar',
+        redirectTo ? 'Necesitas una cuenta para acceder a esta función. Usa los botones de "Entrar" o "Registrarse" en la parte superior.' : 'Usa los botones de "Entrar" o "Registrarse" en la parte superior.'
+      )
+    }
+  }, [user])
 
   // Manejar toast para listing no encontrado
   useEffect(() => {

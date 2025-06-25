@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { toast } from "~/components/ui/toast";
 import { LottiePlayer } from "~/components/ui/lottie-player";
-import { X, Upload, Check, AlertCircle, GripVertical, Play, Image as ImageIcon, Video } from "lucide-react";
+import { X, Upload, Check, AlertCircle, GripVertical, Play, Image as ImageIcon, Video, FileText } from "lucide-react";
 // Removed problematic drag and drop imports - using native HTML5 drag and drop instead
 
 export type MediaType = 'image' | 'video';
@@ -32,6 +32,7 @@ type MediaUploadProps = {
   uploadMode?: 'overlay' | 'inline' | 'minimal';
   allowVideos?: boolean;
   maxVideoSize?: number;
+  uploadEndpoint?: string;
 };
 
 interface FileWithPreview extends File {
@@ -66,7 +67,8 @@ export function MediaUpload({
   maxVideoSize = 50 * 1024 * 1024, // 50MB para videos
   showProgress = true,
   uploadMode = 'overlay',
-  allowVideos = true
+  allowVideos = true,
+  uploadEndpoint = "/api/upload-image"
 }: MediaUploadProps) {
   
   const [files, setFiles] = useState<FileWithPreview[]>([]);
@@ -90,6 +92,11 @@ export function MediaUpload({
   const getMediaType = useCallback((file: File): MediaType => {
     if (file.type.startsWith('video/')) return 'video';
     return 'image';
+  }, []);
+
+  // Detectar si es PDF
+  const isPDF = useCallback((file: File): boolean => {
+    return file.type === 'application/pdf';
   }, []);
 
   // Validar archivo individual
@@ -201,7 +208,7 @@ export function MediaUpload({
     formData.append("file", file);
 
     try {
-      const response = await fetch("/api/upload-image", {
+      const response = await fetch(uploadEndpoint, {
         method: "POST",
         body: formData,
       });
@@ -217,7 +224,7 @@ export function MediaUpload({
       console.error("Error uploading file:", error);
       throw error;
     }
-  }, []);
+  }, [uploadEndpoint]);
 
   // Subir todos los archivos
   const handleUpload = useCallback(async () => {
@@ -570,7 +577,7 @@ export function MediaUpload({
                   }
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Soporta JPG, PNG, WebP, GIF hasta {(maxSize / 1024 / 1024).toFixed(1)}MB
+                  Soporta JPG, PNG, WebP, GIF{Object.keys(accept).includes('application/pdf') ? ', PDF' : ''} hasta {(maxSize / 1024 / 1024).toFixed(1)}MB
                   {allowVideos && ` y videos MP4, WebM, MOV, AVI hasta ${(maxVideoSize / 1024 / 1024).toFixed(1)}MB`}
                 </p>
                 <p className="text-xs text-gray-500">
@@ -699,6 +706,13 @@ function MediaGridItem({ item, index, onRemove, onReorder, isDragged, setDragged
             <Play className="w-8 h-8 text-white" />
           </div>
         </div>
+      ) : item.url.toLowerCase().includes('.pdf') || item.name?.toLowerCase().endsWith('.pdf') ? (
+        <div className="relative w-full h-full bg-red-50 flex items-center justify-center border-2 border-red-200">
+          <div className="text-center">
+            <FileText className="w-12 h-12 text-red-600 mx-auto mb-2" />
+            <span className="text-xs text-red-700 font-medium">PDF</span>
+          </div>
+        </div>
       ) : (
         <img
           src={item.url}
@@ -716,6 +730,8 @@ function MediaGridItem({ item, index, onRemove, onReorder, isDragged, setDragged
       <div className="absolute top-2 right-2 bg-blue-500 text-white rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {item.type === 'video' ? (
           <Video className="w-3 h-3" />
+        ) : item.url.toLowerCase().includes('.pdf') || item.name?.toLowerCase().endsWith('.pdf') ? (
+          <FileText className="w-3 h-3" />
         ) : (
           <ImageIcon className="w-3 h-3" />
         )}
@@ -779,6 +795,16 @@ function PendingFiles({ files, uploadState, onRemove, onUpload, getMediaType }: 
                     <Play className="w-6 h-6 text-white" />
                   </div>
                 </div>
+              ) : file.type === 'application/pdf' ? (
+                <div className="relative w-full h-full bg-red-50 flex items-center justify-center border-2 border-red-200">
+                  <div className="text-center">
+                    <FileText className="w-8 h-8 text-red-600 mx-auto mb-1" />
+                    <span className="text-xs text-red-700 font-medium">PDF</span>
+                    <div className="text-xs text-red-600 mt-1 px-1 truncate">
+                      {file.name}
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <img
                   src={file.preview}
@@ -819,6 +845,8 @@ function PendingFiles({ files, uploadState, onRemove, onUpload, getMediaType }: 
               <div className="absolute top-2 left-2 bg-blue-500 text-white rounded p-1">
                 {mediaType === 'video' ? (
                   <Video className="w-3 h-3" />
+                ) : file.type === 'application/pdf' ? (
+                  <FileText className="w-3 h-3" />
                 ) : (
                   <ImageIcon className="w-3 h-3" />
                 )}

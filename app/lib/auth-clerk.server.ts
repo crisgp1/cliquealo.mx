@@ -24,7 +24,10 @@ export async function requireClerkUser(args: LoaderFunctionArgs | ActionFunction
   const user = await getClerkUser(args)
   
   if (!user) {
-    throw redirect('/?signin=true')
+    // Preservar la URL original para redirigir después del login
+    const url = new URL(args.request.url)
+    const redirectTo = encodeURIComponent(url.pathname + url.search)
+    throw redirect(`/?signin=true&redirectTo=${redirectTo}`)
   }
   
   return user

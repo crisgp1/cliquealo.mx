@@ -701,6 +701,7 @@ export function CreditApplicationForm({
                 maxSize={10 * 1024 * 1024} // 10MB
                 allowVideos={false}
                 uploadMode="inline"
+                uploadEndpoint="/api/upload-credit-document"
               />
               
               {documents.length < 2 && (
