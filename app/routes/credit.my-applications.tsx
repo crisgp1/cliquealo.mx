@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { useLoaderData, Link } from "@remix-run/react"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
-import { getAuth } from "@clerk/remix/ssr.server"
+import { requireClerkUser } from "~/lib/auth-clerk.server"
 import { Card } from "~/components/ui/card"
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
@@ -18,15 +18,11 @@ import {
 } from "lucide-react"
 
 export async function loader(args: LoaderFunctionArgs) {
-  const { userId } = await getAuth(args)
+  const user = await requireClerkUser(args)
   
-  if (!userId) {
-    throw redirect("/")
-  }
+  const applications = await CreditApplicationModel.findByClerkId(user.clerkId!)
   
-  const applications = await CreditApplicationModel.findByUserId(userId)
-  
-  return json({ applications, userId })
+  return json({ applications, userId: user.clerkId })
 }
 
 const statusConfig = {

@@ -1,8 +1,7 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Form, useSubmit } from "@remix-run/react"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
-import { getAuth } from "@clerk/remix/ssr.server"
-import { UserModel } from "~/models/User.server"
+import { requireClerkAdmin } from "~/lib/auth-clerk.server"
 import { Card } from "~/components/ui/card"
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
@@ -32,23 +31,7 @@ import { useState } from "react"
 import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
 export async function loader(args: LoaderFunctionArgs) {
-  const { userId } = await getAuth(args)
-  
-  if (!userId) {
-    throw new Response("No autorizado", { status: 401 })
-  }
-  
-  // Buscar usuario en la base de datos
-  const user = await (UserModel as any).findByClerkId(userId)
-  if (!user) {
-    throw new Response("Usuario no encontrado", { status: 404 })
-  }
-  
-  // Verificar que sea admin
-  const isAdmin = await UserModel.isAdmin(user._id!.toString())
-  if (!isAdmin) {
-    throw new Response("No autorizado", { status: 403 })
-  }
+  const user = await requireClerkAdmin(args)
 
   const url = new URL(args.request.url)
   const status = url.searchParams.get("status") || undefined
@@ -70,23 +53,7 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export async function action(args: ActionFunctionArgs) {
-  const { userId } = await getAuth(args)
-  
-  if (!userId) {
-    throw new Response("No autorizado", { status: 401 })
-  }
-  
-  // Buscar usuario en la base de datos
-  const user = await (UserModel as any).findByClerkId(userId)
-  if (!user) {
-    throw new Response("Usuario no encontrado", { status: 404 })
-  }
-  
-  // Verificar que sea admin
-  const isAdmin = await UserModel.isAdmin(user._id!.toString())
-  if (!isAdmin) {
-    throw new Response("No autorizado", { status: 403 })
-  }
+  const user = await requireClerkAdmin(args)
 
   const formData = await args.request.formData()
   const action = formData.get("action") as string

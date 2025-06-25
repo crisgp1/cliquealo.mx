@@ -1,10 +1,10 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link, useFetcher } from "@remix-run/react"
 import { UserModel } from "~/models/User.server"
-import { getAuth } from "@clerk/remix/ssr.server"
+import { getClerkUser } from "~/lib/auth-clerk.server"
 import { toast } from "~/components/ui/toast"
-import { 
-  Heart, 
+import {
+  Heart,
   Eye,
   ArrowRight,
   Calendar,
@@ -17,17 +17,18 @@ import { useEffect } from 'react'
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string; listingId?: string }
 
 export async function loader(args: LoaderFunctionArgs) {
-  const { userId } = await getAuth(args)
+  const user = await getClerkUser(args)
   
-  if (!userId) {
+  if (!user) {
     throw new Response("Unauthorized", { status: 401 })
   }
   
   // Obtener todos los listings que el usuario ha marcado como favoritos
-  const likedListings = await UserModel.getLikedListings(userId, 50)
+  // Usar el _id de MongoDB del usuario, no el clerkId
+  const likedListings = await UserModel.getLikedListings(user._id!.toString(), 50)
   
   return json({
-    userId,
+    userId: user._id!.toString(),
     likedListings,
     totalLikes: likedListings.length
   })
@@ -35,9 +36,9 @@ export async function loader(args: LoaderFunctionArgs) {
 
 // Action para quitar favoritos
 export async function action(args: ActionFunctionArgs) {
-  const { userId } = await getAuth(args)
+  const user = await getClerkUser(args)
   
-  if (!userId) {
+  if (!user) {
     return json({ error: "Debes iniciar sesión" }, { status: 401 })
   }
   
@@ -51,7 +52,8 @@ export async function action(args: ActionFunctionArgs) {
 
   try {
     if (intent === "unlike") {
-      const success = await UserModel.unlikeListing(userId, listingId)
+      // Usar el _id de MongoDB del usuario, no el clerkId
+      const success = await UserModel.unlikeListing(user._id!.toString(), listingId)
       if (success) {
         return json({ success: true, action: "unliked", listingId })
       } else {

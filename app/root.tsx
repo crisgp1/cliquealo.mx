@@ -460,12 +460,21 @@ function App() {
                 <Button
                   as={Link}
                   to="/listings/new"
-                  variant="light"
-                  startContent={<Plus className="w-4 h-4 text-blue-500" />}
-                  className="w-full justify-start text-gray-600"
+                  variant="flat"
+                  startContent={
+                    <div className="relative">
+                      <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-full p-1">
+                        <Plus className="w-3 h-3 text-white" />
+                      </div>
+                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                    </div>
+                  }
+                  className="w-full justify-start bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 hover:from-red-100 hover:to-orange-100 transition-all duration-300"
                   onPress={() => setMobileMenuOpen(false)}
                 >
-                  Crear Listing
+                  <span className="font-semibold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                    ¡Crear Listing!
+                  </span>
                 </Button>
               </NavbarMenuItem>
             )}
@@ -551,11 +560,25 @@ function App() {
             {canCreateListings && (
               <Link
                 to="/listings/new"
-                className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors min-w-0"
-                title="Crear"
+                className="relative flex flex-col items-center py-2 px-1 min-w-0 group"
+                title="Crear Listing"
               >
-                <Plus className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
-                <span className="hidden sm:block text-xs font-medium">Crear</span>
+                {/* Fondo animado */}
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl opacity-0 group-hover:opacity-20 transition-all duration-300 transform group-hover:scale-110"></div>
+                
+                {/* Círculo de fondo para el ícono */}
+                <div className="relative bg-gradient-to-r from-red-500 to-orange-500 rounded-full p-2 shadow-lg transform group-hover:scale-110 transition-all duration-300 group-hover:shadow-xl">
+                  <Plus className="w-5 h-5 text-white animate-pulse" />
+                </div>
+                
+                {/* Texto con gradiente */}
+                <span className="hidden sm:block text-xs font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent mt-1">
+                  Crear
+                </span>
+                
+                {/* Indicador de pulso */}
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
               </Link>
             )}
           </SignedIn>

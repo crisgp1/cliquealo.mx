@@ -1,19 +1,12 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useSearchParams } from "@remix-run/react"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
-import { getAuth } from "@clerk/remix/ssr.server"
+import { getClerkUser, requireClerkUser } from "~/lib/auth-clerk.server"
 import { ListingModel } from "~/models/Listing.server"
 import { CreditApplicationForm } from "~/components/forms/CreditApplicationForm"
 
 export async function loader(args: LoaderFunctionArgs) {
-  const { userId } = await getAuth(args)
-  if (!userId) {
-    // Redirigir al home donde están los botones de Clerk
-    const url = new URL(args.request.url)
-    const searchParams = url.searchParams
-    const returnUrl = `/credit/apply?${searchParams.toString()}`
-    return redirect(`/?returnTo=${encodeURIComponent(returnUrl)}`)
-  }
+  const user = await requireClerkUser(args)
 
   const url = new URL(args.request.url)
   const listingId = url.searchParams.get("listing")
@@ -35,17 +28,19 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   return json({
-    userId,
+    userId: user.clerkId,
     listing,
     simulatorData
   })
 }
 
 export async function action(args: ActionFunctionArgs) {
-  const { userId } = await getAuth(args)
-  if (!userId) {
+  const user = await getClerkUser(args)
+  if (!user) {
     throw redirect("/")
   }
+  
+  const userId = user.clerkId
   
   try {
     const applicationData = await args.request.json()
@@ -76,7 +71,7 @@ export async function action(args: ActionFunctionArgs) {
 
     // Verificar si ya existe una solicitud pendiente para este usuario y listing
     if (applicationData.listingId) {
-      const existingApplications = await CreditApplicationModel.findByUserId(userId, 1, 0)
+      const existingApplications = await CreditApplicationModel.findByClerkId(userId!, 1, 0)
       const pendingApplication = existingApplications.find(app => 
         app.listingId?.toString() === applicationData.listingId && 
         ['pending', 'under_review'].includes(app.status)
@@ -90,8 +85,8 @@ export async function action(args: ActionFunctionArgs) {
     }
 
     // Crear la solicitud
-    const application = await CreditApplicationModel.create({
-      userId: userId as any, // El modelo ya maneja la conversión a ObjectId
+    const application = await CreditApplicationModel.createWithClerkId({
+      clerkId: userId!,
       listingId: applicationData.listingId || undefined,
       personalInfo: {
         ...applicationData.personalInfo,

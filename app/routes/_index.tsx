@@ -3,8 +3,7 @@ import { useLoaderData, Link, Form, useFetcher } from "@remix-run/react"
 import { DEFAULT_SEO, generateBasicMeta } from "~/lib/seo"
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
-import { Auth } from "~/lib/auth.server"
-import { getAuth } from "@clerk/remix/ssr.server"
+import { getClerkUser, ClerkAuth } from "~/lib/auth-clerk.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
@@ -84,15 +83,10 @@ export async function loader(args: LoaderFunctionArgs) {
     hotStatus: getHotStatus(listing as any)
   }))
   
-  const { userId } = await getAuth(args)
-  
-  let user = null
-  if (userId) {
-    user = await (UserModel as any).findByClerkId(userId)
-  }
+  const user = await getClerkUser(args)
   
   // Check user permissions on the server side
-  const canCreateListings = user ? Auth.canCreateListings(user) : false
+  const canCreateListings = user ? ClerkAuth.canCreateListings(user) : false
   
   //  Verificar qué listings tienen like del usuario actual
   let likedListings: string[] = []
@@ -121,16 +115,10 @@ export async function loader(args: LoaderFunctionArgs) {
 
 // Action para manejar likes/unlikes
 export async function action(args: ActionFunctionArgs) {
-  const { userId } = await getAuth(args)
+  const user = await getClerkUser(args)
   
-  if (!userId) {
-    return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
-  }
-
-  // Buscar usuario en la base de datos
-  const user = await (UserModel as any).findByClerkId(userId)
   if (!user) {
-    return json({ error: "Usuario no encontrado" }, { status: 404 })
+    return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
   }
 
   const formData = await args.request.formData()
@@ -259,6 +247,13 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
       <button
         type="submit"
         disabled={isLoading}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          if (!isLoading) {
+            e.currentTarget.form?.requestSubmit()
+          }
+        }}
         className={`absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 ${
           currentlyLiked
             ? 'hover:bg-red-50 scale-110'
@@ -266,12 +261,12 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
         } ${isLoading ? 'opacity-50 cursor-not-allowed animate-pulse' : 'hover:scale-105'}`}
         title={currentlyLiked ? 'Quitar de favoritos' : 'Agregar a favoritos'}
       >
-        <Heart 
+        <Heart
           className={`w-5 h-5 transition-all duration-200 ${
-            currentlyLiked 
-              ? 'fill-red-500 text-red-500' 
+            currentlyLiked
+              ? 'fill-red-500 text-red-500'
               : 'text-gray-600'
-          }`} 
+          }`}
         />
       </button>
     </fetcher.Form>

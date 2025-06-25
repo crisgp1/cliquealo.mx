@@ -9,9 +9,8 @@ import {
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
 import { BankPartnerModel } from "~/models/BankPartner.server"
-import { getUser } from "~/lib/session.server"
+import { getClerkUser } from "~/lib/auth-clerk.server"
 import { Auth } from "~/lib/auth.server"
-import { getAuth } from "@clerk/remix/ssr.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus, type Listing } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
@@ -109,7 +108,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   });
 };
 
-export async function loader({ params, request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const { params, request } = args
   const listingId = params.id
   console.log('🎯 LOADER - Listing ID:', listingId)
   
@@ -119,7 +119,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     return redirect("/?toast=listing-not-found")
   }
 
-  const user = await getUser(request)
+  const user = await getClerkUser(args)
   console.log('👤 Usuario actual:', user?.name || 'No logueado')
   
   // Buscar el listing con información del dueño
@@ -183,18 +183,11 @@ export async function action(args: ActionFunctionArgs) {
     return redirect("/?toast=listing-not-found")
   }
 
-  const { userId } = await getAuth(args)
+  const user = await getClerkUser(args)
   
-  if (!userId) {
+  if (!user) {
     console.log('❌ Usuario NO autenticado')
     return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
-  }
-
-  // Buscar usuario en la base de datos
-  const user = await (UserModel as any).findByClerkId(userId)
-  if (!user) {
-    console.log('❌ Usuario no encontrado en BD:', userId)
-    return json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
   console.log('✅ Usuario autenticado:', user.name, 'ID:', user._id)

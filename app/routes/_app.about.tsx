@@ -1,13 +1,12 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link } from "@remix-run/react"
-import { getAuth } from "@clerk/remix/ssr.server"
-import { UserModel } from "~/models/User.server"
-import { 
-  Heart, 
-  Lightbulb, 
-  Shield, 
-  Users, 
-  Target, 
+import { getClerkUser } from "~/lib/auth-clerk.server"
+import {
+  Heart,
+  Lightbulb,
+  Shield,
+  Users,
+  Target,
   TrendingUp,
   Star,
   Zap,
@@ -19,12 +18,7 @@ import {
 import { useEffect } from "react"
 
 export async function loader(args: LoaderFunctionArgs) {
-  const { userId } = await getAuth(args)
-  
-  let user = null
-  if (userId) {
-    user = await (UserModel as any).findByClerkId(userId)
-  }
+  const user = await getClerkUser(args)
   
   return json({ user })
 }

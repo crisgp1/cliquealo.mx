@@ -3,7 +3,7 @@ import { useLoaderData, useNavigate } from "@remix-run/react"
 import { BankPartnerModel } from "~/models/BankPartner.server"
 import { ListingModel } from "~/models/Listing.server"
 import { CreditSimulator } from "~/components/forms/CreditSimulator"
-import { getAuth } from "@clerk/remix/ssr.server"
+import { getClerkUser } from "~/lib/auth-clerk.server"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -36,9 +36,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action(args: ActionFunctionArgs) {
-  const { userId } = await getAuth(args)
+  const user = await getClerkUser(args)
   
-  if (!userId) {
+  if (!user) {
     // Redirigir al home si no está autenticado
     const formData = await args.request.formData()
     const returnData = {

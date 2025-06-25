@@ -1,6 +1,6 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, useLoaderData, useNavigation, useActionData } from "@remix-run/react"
-import { getAuth } from "@clerk/remix/ssr.server"
+import { getClerkUser, requireClerkUser } from "~/lib/auth-clerk.server"
 import { UserModel } from "~/models/User.server"
 import {
   ArrowLeftIcon,
@@ -14,17 +14,7 @@ import {
 import { Link } from "@remix-run/react"
 
 export async function loader(args: LoaderFunctionArgs) {
-  const { userId } = await getAuth(args)
-  
-  if (!userId) {
-    throw redirect('/?signin=true')
-  }
-  
-  // Get user from database to check role
-  const user = await UserModel.findById(userId)
-  if (!user) {
-    throw redirect('/?error=user-not-found')
-  }
+  const user = await requireClerkUser(args)
   
   // Only allow admin and superadmin to edit their profiles
   if (user.role !== 'admin' && user.role !== 'superadmin') {
@@ -35,16 +25,10 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export async function action(args: ActionFunctionArgs) {
-  const { userId } = await getAuth(args)
+  const user = await getClerkUser(args)
   
-  if (!userId) {
-    return json({ error: "Debes iniciar sesión" }, { status: 401 })
-  }
-  
-  // Get user from database to check role
-  const user = await UserModel.findById(userId)
   if (!user) {
-    return json({ error: "Usuario no encontrado" }, { status: 404 })
+    return json({ error: "Debes iniciar sesión" }, { status: 401 })
   }
   
   // Only allow admin and superadmin to edit their profiles
