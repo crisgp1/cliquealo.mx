@@ -88,18 +88,34 @@ export const ClerkRoles = {
    */
   async changeUserRole(clerkUserId: string, newRole: ClerkRole): Promise<boolean> {
     try {
-      // Buscar usuario en la base de datos
-      const user = await UserModel.findByClerkId(clerkUserId)
-      if (!user) return false
-
-      // Actualizar en la base de datos
-      const dbSuccess = await UserModel.syncRoleWithClerk(user._id!.toString(), newRole)
-      if (!dbSuccess) return false
-
-      // Actualizar en Clerk
-      const clerkSuccess = await this.syncRoleToClerk(clerkUserId, newRole)
+      console.log(`🔄 Cambiando rol de usuario ${clerkUserId} a ${newRole}`)
       
-      return clerkSuccess
+      // Primero actualizar en Clerk (esto es lo más importante)
+      const clerkSuccess = await this.syncRoleToClerk(clerkUserId, newRole)
+      if (!clerkSuccess) {
+        console.error('❌ Error actualizando rol en Clerk')
+        return false
+      }
+      
+      console.log('✅ Rol actualizado en Clerk exitosamente')
+
+      // Buscar usuario en la base de datos local
+      const user = await UserModel.findByClerkId(clerkUserId)
+      
+      if (user) {
+        // Si existe en la DB local, actualizarlo también
+        console.log('🔄 Actualizando rol en base de datos local')
+        const dbSuccess = await UserModel.syncRoleWithClerk(user._id!.toString(), newRole)
+        if (!dbSuccess) {
+          console.warn('⚠️ Error actualizando rol en DB local, pero Clerk fue actualizado exitosamente')
+        } else {
+          console.log('✅ Rol actualizado en DB local exitosamente')
+        }
+      } else {
+        console.log('ℹ️ Usuario no existe en DB local, solo actualizado en Clerk')
+      }
+      
+      return true
     } catch (error) {
       console.error('Error changing user role:', error)
       return false
