@@ -1,7 +1,7 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useActionData, Form, Link } from "@remix-run/react"
 import { useState } from "react"
-import { requireSuperAdmin } from "~/lib/auth.server"
+import { requireClerkSuperAdmin } from "~/lib/auth-clerk.server"
 import { BankPartnerModel } from "~/models/BankPartner.server"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
@@ -27,10 +27,10 @@ import {
   Globe
 } from "lucide-react"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireSuperAdmin(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const user = await requireClerkSuperAdmin(args)
   
-  const url = new URL(request.url)
+  const url = new URL(args.request.url)
   const search = url.searchParams.get("search") || ""
   const isActive = url.searchParams.get("active")
   
@@ -46,9 +46,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ partners, stats, currentUser: user, search, isActive })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireSuperAdmin(request)
-  const formData = await request.formData()
+export async function action(args: ActionFunctionArgs) {
+  const user = await requireClerkSuperAdmin(args)
+  const formData = await args.request.formData()
   const intent = formData.get("intent")
   
   try {

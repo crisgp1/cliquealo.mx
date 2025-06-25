@@ -209,13 +209,10 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
     return (
       <button
         onClick={() => {
-          toast.error("¡Inicia sesión para dar like! 💖", {
-            description: "Regístrate o inicia sesión para guardar tus autos favoritos",
-            action: {
-              label: "Registrarse",
-              onClick: () => window.location.href = "/?signup=true"
-            }
-          })
+          toast.error(
+            "¡Inicia sesión para dar like! 💖",
+            "Regístrate o inicia sesión para guardar tus autos favoritos"
+          )
         }}
         className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-red-50 hover:scale-105 transition-all duration-200 cursor-pointer"
         title="Haz clic para registrarte y dar like"

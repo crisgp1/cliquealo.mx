@@ -1,6 +1,6 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, Link, useLoaderData, useNavigation, useActionData } from "@remix-run/react"
-import { requireSuperAdmin } from "~/lib/auth.server"
+import { requireClerkSuperAdmin } from "~/lib/auth-clerk.server"
 import { UserModel } from "~/models/User.server"
 import { ListingModel } from "~/models/Listing.server"
 import {
@@ -31,10 +31,10 @@ import { Car } from 'lucide-react'
 import { useState } from 'react'
 import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
-  await requireSuperAdmin(request)
+export async function loader(args: LoaderFunctionArgs) {
+  await requireClerkSuperAdmin(args)
   
-  const userId = params.id
+  const userId = args.params.id
   if (!userId) {
     throw new Response("Usuario no encontrado", { status: 404 })
   }
@@ -53,22 +53,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   // Get user's liked listings
   const likedListings = await UserModel.getLikedListings(userId, 10)
   
-  return json({ 
-    user, 
+  return json({
+    user,
     userListings,
     likedListings
   })
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
-  await requireSuperAdmin(request)
+export async function action(args: ActionFunctionArgs) {
+  await requireClerkSuperAdmin(args)
   
-  const userId = params.id
+  const userId = args.params.id
   if (!userId) {
     return json({ error: "ID del usuario es requerido" }, { status: 400 })
   }
   
-  const formData = await request.formData()
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   
   try {

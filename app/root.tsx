@@ -38,7 +38,7 @@ import {
   Link as HeroLink
 } from "@heroui/react";
 
-import { Toaster } from "~/components/ui/toast";
+import { ToastProvider, Toaster } from "~/components/ui/toast";
 import { Preloader } from "~/components/ui/preloader";
 import styles from "./tailwind.css";
 
@@ -119,8 +119,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <HeroUIProvider>
-          {children}
-          <Toaster />
+          <ToastProvider>
+            {children}
+            <Toaster />
+          </ToastProvider>
         </HeroUIProvider>
         <ScrollRestoration />
         <Scripts />
@@ -147,6 +149,58 @@ function App() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Prevent unwanted page refreshes from form submissions and clicks
+  useEffect(() => {
+    const handleFormSubmit = (e: Event) => {
+      const target = e.target as HTMLFormElement;
+      
+      // Only prevent default if it's a form without proper action or method
+      if (target.tagName === 'FORM') {
+        const action = target.getAttribute('action');
+        const method = target.getAttribute('method');
+        
+        // If form has no action or method, it might cause a page refresh
+        if (!action || (!method && !action.startsWith('/'))) {
+          console.warn('Preventing form submission that could cause page refresh:', target);
+          e.preventDefault();
+        }
+      }
+    };
+
+    const handleClick = (e: Event) => {
+      const target = e.target as HTMLElement;
+      
+      // Prevent clicks on empty href links
+      if (target.tagName === 'A') {
+        const href = target.getAttribute('href');
+        if (href === '' || href === '#') {
+          e.preventDefault();
+        }
+      }
+      
+      // Prevent double-clicks that might cause issues
+      if (target.dataset.clicked === 'true') {
+        e.preventDefault();
+        return;
+      }
+      
+      // Mark as clicked temporarily
+      target.dataset.clicked = 'true';
+      setTimeout(() => {
+        delete target.dataset.clicked;
+      }, 1000);
+    };
+
+    // Add global event listeners
+    document.addEventListener('submit', handleFormSubmit, true);
+    document.addEventListener('click', handleClick, true);
+    
+    return () => {
+      document.removeEventListener('submit', handleFormSubmit, true);
+      document.removeEventListener('click', handleClick, true);
+    };
   }, []);
 
   // Close mobile menu when clicking outside

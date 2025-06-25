@@ -9,8 +9,7 @@ import {
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
 import { BankPartnerModel } from "~/models/BankPartner.server"
-import { getClerkUser } from "~/lib/auth-clerk.server"
-import { Auth } from "~/lib/auth.server"
+import { getClerkUser, ClerkAuth } from "~/lib/auth-clerk.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus, type Listing } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
@@ -156,7 +155,7 @@ export async function loader(args: LoaderFunctionArgs) {
   const bankPartners = await BankPartnerModel.findActiveForSimulator()
   
   // Verificar permisos de edición
-  const canEdit = user ? Auth.canEditListing(user, listing) : false
+  const canEdit = user ? ClerkAuth.canEditListing(user, listing) : false
 
   console.log('🔍 Loader debug:')
   console.log('- Usuario:', user?.name || 'No logueado')
@@ -225,7 +224,7 @@ export async function action(args: ActionFunctionArgs) {
       
       case "delete": {
         const listing = await ListingModel.findById(listingId)
-        if (!listing || !Auth.canEditListing(user, listing)) {
+        if (!listing || !ClerkAuth.canEditListing(user, listing)) {
           throw new Response("No autorizado", { status: 403 })
         }
         
@@ -691,13 +690,10 @@ export default function ListingDetail() {
                   variant="light"
                   color="default"
                   onClick={() => {
-                    toast.error("¡Inicia sesión para dar like! 💖", {
-                      description: "Regístrate o inicia sesión para guardar tus autos favoritos",
-                      action: {
-                        label: "Registrarse",
-                        onClick: () => window.location.href = "/?signup=true"
-                      }
-                    })
+                    toast.error(
+                      "¡Inicia sesión para dar like! 💖",
+                      "Regístrate o inicia sesión para guardar tus autos favoritos"
+                    )
                   }}
                   title="Haz clic para registrarte y dar like"
                 >

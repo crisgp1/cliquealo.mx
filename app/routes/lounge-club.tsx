@@ -99,10 +99,7 @@ export default function LoungeClub() {
   // Efecto visual cuando se envía un formulario - usando useEffect para prevenir múltiples toasts
   useEffect(() => {
     if (actionData?.status === "invalid") {
-      toast.error("Número de miembro no reconocido", {
-        description: "Este número no está registrado en nuestra base de datos exclusiva.",
-        duration: 5000
-      });
+      toast.error("Número de miembro no reconocido", "Este número no está registrado en nuestra base de datos exclusiva.");
     }
   }, [actionData]);
 
