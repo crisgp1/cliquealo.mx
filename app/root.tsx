@@ -140,6 +140,9 @@ function App() {
   const userRole = user?.publicMetadata?.role as 'user' | 'admin' | 'superadmin' || 'user';
   const canCreateListings = userRole === 'admin' || userRole === 'superadmin';
 
+  // Check if current route is admin route
+  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
   // Handle scroll effect for navbar
   useEffect(() => {
     const handleScroll = () => {
@@ -219,17 +222,18 @@ function App() {
     <div className="min-h-screen bg-white flex flex-col">
       <Preloader />
       
-      {/* HeroUI Navbar */}
-      <Navbar
-        isBlurred
-        className={`transition-all duration-300 ${
-          scrolled
-            ? 'bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm'
-            : 'bg-white border-b border-gray-50'
-        }`}
-        maxWidth="full"
-        height="4rem"
-      >
+      {/* HeroUI Navbar - Hidden on admin routes */}
+      {!isAdminRoute && (
+        <Navbar
+          isBlurred
+          className={`transition-all duration-300 ${
+            scrolled
+              ? 'bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm'
+              : 'bg-white border-b border-gray-50'
+          }`}
+          maxWidth="full"
+          height="4rem"
+        >
         {/* Logo */}
         <NavbarBrand>
           <Link to="/" className="flex items-center space-x-3 group">
@@ -564,15 +568,17 @@ function App() {
             </NavbarMenuItem>
           </SignedIn>
         </NavbarMenu>
-      </Navbar>
+        </Navbar>
+      )}
 
       {/* Main Content */}
-      <main className="flex-1 pb-20 md:pb-0">
+      <main className={`flex-1 ${!isAdminRoute ? 'pb-20 md:pb-0' : ''}`}>
         <Outlet />
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+      {/* Mobile Bottom Navigation - Hidden on admin routes */}
+      {!isAdminRoute && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
         <div className="flex items-center justify-around py-2">
           <Link
             to="/"
@@ -667,10 +673,12 @@ function App() {
             <span className="hidden sm:block text-xs font-medium">Club</span>
           </Link>
         </div>
-      </nav>
+        </nav>
+      )}
 
-      {/* Modern Responsive Footer */}
-      <footer className="bg-gradient-to-br from-gray-50 to-gray-100 border-t border-gray-200 mt-auto">
+      {/* Modern Responsive Footer - Hidden on admin routes */}
+      {!isAdminRoute && (
+        <footer className="bg-gradient-to-br from-gray-50 to-gray-100 border-t border-gray-200 mt-auto">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Main Footer Content */}
           <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -812,7 +820,8 @@ function App() {
             </div>
           </div>
         </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }

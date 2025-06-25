@@ -2,6 +2,7 @@ import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-r
 import { useLoaderData, Form, useSubmit } from "@remix-run/react"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
 import { requireClerkAdmin } from "~/lib/auth-clerk.server"
+import { AdminLayout } from "~/components/admin/AdminLayout"
 import { Card } from "~/components/ui/card"
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
@@ -10,11 +11,11 @@ import { Label } from "~/components/ui/label"
 import { Select } from "~/components/ui/select"
 import { Textarea } from "~/components/ui/textarea"
 import { toast } from "~/components/ui/toast"
-import { 
-  FileText, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
   Eye,
   Search,
   Filter,
@@ -25,10 +26,10 @@ import {
   Mail,
   Building,
   Download,
-  MessageSquare
+  MessageSquare,
+  TrendingUp
 } from "lucide-react"
 import { useState } from "react"
-import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
 export async function loader(args: LoaderFunctionArgs) {
   const user = await requireClerkAdmin(args)
@@ -203,84 +204,93 @@ export default function AdminCreditApplications() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <AdminLayout>
+      <div className="space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Solicitudes de Crédito
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Gestiona y revisa las solicitudes de financiamiento
-              </p>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Solicitudes de Crédito
+          </h1>
+          <p className="text-gray-600">
+            Gestiona y revisa las solicitudes de financiamiento de los usuarios
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pendientes</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {stats.byStatus.pending?.count || 0}
+                </p>
+                <p className="text-sm text-yellow-600 flex items-center mt-1">
+                  <Clock className="w-4 h-4 mr-1" />
+                  Requieren atención
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <Clock className="w-6 h-6 text-yellow-600" />
+              </div>
             </div>
-            <div className="mt-4 sm:mt-0">
-              <TicketCatalog />
+          </div>
+
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">En Revisión</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {stats.byStatus.under_review?.count || 0}
+                </p>
+                <p className="text-sm text-blue-600 flex items-center mt-1">
+                  <Eye className="w-4 h-4 mr-1" />
+                  En proceso
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Eye className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Aprobadas</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {stats.byStatus.approved?.count || 0}
+                </p>
+                <p className="text-sm text-green-600 flex items-center mt-1">
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  Exitosas
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm text-gray-600 flex items-center mt-1">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  Todas las solicitudes
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <FileText className="w-6 h-6 text-gray-600" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pendientes</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.byStatus.pending?.count || 0}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Eye className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">En Revisión</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.byStatus.under_review?.count || 0}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Aprobadas</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.byStatus.approved?.count || 0}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-gray-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
         {/* Filters */}
-        <Card className="p-6 mb-6">
+        <Card className="p-6">
           <Form method="get" className="flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-64">
               <Label htmlFor="search">Buscar</Label>
@@ -649,6 +659,6 @@ export default function AdminCreditApplications() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   )
 }
