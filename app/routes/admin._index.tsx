@@ -130,7 +130,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-medium text-gray-900">Usuarios Recientes</h2>
                 <Link
-                  to="/admin/users"
+                  to="/admin/clerk-users"
                   className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
                 >
                   <Users className="w-4 h-4" />

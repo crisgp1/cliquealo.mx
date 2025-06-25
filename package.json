@@ -12,6 +12,7 @@
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.2",
     "@atlaskit/pragmatic-drag-and-drop-react-beautiful-dnd-migration": "^2.0.4",
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@clerk/remix": "^4.8.2",
     "@cloudinary/react": "^1.14.3",
     "@cloudinary/url-gen": "^1.21.0",
