@@ -29,6 +29,7 @@ import {
 } from '@heroicons/react/24/solid'
 import { Car } from 'lucide-react'
 import { useState } from 'react'
+import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   await requireSuperAdmin(request)
@@ -227,6 +228,9 @@ export default function AdminUserDetail() {
                 Gestiona los privilegios y estado del usuario
               </p>
             </div>
+          </div>
+          <div>
+            <TicketCatalog />
           </div>
         </div>
         

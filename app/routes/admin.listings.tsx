@@ -25,6 +25,7 @@ import {
   Car
 } from 'lucide-react'
 import { useState } from 'react'
+import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Ensure user is admin
@@ -229,6 +230,8 @@ export default function AdminListings() {
           </div>
           
           <div className="mt-4 sm:mt-0 flex space-x-3">
+            <TicketCatalog />
+            
             <Link
               to="/listings/new"
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

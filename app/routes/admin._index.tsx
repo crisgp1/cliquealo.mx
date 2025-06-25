@@ -6,6 +6,7 @@ import { UserModel } from "~/models/User.server"
 import { ListingModel } from "~/models/Listing.server"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
 import { Users, Car, TrendingUp, Plus, CreditCard } from 'lucide-react'
+import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await requireAdmin(request)
@@ -35,12 +36,19 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-light text-gray-900 mb-2">
-            Panel de Administración
-          </h1>
-          <p className="text-gray-600">
-            Gestiona usuarios y listings de la plataforma
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-light text-gray-900 mb-2">
+                Panel de Administración
+              </h1>
+              <p className="text-gray-600">
+                Gestiona usuarios y listings de la plataforma
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0">
+              <TicketCatalog />
+            </div>
+          </div>
         </div>
 
         {/* Stats */}

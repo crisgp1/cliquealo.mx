@@ -27,6 +27,7 @@ import {
   ShieldExclamationIcon as ShieldExclamationIconSolid
 } from '@heroicons/react/24/solid'
 import { useState } from 'react'
+import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireSuperAdmin(request)
@@ -202,6 +203,7 @@ export default function AdminUsers() {
           </div>
           
           <div className="mt-4 sm:mt-0 flex space-x-3">
+            <TicketCatalog />
             <Link
               to="/admin"
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"

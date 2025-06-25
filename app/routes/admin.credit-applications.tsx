@@ -29,6 +29,7 @@ import {
   MessageSquare
 } from "lucide-react"
 import { useState } from "react"
+import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request)
@@ -219,12 +220,19 @@ export default function AdminCreditApplications() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Solicitudes de Crédito
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Gestiona y revisa las solicitudes de financiamiento
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Solicitudes de Crédito
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Gestiona y revisa las solicitudes de financiamiento
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0">
+              <TicketCatalog />
+            </div>
+          </div>
         </div>
 
         {/* Stats */}
