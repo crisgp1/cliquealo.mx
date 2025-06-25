@@ -1,5 +1,7 @@
 import { Link } from "@remix-run/react"
 import { User, Plus, Shield, Settings, Calculator } from 'lucide-react'
+import { SignInButton, SignUpButton, SignOutButton, useUser } from "@clerk/remix"
+import { useClerkRole } from "~/hooks/useClerkRole"
 import {
   Button,
   Avatar,
@@ -16,15 +18,12 @@ import {
 } from "@heroui/react"
 
 interface NavigationProps {
-  user?: {
-    name: string
-    role: string
-  } | null
+  // Clerk maneja el usuario internamente
 }
 
-export function Navigation({ user }: NavigationProps) {
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
-  const isSuperAdmin = user?.role === 'superadmin'
+export function Navigation({}: NavigationProps) {
+  const { isSignedIn, user } = useUser()
+  const { role, isAdmin, isSuperAdmin, canCreateListings, canAccessAdminPanel, label } = useClerkRole()
 
   return (
     <NavbarContent justify="end" className="gap-3">
@@ -36,7 +35,7 @@ export function Navigation({ user }: NavigationProps) {
       </NavbarBrand>
 
       {/* Solo admins ven el botón de crear */}
-      {isAdmin && (
+      {canCreateListings && (
         <NavbarItem className="hidden md:flex">
           <Button
             as={Link}
@@ -65,7 +64,7 @@ export function Navigation({ user }: NavigationProps) {
       </NavbarItem>
       
       {/* Admins y superadmins ven panel de administración */}
-      {isAdmin && (
+      {canAccessAdminPanel && (
         <NavbarItem>
           <Button
             as={Link}
@@ -79,20 +78,20 @@ export function Navigation({ user }: NavigationProps) {
         </NavbarItem>
       )}
       
-      {user ? (
+      {isSignedIn ? (
         <NavbarItem className="flex items-center gap-3">
           <div className="hidden sm:flex flex-col items-end">
             <span className="text-sm text-gray-600 font-medium">
-              {user.name}
+              {user?.firstName || user?.emailAddresses?.[0]?.emailAddress || 'Usuario'}
             </span>
-            {isAdmin && (
+            {isSignedIn && (
               <Chip
                 size="sm"
-                color="primary"
+                color={role === 'superadmin' ? 'warning' : role === 'admin' ? 'primary' : 'default'}
                 variant="flat"
                 className="text-xs"
               >
-                {user.role}
+                {label}
               </Chip>
             )}
           </div>
@@ -101,6 +100,7 @@ export function Navigation({ user }: NavigationProps) {
             <DropdownTrigger>
               <Avatar
                 size="sm"
+                src={user?.imageUrl}
                 icon={<User className="w-4 h-4" />}
                 classNames={{
                   base: "bg-gradient-to-br from-gray-100 to-gray-200 cursor-pointer",
@@ -109,48 +109,48 @@ export function Navigation({ user }: NavigationProps) {
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="Profile Actions">
-              {isAdmin ? (
-                <DropdownItem
-                  key="profile"
-                  startContent={<Settings className="w-4 h-4" />}
-                >
-                  <Link to="/profile/edit" className="w-full block">
-                    Editar Perfil
-                  </Link>
-                </DropdownItem>
-              ) : null}
+              <DropdownItem
+                key="applications"
+                startContent={<Settings className="w-4 h-4" />}
+              >
+                <Link to="/credit/my-applications" className="w-full block">
+                  Mis Solicitudes
+                </Link>
+              </DropdownItem>
               <DropdownItem
                 key="logout"
                 color="danger"
                 startContent={<User className="w-4 h-4" />}
               >
-                <Link to="/auth/logout" className="w-full block">
-                  Cerrar Sesión
-                </Link>
+                <SignOutButton>
+                  <span className="w-full block cursor-pointer">
+                    Cerrar Sesión
+                  </span>
+                </SignOutButton>
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </NavbarItem>
       ) : (
         <NavbarItem className="flex items-center gap-2">
-          <Button
-            as={Link}
-            to="/auth/login"
-            variant="light"
-            size="sm"
-          >
-            Entrar
-          </Button>
-          <Button
-            as={Link}
-            to="/auth/register"
-            color="default"
-            variant="solid"
-            size="sm"
-            className="bg-black text-white hover:bg-gray-800"
-          >
-            Registrarse
-          </Button>
+          <SignInButton mode="modal">
+            <Button
+              variant="light"
+              size="sm"
+            >
+              Entrar
+            </Button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <Button
+              color="default"
+              variant="solid"
+              size="sm"
+              className="bg-black text-white hover:bg-gray-800"
+            >
+              Registrarse
+            </Button>
+          </SignUpButton>
         </NavbarItem>
       )}
     </NavbarContent>

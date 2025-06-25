@@ -2,7 +2,7 @@ import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-r
 import { useLoaderData, Link, Form, useSearchParams, useFetcher } from "@remix-run/react"
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
-import { getUser, requireUser } from "~/lib/session.server"
+import { getAuth } from "@clerk/remix/ssr.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
@@ -39,8 +39,8 @@ import {
 // Tipo para la respuesta del action
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string; listingId?: string }
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const url = new URL(request.url)
+export async function loader(args: LoaderFunctionArgs) {
+  const url = new URL(args.request.url)
   const search = url.searchParams.get("search") || ""
   const brand = url.searchParams.get("brand") || ""
   const minPrice = url.searchParams.get("minPrice") ? parseInt(url.searchParams.get("minPrice") || "") : undefined
@@ -66,7 +66,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     skip
   })
   
-  const user = await getUser(request)
+  const { userId } = await getAuth(args)
+  
+  let user = null
+  if (userId) {
+    user = await (UserModel as any).findByClerkId(userId)
+  }
 
   // Get brands for filter dropdown
   const brands = await ListingModel.getBrandStats()
@@ -99,16 +104,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 // Action para manejar likes/unlikes
-export async function action({ request }: ActionFunctionArgs) {
-  // Verificar si hay usuario autenticado
-  let user
-  try {
-    user = await requireUser(request)
-  } catch (error) {
+export async function action(args: ActionFunctionArgs) {
+  const { userId } = await getAuth(args)
+  
+  if (!userId) {
     return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
   }
 
-  const formData = await request.formData()
+  // Buscar usuario en la base de datos
+  const user = await (UserModel as any).findByClerkId(userId)
+  if (!user) {
+    return json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   const listingId = formData.get("listingId") as string
 
@@ -215,7 +224,7 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
             description: "Regístrate o inicia sesión para guardar tus autos favoritos",
             action: {
               label: "Registrarse",
-              onClick: () => window.location.href = "/auth/register"
+              onClick: () => window.location.href = "/?signup=true"
             }
           })
         }}

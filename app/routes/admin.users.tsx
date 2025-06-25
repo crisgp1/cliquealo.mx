@@ -1,7 +1,8 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, Link, useLoaderData, useNavigation, useSearchParams, useSubmit } from "@remix-run/react"
-import { requireSuperAdmin } from "~/lib/auth.server"
+import { requireClerkSuperAdmin } from "~/lib/auth-clerk.server"
 import { UserModel } from "~/models/User.server"
+import RoleManager from "~/components/admin/RoleManager"
 import { 
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -29,8 +30,10 @@ import {
 import { useState } from 'react'
 import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  await requireSuperAdmin(request)
+export async function loader(args: LoaderFunctionArgs) {
+  await requireClerkSuperAdmin(args)
+  
+  const { request } = args
   
   const url = new URL(request.url)
   const search = url.searchParams.get("search") || ""
@@ -61,8 +64,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  await requireSuperAdmin(request)
+export async function action(args: ActionFunctionArgs) {
+  await requireClerkSuperAdmin(args)
+  
+  const { request } = args
   
   const formData = await request.formData()
   const intent = formData.get("intent") as string
@@ -254,6 +259,11 @@ export default function AdminUsers() {
               </div>
             </div>
           </div>
+        </div>
+        
+        {/* Role Manager */}
+        <div className="mb-8">
+          <RoleManager users={users as any} />
         </div>
         
         {/* Filters */}

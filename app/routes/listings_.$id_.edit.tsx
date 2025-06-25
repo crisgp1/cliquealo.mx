@@ -1,7 +1,7 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { useActionData, Link, useNavigation, useLoaderData, useSubmit } from "@remix-run/react"
 import { ListingModel } from "~/models/Listing.server"
-import { requireAdmin } from "~/lib/auth.server"
+import { requireClerkAdmin } from "~/lib/auth-clerk.server"
 import { HeroCarListingForm } from "~/components/forms/HeroCarListingForm"
 import { useState, useEffect } from 'react'
 import { motion } from "framer-motion"
@@ -55,8 +55,9 @@ const PAGE_TEXTS = {
   }
 } as const
 
-export async function loader({ params, request }: LoaderFunctionArgs) {
-  const user = await requireAdmin(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const { params, request } = args;
+  const user = await requireClerkAdmin(args)
   
   const listingId = params.id
   if (!listingId) {
@@ -79,8 +80,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return json({ listing, user })
 }
 
-export async function action({ params, request }: ActionFunctionArgs) {
-  const user = await requireAdmin(request)
+export async function action(args: ActionFunctionArgs) {
+  const { params, request } = args;
+  const user = await requireClerkAdmin(args)
   const listingId = params.id
   
   if (!listingId) {

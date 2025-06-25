@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link, useFetcher } from "@remix-run/react"
 import { UserModel } from "~/models/User.server"
-import { requireUser } from "~/lib/session.server"
+import { getAuth } from "@clerk/remix/ssr.server"
 import { toast } from "~/components/ui/toast"
 import { 
   Heart, 
@@ -16,23 +16,32 @@ import { useEffect } from 'react'
 // Tipo para la respuesta del action
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string; listingId?: string }
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireUser(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const { userId } = await getAuth(args)
+  
+  if (!userId) {
+    throw new Response("Unauthorized", { status: 401 })
+  }
   
   // Obtener todos los listings que el usuario ha marcado como favoritos
-  const likedListings = await UserModel.getLikedListings(user._id!.toString(), 50)
+  const likedListings = await UserModel.getLikedListings(userId, 50)
   
-  return json({ 
-    user,
+  return json({
+    userId,
     likedListings,
     totalLikes: likedListings.length
   })
 }
 
 // Action para quitar favoritos
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireUser(request)
-  const formData = await request.formData()
+export async function action(args: ActionFunctionArgs) {
+  const { userId } = await getAuth(args)
+  
+  if (!userId) {
+    return json({ error: "Debes iniciar sesión" }, { status: 401 })
+  }
+  
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   const listingId = formData.get("listingId") as string
 
@@ -42,7 +51,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     if (intent === "unlike") {
-      const success = await UserModel.unlikeListing(user._id!.toString(), listingId)
+      const success = await UserModel.unlikeListing(userId, listingId)
       if (success) {
         return json({ success: true, action: "unliked", listingId })
       } else {
@@ -97,7 +106,7 @@ function RemoveFavoriteButton({ listing }: { listing: any }) {
 }
 
 export default function Favorites() {
-  const { user, likedListings, totalLikes } = useLoaderData<typeof loader>()
+  const { userId, likedListings, totalLikes } = useLoaderData<typeof loader>()
 
   return (
     <div className="min-h-screen bg-white">
