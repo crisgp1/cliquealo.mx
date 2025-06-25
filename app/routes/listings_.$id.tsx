@@ -10,7 +10,8 @@ import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
 import { BankPartnerModel } from "~/models/BankPartner.server"
 import { getUser } from "~/lib/session.server"
-import { requireUser, Auth } from "~/lib/auth.server"
+import { Auth } from "~/lib/auth.server"
+import { getAuth } from "@clerk/remix/ssr.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus, type Listing } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
@@ -80,7 +81,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     });
   }
 
-  const listing = data.listing;
+  const listing = data.listing as any;
   
   // Construir description optimizada para SEO
   const description = `${listing.year} ${listing.brand} ${listing.model} en venta. ${
@@ -172,8 +173,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   })
 }
 
-export async function action({ params, request }: ActionFunctionArgs) {
-  const listingId = params.id
+export async function action(args: ActionFunctionArgs) {
+  const listingId = args.params.id
   console.log('🎯 ACTION EJECUTADO - Listing ID:', listingId)
   
   if (!listingId) {
@@ -182,17 +183,23 @@ export async function action({ params, request }: ActionFunctionArgs) {
     return redirect("/?toast=listing-not-found")
   }
 
-  // Verificar si hay usuario autenticado
-  let user
-  try {
-    user = await requireUser(request)
-    console.log('✅ Usuario autenticado:', user.name, 'ID:', user._id)
-  } catch (error) {
+  const { userId } = await getAuth(args)
+  
+  if (!userId) {
     console.log('❌ Usuario NO autenticado')
     return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
   }
 
-  const formData = await request.formData()
+  // Buscar usuario en la base de datos
+  const user = await (UserModel as any).findByClerkId(userId)
+  if (!user) {
+    console.log('❌ Usuario no encontrado en BD:', userId)
+    return json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+
+  console.log('✅ Usuario autenticado:', user.name, 'ID:', user._id)
+
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   console.log('🎯 Intent recibido:', intent)
 
@@ -252,7 +259,9 @@ type LoaderData = {
   canEdit: boolean
 }
 
-type MetaData = LoaderData | {}
+type MetaData = {
+  listing?: Listing & { hotStatus: string }
+}
 
 // Script para JSON-LD estructurado
 const ListingJsonLd = ({ listing }: { listing: any }) => {
@@ -693,7 +702,7 @@ export default function ListingDetail() {
                       description: "Regístrate o inicia sesión para guardar tus autos favoritos",
                       action: {
                         label: "Registrarse",
-                        onClick: () => window.location.href = "/auth/register"
+                        onClick: () => window.location.href = "/?signup=true"
                       }
                     })
                   }}

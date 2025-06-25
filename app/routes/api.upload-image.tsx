@@ -1,11 +1,12 @@
 import { json, type ActionFunctionArgs } from "@remix-run/node";
 import { uploadMedia } from "~/lib/cloudinary.server";
-import { requireAdmin } from "~/lib/auth.server";
+import { requireClerkAdmin } from "~/lib/auth-clerk.server";
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
   try {
     // Only allow admin users to upload media
-    await requireAdmin(request);
+    await requireClerkAdmin(args);
 
     // Only allow POST requests
     if (request.method !== "POST") {

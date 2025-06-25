@@ -32,7 +32,7 @@ export async function getUser(request: Request) {
 export async function requireUser(request: Request) {
   const user = await getUser(request)
   if (!user) {
-    throw redirect('/auth/login')
+    throw redirect('/?signin=true')
   }
   return user
 }
@@ -51,7 +51,7 @@ export async function createUserSession(userId: string, redirectTo: string) {
 export async function logout(request: Request) {
   const session = await getSession(request)
   
-  return redirect('/auth/login', {
+  return redirect('/?signout=true', {
     headers: {
       'Set-Cookie': await sessionStorage.destroySession(session)
     }

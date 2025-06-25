@@ -4,7 +4,7 @@ import { DEFAULT_SEO, generateBasicMeta } from "~/lib/seo"
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
 import { Auth } from "~/lib/auth.server"
-import { getUser, requireUser } from "~/lib/session.server"
+import { getAuth } from "@clerk/remix/ssr.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
@@ -56,7 +56,8 @@ export const meta: MetaFunction = () => {
   });
 };
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const { request } = args
   const url = new URL(request.url)
   const search = url.searchParams.get("search") || ""
   const brand = url.searchParams.get("brand") || ""
@@ -83,7 +84,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     hotStatus: getHotStatus(listing as any)
   }))
   
-  const user = await getUser(request)
+  const { userId } = await getAuth(args)
+  
+  let user = null
+  if (userId) {
+    user = await (UserModel as any).findByClerkId(userId)
+  }
   
   // Check user permissions on the server side
   const canCreateListings = user ? Auth.canCreateListings(user) : false
@@ -114,16 +120,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 // Action para manejar likes/unlikes
-export async function action({ request }: ActionFunctionArgs) {
-  // Verificar si hay usuario autenticado
-  let user
-  try {
-    user = await requireUser(request)
-  } catch (error) {
+export async function action(args: ActionFunctionArgs) {
+  const { userId } = await getAuth(args)
+  
+  if (!userId) {
     return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
   }
 
-  const formData = await request.formData()
+  // Buscar usuario en la base de datos
+  const user = await (UserModel as any).findByClerkId(userId)
+  if (!user) {
+    return json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   const listingId = formData.get("listingId") as string
 
@@ -230,7 +240,7 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
             description: "Regístrate o inicia sesión para guardar tus autos favoritos",
             action: {
               label: "Registrarse",
-              onClick: () => window.location.href = "/auth/register"
+              onClick: () => window.location.href = "/?signup=true"
             }
           })
         }}

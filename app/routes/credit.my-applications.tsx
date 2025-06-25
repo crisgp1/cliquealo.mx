@@ -1,15 +1,15 @@
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import { json, type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { useLoaderData, Link } from "@remix-run/react"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
-import { requireUser } from "~/lib/session.server"
+import { getAuth } from "@clerk/remix/ssr.server"
 import { Card } from "~/components/ui/card"
 import { Button } from "~/components/ui/button"
 import { Badge } from "~/components/ui/badge"
-import { 
-  FileText, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
+import {
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
   Eye,
   Plus,
   DollarSign,
@@ -17,11 +17,16 @@ import {
   Car
 } from "lucide-react"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireUser(request)
-  const applications = await CreditApplicationModel.findByUserId(user._id!.toString())
+export async function loader(args: LoaderFunctionArgs) {
+  const { userId } = await getAuth(args)
   
-  return json({ applications, user })
+  if (!userId) {
+    throw redirect("/")
+  }
+  
+  const applications = await CreditApplicationModel.findByUserId(userId)
+  
+  return json({ applications, userId })
 }
 
 const statusConfig = {
@@ -53,7 +58,7 @@ const statusConfig = {
 }
 
 export default function MyApplications() {
-  const { applications, user } = useLoaderData<typeof loader>()
+  const { applications, userId } = useLoaderData<typeof loader>()
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {

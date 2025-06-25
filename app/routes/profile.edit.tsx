@@ -1,6 +1,6 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, useLoaderData, useNavigation, useActionData } from "@remix-run/react"
-import { requireUser } from "~/lib/auth.server"
+import { getAuth } from "@clerk/remix/ssr.server"
 import { UserModel } from "~/models/User.server"
 import {
   ArrowLeftIcon,
@@ -13,8 +13,18 @@ import {
 } from '@heroicons/react/24/outline'
 import { Link } from "@remix-run/react"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireUser(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const { userId } = await getAuth(args)
+  
+  if (!userId) {
+    throw redirect('/?signin=true')
+  }
+  
+  // Get user from database to check role
+  const user = await UserModel.findById(userId)
+  if (!user) {
+    throw redirect('/?error=user-not-found')
+  }
   
   // Only allow admin and superadmin to edit their profiles
   if (user.role !== 'admin' && user.role !== 'superadmin') {
@@ -24,15 +34,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ user })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireUser(request)
+export async function action(args: ActionFunctionArgs) {
+  const { userId } = await getAuth(args)
+  
+  if (!userId) {
+    return json({ error: "Debes iniciar sesión" }, { status: 401 })
+  }
+  
+  // Get user from database to check role
+  const user = await UserModel.findById(userId)
+  if (!user) {
+    return json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
   
   // Only allow admin and superadmin to edit their profiles
   if (user.role !== 'admin' && user.role !== 'superadmin') {
     return json({ error: "No tienes permisos para realizar esta acción" }, { status: 403 })
   }
   
-  const formData = await request.formData()
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   
   try {

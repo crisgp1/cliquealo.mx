@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Form, useSubmit } from "@remix-run/react"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
-import { requireUser } from "~/lib/session.server"
+import { getAuth } from "@clerk/remix/ssr.server"
 import { UserModel } from "~/models/User.server"
 import { Card } from "~/components/ui/card"
 import { Button } from "~/components/ui/button"
@@ -31,8 +31,18 @@ import {
 import { useState } from "react"
 import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireUser(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const { userId } = await getAuth(args)
+  
+  if (!userId) {
+    throw new Response("No autorizado", { status: 401 })
+  }
+  
+  // Buscar usuario en la base de datos
+  const user = await (UserModel as any).findByClerkId(userId)
+  if (!user) {
+    throw new Response("Usuario no encontrado", { status: 404 })
+  }
   
   // Verificar que sea admin
   const isAdmin = await UserModel.isAdmin(user._id!.toString())
@@ -40,7 +50,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw new Response("No autorizado", { status: 403 })
   }
 
-  const url = new URL(request.url)
+  const url = new URL(args.request.url)
   const status = url.searchParams.get("status") || undefined
   const search = url.searchParams.get("search") || undefined
   const page = parseInt(url.searchParams.get("page") || "1")
@@ -59,8 +69,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ applications, stats, filters: { status, search, page } })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireUser(request)
+export async function action(args: ActionFunctionArgs) {
+  const { userId } = await getAuth(args)
+  
+  if (!userId) {
+    throw new Response("No autorizado", { status: 401 })
+  }
+  
+  // Buscar usuario en la base de datos
+  const user = await (UserModel as any).findByClerkId(userId)
+  if (!user) {
+    throw new Response("Usuario no encontrado", { status: 404 })
+  }
   
   // Verificar que sea admin
   const isAdmin = await UserModel.isAdmin(user._id!.toString())
@@ -68,7 +88,7 @@ export async function action({ request }: ActionFunctionArgs) {
     throw new Response("No autorizado", { status: 403 })
   }
 
-  const formData = await request.formData()
+  const formData = await args.request.formData()
   const action = formData.get("action") as string
   const applicationId = formData.get("applicationId") as string
 

@@ -12,15 +12,16 @@ import {
 } from "@remix-run/react";
 import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { 
-  DEFAULT_SEO, 
+import {
+  DEFAULT_SEO,
   generateBasicMeta,
   generateOrganizationJsonLd,
   generateWebsiteJsonLd
 } from "~/lib/seo";
 import { useState, useEffect } from "react";
-import { getUser } from "~/lib/session.server";
-import { Auth } from "~/lib/auth.server";
+// Import Clerk
+import { rootAuthLoader } from '@clerk/remix/ssr.server'
+import { ClerkApp, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from '@clerk/remix'
 import { X, Plus, User, LogOut, Shield, Heart, Menu, Search, Info, Home, LogIn, UserPlus, CreditCard, Crown } from "lucide-react"; // 🔥 AGREGADO más iconos
 import {
   HeroUIProvider,
@@ -50,15 +51,37 @@ export const meta: MetaFunction = () => {
   });
 };
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const user = await getUser(request);
-  const canCreateListings = user ? Auth.canCreateListings(user) : false;
-  return json({ user, canCreateListings });
+// Export rootAuthLoader as the root route loader with proper error handling
+export const loader = async (args: LoaderFunctionArgs) => {
+  try {
+    return await rootAuthLoader(args);
+  } catch (error) {
+    console.error('Clerk authentication error:', error);
+    
+    // Check if it's a configuration error
+    if (error instanceof Error && error.message?.includes('CLERK_')) {
+      console.warn('⚠️ Clerk configuration issue detected. Running in fallback mode.');
+    }
+    
+    // Return a basic response if Clerk fails
+    return json({
+      user: null,
+      userId: null,
+      sessionId: null,
+      orgId: null,
+      orgRole: null,
+      orgSlug: null,
+      __clerk_ssr_state: null,
+      __clerk_error: true // Flag to indicate Clerk error
+    });
+  }
 };
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
   { rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" },
+  { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+  { rel: "shortcut icon", href: "/favicon.ico", type: "image/x-icon" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -106,10 +129,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
-  const { user, canCreateListings } = useLoaderData<typeof loader>();
+function App() {
+  const { user } = useUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  // Determine user role and permissions from Clerk metadata
+  const userRole = user?.publicMetadata?.role as 'user' | 'admin' | 'superadmin' || 'user';
+  const canCreateListings = userRole === 'admin' || userRole === 'superadmin';
 
   // Handle scroll effect for navbar
   useEffect(() => {
@@ -238,7 +265,7 @@ export default function App() {
             </NavbarItem>
           )}
           
-          {user?.role === 'superadmin' && (
+          {userRole === 'superadmin' && (
             <NavbarItem>
               <Button
                 as={Link}
@@ -255,94 +282,100 @@ export default function App() {
 
         {/* User Section */}
         <NavbarContent justify="end">
-          {user ? (
+          <SignedIn>
             <NavbarItem className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm text-gray-600 font-medium">
-                  {user.name}
+                  {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress}
                 </span>
-                {(user.role === 'admin' || user.role === 'superadmin') && (
+                {(userRole === 'admin' || userRole === 'superadmin') && (
                   <Chip
                     size="sm"
                     color="primary"
                     variant="flat"
                     className="text-xs"
                   >
-                    {user.role}
+                    {userRole}
                   </Chip>
                 )}
               </div>
               
-              <Avatar
-                size="sm"
-                icon={<User className="w-4 h-4" />}
-                classNames={{
-                  base: "bg-gradient-to-br from-gray-100 to-gray-200",
-                  icon: "text-gray-600"
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8"
+                  }
                 }}
               />
-              
-              <Form method="post" action="/auth/logout" className="inline">
+            </NavbarItem>
+          </SignedIn>
+          
+          <SignedOut>
+            <NavbarItem className="flex items-center gap-2">
+              <SignInButton
+                mode="modal"
+                fallbackRedirectUrl="/"
+                signUpFallbackRedirectUrl="/"
+              >
                 <Button
-                  type="submit"
+                  variant="light"
+                  size="sm"
+                  className="hidden sm:flex"
+                >
+                  Entrar
+                </Button>
+              </SignInButton>
+              
+              <SignUpButton
+                mode="modal"
+                fallbackRedirectUrl="/"
+                signInFallbackRedirectUrl="/"
+              >
+                <Button
+                  color="default"
+                  variant="solid"
+                  size="sm"
+                  className="bg-black text-white hover:bg-gray-800 hidden sm:flex"
+                >
+                  Registrarse
+                </Button>
+              </SignUpButton>
+              
+              {/* Mobile auth buttons */}
+              <SignInButton
+                mode="modal"
+                fallbackRedirectUrl="/"
+                signUpFallbackRedirectUrl="/"
+              >
+                <Button
                   isIconOnly
                   variant="light"
                   size="sm"
-                  className="text-gray-400 hover:text-red-500"
-                  aria-label="Cerrar sesión"
+                  className="flex sm:hidden"
+                  aria-label="Entrar"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogIn className="w-5 h-5" />
                 </Button>
-              </Form>
-            </NavbarItem>
-          ) : (
-            <NavbarItem className="flex items-center gap-2">
-              <Button
-                as={Link}
-                to="/auth/login"
-                variant="light"
-                size="sm"
-                className="hidden sm:flex"
-              >
-                Entrar
-              </Button>
-              <Button
-                as={Link}
-                to="/auth/register"
-                color="default"
-                variant="solid"
-                size="sm"
-                className="bg-black text-white hover:bg-gray-800 hidden sm:flex"
-              >
-                Registrarse
-              </Button>
+              </SignInButton>
               
-              {/* Mobile auth buttons */}
-              <Button
-                as={Link}
-                to="/auth/login"
-                isIconOnly
-                variant="light"
-                size="sm"
-                className="flex sm:hidden"
-                aria-label="Entrar"
+              <SignUpButton
+                mode="modal"
+                fallbackRedirectUrl="/"
+                signInFallbackRedirectUrl="/"
               >
-                <LogIn className="w-5 h-5" />
-              </Button>
-              <Button
-                as={Link}
-                to="/auth/register"
-                isIconOnly
-                color="default"
-                variant="solid"
-                size="sm"
-                className="bg-black text-white hover:bg-gray-800 flex sm:hidden"
-                aria-label="Registrarse"
-              >
-                <UserPlus className="w-5 h-5" />
-              </Button>
+                <Button
+                  isIconOnly
+                  color="default"
+                  variant="solid"
+                  size="sm"
+                  className="bg-black text-white hover:bg-gray-800 flex sm:hidden"
+                  aria-label="Registrarse"
+                >
+                  <UserPlus className="w-5 h-5" />
+                </Button>
+              </SignUpButton>
             </NavbarItem>
-          )}
+          </SignedOut>
           
           {/* Mobile menu toggle */}
           <NavbarMenuToggle
@@ -366,7 +399,7 @@ export default function App() {
             </Button>
           </NavbarMenuItem>
           
-          {user && (
+          <SignedIn>
             <NavbarMenuItem>
               <Button
                 as={Link}
@@ -379,9 +412,7 @@ export default function App() {
                 Mis Favoritos
               </Button>
             </NavbarMenuItem>
-          )}
-          
-          {user && (
+            
             <NavbarMenuItem>
               <Button
                 as={Link}
@@ -394,7 +425,7 @@ export default function App() {
                 Mis Solicitudes de Crédito
               </Button>
             </NavbarMenuItem>
-          )}
+          </SignedIn>
           
           <NavbarMenuItem>
             <Button
@@ -423,22 +454,24 @@ export default function App() {
             </Button>
           </NavbarMenuItem>
           
-          {user && canCreateListings && (
-            <NavbarMenuItem>
-              <Button
-                as={Link}
-                to="/listings/new"
-                variant="light"
-                startContent={<Plus className="w-4 h-4 text-blue-500" />}
-                className="w-full justify-start text-gray-600"
-                onPress={() => setMobileMenuOpen(false)}
-              >
-                Crear Listing
-              </Button>
-            </NavbarMenuItem>
-          )}
+          <SignedIn>
+            {canCreateListings && (
+              <NavbarMenuItem>
+                <Button
+                  as={Link}
+                  to="/listings/new"
+                  variant="light"
+                  startContent={<Plus className="w-4 h-4 text-blue-500" />}
+                  className="w-full justify-start text-gray-600"
+                  onPress={() => setMobileMenuOpen(false)}
+                >
+                  Crear Listing
+                </Button>
+              </NavbarMenuItem>
+            )}
+          </SignedIn>
           
-          {user?.role === 'superadmin' && (
+          {userRole === 'superadmin' && (
             <NavbarMenuItem>
               <Button
                 as={Link}
@@ -453,21 +486,20 @@ export default function App() {
             </NavbarMenuItem>
           )}
           
-          {user && (
+          <SignedIn>
             <NavbarMenuItem className="mt-4 pt-4 border-t border-gray-100">
-              <Form method="post" action="/auth/logout">
-                <Button
-                  type="submit"
-                  variant="light"
-                  startContent={<LogOut className="w-4 h-4" />}
-                  className="w-full justify-start text-gray-600 hover:text-red-600"
-                  onPress={() => setMobileMenuOpen(false)}
-                >
-                  Cerrar Sesión
-                </Button>
-              </Form>
+              <UserButton
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "w-8 h-8",
+                    userButtonPopoverCard: "bg-white shadow-lg border border-gray-200",
+                    userButtonPopoverActionButton: "text-gray-700 hover:bg-gray-50"
+                  }
+                }}
+                showName
+              />
             </NavbarMenuItem>
-          )}
+          </SignedIn>
         </NavbarMenu>
       </Navbar>
 
@@ -497,7 +529,7 @@ export default function App() {
             <span className="hidden sm:block text-xs font-medium">Explorar</span>
           </Link>
           
-          {user && (
+          <SignedIn>
             <Link
               to="/favorites"
               className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-red-600 transition-colors min-w-0"
@@ -506,9 +538,7 @@ export default function App() {
               <Heart className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
               <span className="hidden sm:block text-xs font-medium">Favoritos</span>
             </Link>
-          )}
-          
-          {user && (
+            
             <Link
               to="/credit/my-applications"
               className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-green-600 transition-colors min-w-0"
@@ -517,20 +547,20 @@ export default function App() {
               <CreditCard className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
               <span className="hidden sm:block text-xs font-medium">Créditos</span>
             </Link>
-          )}
+            
+            {canCreateListings && (
+              <Link
+                to="/listings/new"
+                className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors min-w-0"
+                title="Crear"
+              >
+                <Plus className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
+                <span className="hidden sm:block text-xs font-medium">Crear</span>
+              </Link>
+            )}
+          </SignedIn>
           
-          {user && canCreateListings && (
-            <Link
-              to="/listings/new"
-              className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors min-w-0"
-              title="Crear"
-            >
-              <Plus className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
-              <span className="hidden sm:block text-xs font-medium">Crear</span>
-            </Link>
-          )}
-          
-          {user?.role === 'superadmin' && (
+          {userRole === 'superadmin' && (
             <Link
               to="/admin"
               className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-purple-600 transition-colors min-w-0"
@@ -635,20 +665,18 @@ export default function App() {
                     Lounge Club <span className="inline-block ml-1 text-amber-500">★</span>
                   </Link>
                 </li>
-                {user && (
-                  <>
-                    <li>
-                      <Link to="/favorites" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                        Mis Favoritos
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/credit/my-applications" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                        Mis Créditos
-                      </Link>
-                    </li>
-                  </>
-                )}
+                <SignedIn>
+                  <li>
+                    <Link to="/favorites" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                      Mis Favoritos
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/credit/my-applications" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                      Mis Créditos
+                    </Link>
+                  </li>
+                </SignedIn>
               </ul>
             </div>
 
@@ -864,8 +892,9 @@ export function ErrorBoundary() {
             </div>
           </div>
         </div>
-    );
-  }
+      );
+    }
+    
 
   // Handle other errors
   return (
@@ -887,3 +916,6 @@ export function ErrorBoundary() {
     </div>
   );
 }
+
+// Wrap the App component with ClerkApp
+export default ClerkApp(App);

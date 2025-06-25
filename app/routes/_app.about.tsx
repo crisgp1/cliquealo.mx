@@ -1,6 +1,7 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link } from "@remix-run/react"
-import { getUser } from "~/lib/session.server"
+import { getAuth } from "@clerk/remix/ssr.server"
+import { UserModel } from "~/models/User.server"
 import { 
   Heart, 
   Lightbulb, 
@@ -17,8 +18,14 @@ import {
 } from 'lucide-react'
 import { useEffect } from "react"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await getUser(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const { userId } = await getAuth(args)
+  
+  let user = null
+  if (userId) {
+    user = await (UserModel as any).findByClerkId(userId)
+  }
+  
   return json({ user })
 }
 
@@ -495,7 +502,7 @@ export default function About() {
               </Link>
               
               <Link
-                to="/auth/register"
+                to="/?signup=true"
                 className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-4 rounded-xl hover:from-green-600 hover:to-teal-600 transition-all font-medium shadow-xl hover:shadow-2xl hover:-translate-y-1 duration-300"
               >
                 <span>Comenzar Ahora</span>

@@ -1,6 +1,6 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link } from "@remix-run/react"
-import { requireAdmin, requireSuperAdmin } from "~/lib/auth.server"
+import { requireClerkAdmin } from "~/lib/auth-clerk.server"
 import { db } from "~/lib/db.server"
 import { UserModel } from "~/models/User.server"
 import { ListingModel } from "~/models/Listing.server"
@@ -8,8 +8,8 @@ import { CreditApplicationModel } from "~/models/CreditApplication.server"
 import { Users, Car, TrendingUp, Plus, CreditCard, Building2 } from 'lucide-react'
 import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireAdmin(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const user = await requireClerkAdmin(args)
   
   const [users, listings, creditApplications] = await Promise.all([
     user.role === 'superadmin' ? UserModel.findAll({ limit: 20, skip: 0 }) : [],

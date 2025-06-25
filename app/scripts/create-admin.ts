@@ -102,7 +102,7 @@ async function createSuperAdmin() {
     console.log('⚠️  PASOS IMPORTANTES:')
     console.log('   1. 🔐 Cambia la contraseña después del primer login')
     console.log('   2. 🔒 No compartas estas credenciales')
-    console.log('   3. 🌐 Accede en: http://localhost:3000/auth/login')
+    console.log('   3. 🌐 Accede en: http://localhost:3000 (usa Clerk para autenticación)')
     console.log('   4. 👥 Usa este usuario para crear más admins')
     console.log('')
     

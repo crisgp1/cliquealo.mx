@@ -1,22 +1,21 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useSearchParams } from "@remix-run/react"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
-import { getUserId, requireUser } from "~/lib/session.server"
-import { UserModel } from "~/models/User.server"
+import { getAuth } from "@clerk/remix/ssr.server"
 import { ListingModel } from "~/models/Listing.server"
 import { CreditApplicationForm } from "~/components/forms/CreditApplicationForm"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await getUserId(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const { userId } = await getAuth(args)
   if (!userId) {
-    // Redirigir a registro con parámetros para volver después
-    const url = new URL(request.url)
+    // Redirigir al home donde están los botones de Clerk
+    const url = new URL(args.request.url)
     const searchParams = url.searchParams
     const returnUrl = `/credit/apply?${searchParams.toString()}`
-    return redirect(`/auth/register?returnTo=${encodeURIComponent(returnUrl)}`)
+    return redirect(`/?returnTo=${encodeURIComponent(returnUrl)}`)
   }
 
-  const url = new URL(request.url)
+  const url = new URL(args.request.url)
   const listingId = url.searchParams.get("listing")
   
   // Obtener datos del simulador si vienen en la URL
@@ -36,18 +35,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   return json({
-    user: await UserModel.findById(userId),
+    userId,
     listing,
     simulatorData
   })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireUser(request)
-  const userId = user._id!.toString()
+export async function action(args: ActionFunctionArgs) {
+  const { userId } = await getAuth(args)
+  if (!userId) {
+    throw redirect("/")
+  }
   
   try {
-    const applicationData = await request.json()
+    const applicationData = await args.request.json()
     
     // Validar datos requeridos
     if (!applicationData.personalInfo?.fullName || 
@@ -117,7 +118,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function CreditApply() {
-  const { user, listing, simulatorData } = useLoaderData<typeof loader>()
+  const { userId, listing, simulatorData } = useLoaderData<typeof loader>()
   const [searchParams] = useSearchParams()
   
   const handleSuccess = () => {

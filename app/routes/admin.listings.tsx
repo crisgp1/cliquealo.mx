@@ -1,6 +1,6 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, Link, useLoaderData, useNavigation, useSearchParams, useSubmit } from "@remix-run/react"
-import { requireAdmin } from "~/lib/auth.server"
+import { requireClerkAdmin } from "~/lib/auth-clerk.server"
 import { db } from "~/lib/db.server"
 import { ListingModel } from "~/models/Listing.server"
 import { 
@@ -27,9 +27,10 @@ import {
 import { useState } from 'react'
 import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const { request } = args;
   // Ensure user is admin
-  await requireAdmin(request)
+  await requireClerkAdmin(args)
   
   // Parse URL params for filtering and pagination
   const url = new URL(request.url)
@@ -67,9 +68,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
   // Ensure user is admin
-  const user = await requireAdmin(request)
+  const user = await requireClerkAdmin(args)
   
   const formData = await request.formData()
   const intent = formData.get("intent") as string
