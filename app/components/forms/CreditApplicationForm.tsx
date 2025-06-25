@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -134,6 +134,32 @@ export function CreditApplicationForm({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Phone number validation (10 digits)
+  const validatePhoneNumber = (phone: string): boolean => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    return cleanPhone.length === 10;
+  };
+
+  // Format phone number as user types
+  const formatPhoneNumber = (value: string): string => {
+    const cleanValue = value.replace(/\D/g, '');
+    if (cleanValue.length <= 10) {
+      if (cleanValue.length <= 3) {
+        return cleanValue;
+      } else if (cleanValue.length <= 6) {
+        return `${cleanValue.slice(0, 3)} ${cleanValue.slice(3)}`;
+      } else {
+        return `${cleanValue.slice(0, 3)} ${cleanValue.slice(3, 6)} ${cleanValue.slice(6)}`;
+      }
+    }
+    return value;
+  };
+
+  const handlePhoneChange = (field: keyof FormData, value: string) => {
+    const formattedPhone = formatPhoneNumber(value);
+    handleInputChange(field, formattedPhone);
+  };
+
   const handleDocumentsChange = useCallback((items: MediaItem[]) => {
     setDocuments(items);
   }, []);
@@ -141,16 +167,18 @@ export function CreditApplicationForm({
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!(formData.fullName && formData.email && formData.phone && 
-                 formData.dateOfBirth && formData.curp && formData.maritalStatus);
+        return !!(formData.fullName && formData.email && formData.phone &&
+                 formData.dateOfBirth && formData.curp && formData.maritalStatus &&
+                 validatePhoneNumber(formData.phone));
       case 2:
-        return !!(formData.employmentType && formData.monthlyIncome && formData.workExperience);
+        return !!(formData.employmentType && formData.monthlyIncome && formData.workExperience &&
+                 (!formData.workPhone || validatePhoneNumber(formData.workPhone)));
       case 3:
-        return !!(formData.requestedAmount && formData.downPayment && 
+        return !!(formData.requestedAmount && formData.downPayment &&
                  formData.preferredTerm && formData.bankName && formData.accountType);
       case 4:
-        return !!(formData.emergencyContactName && formData.emergencyContactRelationship && 
-                 formData.emergencyContactPhone);
+        return !!(formData.emergencyContactName && formData.emergencyContactRelationship &&
+                 formData.emergencyContactPhone && validatePhoneNumber(formData.emergencyContactPhone));
       case 5:
         return documents.length >= 2; // Al menos 2 documentos requeridos
       default:
@@ -264,7 +292,7 @@ export function CreditApplicationForm({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -284,50 +312,96 @@ export function CreditApplicationForm({
 
       {/* Progress Steps */}
       <div className="mb-8">
-        <div className="flex justify-between items-center">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            const isActive = currentStep === step.number;
-            const isCompleted = currentStep > step.number;
-            const isValid = validateStep(step.number);
-            
-            return (
-              <div key={step.number} className="flex flex-col items-center flex-1">
-                <div className={`
-                  w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all
-                  ${isActive ? 'bg-blue-600 border-blue-600 text-white' : 
-                    isCompleted ? 'bg-green-600 border-green-600 text-white' : 
-                    'bg-gray-100 border-gray-300 text-gray-400'}
-                `}>
-                  {isCompleted ? (
-                    <CheckCircle className="w-6 h-6" />
-                  ) : (
-                    <Icon className="w-6 h-6" />
+        {/* Mobile Progress */}
+        <div className="block sm:hidden">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm font-medium text-gray-500">
+              Paso {currentStep} de {steps.length}
+            </span>
+            <span className="text-sm font-medium text-blue-600">
+              {Math.round((currentStep / steps.length) * 100)}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(currentStep / steps.length) * 100}%` }}
+            />
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              {(() => {
+                const Icon = steps[currentStep - 1].icon;
+                return <Icon className="w-6 h-6 text-blue-600" />;
+              })()}
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {steps[currentStep - 1].title}
+            </h3>
+            {!validateStep(currentStep) && (
+              <p className="text-sm text-red-500 mt-1">
+                Completa todos los campos requeridos
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop Progress */}
+        <div className="hidden sm:block relative">
+          <div className="flex justify-between items-start">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = currentStep === step.number;
+              const isCompleted = currentStep > step.number;
+              const isValid = validateStep(step.number);
+              
+              return (
+                <div key={step.number} className="flex flex-col items-center flex-1 relative">
+                  {/* Connection Line */}
+                  {index < steps.length - 1 && (
+                    <div className={`
+                      absolute top-6 left-1/2 w-full h-0.5 -z-10
+                      ${isCompleted ? 'bg-green-600' : 'bg-gray-300'}
+                    `} style={{
+                      width: 'calc(100% - 3rem)',
+                      marginLeft: '1.5rem',
+                      transform: 'translateY(-50%)'
+                    }} />
                   )}
-                </div>
-                <div className="text-center mt-2">
-                  <div className={`text-sm font-medium ${
-                    isActive ? 'text-blue-600' : 
-                    isCompleted ? 'text-green-600' : 
-                    'text-gray-500'
-                  }`}>
-                    {step.title}
-                  </div>
-                  {isActive && !isValid && (
-                    <div className="text-xs text-red-500 mt-1">
-                      Campos requeridos
-                    </div>
-                  )}
-                </div>
-                {index < steps.length - 1 && (
+                  
+                  {/* Step Circle */}
                   <div className={`
-                    absolute h-0.5 w-full top-6 left-1/2 transform -translate-y-1/2 -z-10
-                    ${isCompleted ? 'bg-green-600' : 'bg-gray-300'}
-                  `} style={{ width: `calc(100% / ${steps.length} - 3rem)`, marginLeft: '1.5rem' }} />
-                )}
-              </div>
-            );
-          })}
+                    w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-200 z-10 bg-white
+                    ${isActive ? 'bg-blue-600 border-blue-600 text-white shadow-lg' :
+                      isCompleted ? 'bg-green-600 border-green-600 text-white' :
+                      'bg-gray-100 border-gray-300 text-gray-400'}
+                  `}>
+                    {isCompleted ? (
+                      <CheckCircle className="w-6 h-6" />
+                    ) : (
+                      <Icon className="w-5 h-5" />
+                    )}
+                  </div>
+                  
+                  {/* Step Info */}
+                  <div className="text-center mt-3 max-w-24">
+                    <div className={`text-xs sm:text-sm font-medium leading-tight ${
+                      isActive ? 'text-blue-600' :
+                      isCompleted ? 'text-green-600' :
+                      'text-gray-500'
+                    }`}>
+                      {step.title}
+                    </div>
+                    {isActive && !isValid && (
+                      <div className="text-xs text-red-500 mt-1">
+                        Requerido
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -339,7 +413,7 @@ export function CreditApplicationForm({
               <User className="w-5 h-5 mr-2" />
               Información Personal
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <Label htmlFor="fullName">Nombre Completo *</Label>
                 <Input
@@ -362,15 +436,22 @@ export function CreditApplicationForm({
                 />
               </div>
               <div>
-                <Label htmlFor="phone">Teléfono *</Label>
+                <Label htmlFor="phone">Teléfono * (10 dígitos)</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  onChange={(e) => handlePhoneChange('phone', e.target.value)}
                   placeholder="33 1234 5678"
+                  maxLength={12}
                   required
+                  className={!validatePhoneNumber(formData.phone) && formData.phone ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}
                 />
+                {formData.phone && !validatePhoneNumber(formData.phone) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    El teléfono debe tener exactamente 10 dígitos
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="dateOfBirth">Fecha de Nacimiento *</Label>
@@ -439,7 +520,7 @@ export function CreditApplicationForm({
               <Briefcase className="w-5 h-5 mr-2" />
               Información Laboral
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <Label htmlFor="employmentType">Tipo de Empleo *</Label>
                 <select
@@ -495,14 +576,21 @@ export function CreditApplicationForm({
                 />
               </div>
               <div>
-                <Label htmlFor="workPhone">Teléfono del Trabajo</Label>
+                <Label htmlFor="workPhone">Teléfono del Trabajo (10 dígitos)</Label>
                 <Input
                   id="workPhone"
                   type="tel"
                   value={formData.workPhone}
-                  onChange={(e) => handleInputChange('workPhone', e.target.value)}
+                  onChange={(e) => handlePhoneChange('workPhone', e.target.value)}
                   placeholder="33 1234 5678"
+                  maxLength={12}
+                  className={formData.workPhone && !validatePhoneNumber(formData.workPhone) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}
                 />
+                {formData.workPhone && !validatePhoneNumber(formData.workPhone) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    El teléfono debe tener exactamente 10 dígitos
+                  </p>
+                )}
               </div>
               <div className="md:col-span-2">
                 <Label htmlFor="workAddress">Dirección del Trabajo</Label>
@@ -525,7 +613,7 @@ export function CreditApplicationForm({
               <DollarSign className="w-5 h-5 mr-2" />
               Información Financiera
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <Label htmlFor="requestedAmount">Monto Solicitado *</Label>
                 <Input
@@ -621,7 +709,7 @@ export function CreditApplicationForm({
               <Phone className="w-5 h-5 mr-2" />
               Contacto de Emergencia
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <Label htmlFor="emergencyContactName">Nombre Completo *</Label>
                 <Input
@@ -643,15 +731,22 @@ export function CreditApplicationForm({
                 />
               </div>
               <div>
-                <Label htmlFor="emergencyContactPhone">Teléfono *</Label>
+                <Label htmlFor="emergencyContactPhone">Teléfono * (10 dígitos)</Label>
                 <Input
                   id="emergencyContactPhone"
                   type="tel"
                   value={formData.emergencyContactPhone}
-                  onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
+                  onChange={(e) => handlePhoneChange('emergencyContactPhone', e.target.value)}
                   placeholder="33 1234 5678"
+                  maxLength={12}
                   required
+                  className={!validatePhoneNumber(formData.emergencyContactPhone) && formData.emergencyContactPhone ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}
                 />
+                {formData.emergencyContactPhone && !validatePhoneNumber(formData.emergencyContactPhone) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    El teléfono debe tener exactamente 10 dígitos
+                  </p>
+                )}
               </div>
               <div className="md:col-span-2">
                 <Label htmlFor="emergencyContactAddress">Dirección</Label>
@@ -719,12 +814,13 @@ export function CreditApplicationForm({
         )}
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8">
+        <div className="flex flex-col sm:flex-row justify-between gap-4 mt-8">
           <Button
             type="button"
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
+            className="w-full sm:w-auto order-2 sm:order-1"
           >
             Anterior
           </Button>
@@ -734,6 +830,7 @@ export function CreditApplicationForm({
               type="button"
               onClick={nextStep}
               disabled={!validateStep(currentStep)}
+              className="w-full sm:w-auto order-1 sm:order-2"
             >
               Siguiente
             </Button>
@@ -741,7 +838,7 @@ export function CreditApplicationForm({
             <Button
               type="submit"
               disabled={!validateStep(5) || isSubmitting}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto order-1 sm:order-2"
             >
               {isSubmitting ? (
                 <>

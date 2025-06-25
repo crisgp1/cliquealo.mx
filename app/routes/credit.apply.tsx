@@ -45,13 +45,34 @@ export async function action(args: ActionFunctionArgs) {
   try {
     const applicationData = await args.request.json()
     
+    // Función para validar teléfono (10 dígitos)
+    const validatePhone = (phone: string): boolean => {
+      const cleanPhone = phone.replace(/\D/g, '');
+      return cleanPhone.length === 10;
+    };
+    
     // Validar datos requeridos
-    if (!applicationData.personalInfo?.fullName || 
-        !applicationData.personalInfo?.email || 
+    if (!applicationData.personalInfo?.fullName ||
+        !applicationData.personalInfo?.email ||
         !applicationData.personalInfo?.phone ||
         !applicationData.employmentInfo?.monthlyIncome ||
         !applicationData.financialInfo?.requestedAmount) {
       return json({ error: "Faltan campos requeridos" }, { status: 400 })
+    }
+
+    // Validar teléfono personal (10 dígitos)
+    if (!validatePhone(applicationData.personalInfo.phone)) {
+      return json({ error: "El teléfono personal debe tener exactamente 10 dígitos" }, { status: 400 })
+    }
+
+    // Validar teléfono de trabajo si está presente (10 dígitos)
+    if (applicationData.employmentInfo.workPhone && !validatePhone(applicationData.employmentInfo.workPhone)) {
+      return json({ error: "El teléfono de trabajo debe tener exactamente 10 dígitos" }, { status: 400 })
+    }
+
+    // Validar teléfono de contacto de emergencia (10 dígitos)
+    if (!validatePhone(applicationData.emergencyContact.phone)) {
+      return json({ error: "El teléfono de contacto de emergencia debe tener exactamente 10 dígitos" }, { status: 400 })
     }
 
     // Validar CURP (18 caracteres)
