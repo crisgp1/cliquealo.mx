@@ -6,6 +6,7 @@ import { getUser, requireUser } from "~/lib/session.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
+import HeroSection from "~/components/HeroSection"
 import {
   Search,
   Heart,
@@ -278,91 +279,12 @@ export default function ListingsIndex() {
   return (
     <div className="min-h-screen bg-white">
       {/* Enhanced Search and Filters Section */}
-      <section className="bg-gradient-to-br from-gray-50 via-white to-red-50/30 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <Badge
-              content="Actualizado"
-              color="success"
-              variant="flat"
-              className="mb-4"
-            >
-              <Chip
-                startContent={<TrendingUp className="w-4 h-4" />}
-                variant="flat"
-                color="primary"
-                className="mb-4"
-              >
-                Catálogo Completo
-              </Chip>
-            </Badge>
-            
-            <h1 className="text-4xl sm:text-6xl font-light text-gray-900 mb-6 tracking-tight">
-              Explorar{" "}
-              <span className="bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent font-medium">
-                Catálogo
-              </span>
-            </h1>
-            
-            <p className="text-xl text-gray-600 font-light mb-8 leading-relaxed">
-              Encuentra tu auto ideal entre nuestras {totalCount} opciones disponibles
-            </p>
-
-            {/* Quick Stats */}
-            <div className="flex justify-center items-center gap-6 mb-8">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{totalCount}</div>
-                <div className="text-sm text-gray-600">Autos Disponibles</div>
-              </div>
-              <Divider orientation="vertical" className="h-12" />
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{brands.length}</div>
-                <div className="text-sm text-gray-600">Marcas</div>
-              </div>
-              <Divider orientation="vertical" className="h-12" />
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">100%</div>
-                <div className="text-sm text-gray-600">Verificados</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Enhanced Search Form */}
-          <Form method="get" className="max-w-4xl mx-auto">
-            <Card className="bg-white/80 backdrop-blur-md border-0 shadow-xl">
-              <CardBody className="p-6">
-                <div className="flex flex-col lg:flex-row gap-4">
-                  <div className="flex-1">
-                    <Input
-                      type="search"
-                      name="search"
-                      defaultValue={search}
-                      placeholder="Buscar por marca, modelo, año..."
-                      startContent={<Search className="w-5 h-5 text-gray-400" />}
-                      size="lg"
-                      variant="flat"
-                      className="w-full"
-                      classNames={{
-                        input: "text-lg",
-                        inputWrapper: "bg-gray-50 border-0 hover:bg-gray-100 focus-within:bg-white"
-                      }}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    color="danger"
-                    size="lg"
-                    className="px-8 font-medium"
-                    endContent={<ArrowRight className="w-5 h-5" />}
-                  >
-                    Buscar Autos
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          </Form>
-        </div>
-      </section>
+      <HeroSection 
+        type="listings" 
+        search={search} 
+        totalCount={totalCount} 
+        brandsCount={brands.length} 
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Filters and View Controls */}

@@ -8,7 +8,7 @@ import { getUser, requireUser } from "~/lib/session.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
-import PremiumBrandsCarousel from "~/components/ui/premium-brands-carousel"
+import HeroSection from "~/components/HeroSection"
 import {
   Search,
   Heart,
@@ -301,110 +301,7 @@ export default function Index() {
   return (
     <div>
       {/* Hero Section with Stats */}
-      <section className="bg-gradient-to-br from-gray-50 via-white to-red-50/30 border-b border-gray-100">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          {/* Hero Content */}
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <Badge
-              content="Nuevo"
-              color="danger"
-              variant="flat"
-              className="mb-4"
-            >
-              <Chip
-                startContent={<Star className="w-4 h-4" />}
-                variant="flat"
-                color="warning"
-                className="mb-4"
-              >
-                Plataforma Confiable
-              </Chip>
-            </Badge>
-            
-            <h1 className="text-4xl sm:text-6xl font-light text-gray-900 mb-6 tracking-tight">
-              Encuentra tu{" "}
-              <span className="bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent font-medium">
-                auto ideal
-              </span>
-            </h1>
-            
-            <p className="text-xl text-gray-600 font-light mb-8 leading-relaxed">
-              Catálogo seleccionado de autos certificados por nuestro equipo de expertos
-            </p>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12 max-w-2xl mx-auto">
-              <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-sm">
-                <CardBody className="text-center py-4">
-                  <div className="flex items-center justify-center mb-2">
-                    <TrendingUp className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-2xl font-bold text-gray-900">500+</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Autos Disponibles</p>
-                </CardBody>
-              </Card>
-              
-              <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-sm">
-                <CardBody className="text-center py-4">
-                  <div className="flex items-center justify-center mb-2">
-                    <Users className="w-5 h-5 text-blue-600 mr-2" />
-                    <span className="text-2xl font-bold text-gray-900">1,200+</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Clientes Felices</p>
-                </CardBody>
-              </Card>
-              
-              <Card className="bg-white/60 backdrop-blur-sm border-0 shadow-sm">
-                <CardBody className="text-center py-4">
-                  <div className="flex items-center justify-center mb-2">
-                    <Shield className="w-5 h-5 text-purple-600 mr-2" />
-                    <span className="text-2xl font-bold text-gray-900">100%</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Verificados</p>
-                </CardBody>
-              </Card>
-            </div>
-
-            {/* Premium Brands Carousel */}
-            <PremiumBrandsCarousel />
-          </div>
-
-          {/* Enhanced Search Form */}
-          <Form method="get" className="max-w-4xl mx-auto">
-            <Card className="bg-white/80 backdrop-blur-md border-0 shadow-xl">
-              <CardBody className="p-6">
-                <div className="flex flex-col lg:flex-row gap-4">
-                  <div className="flex-1">
-                    <Input
-                      type="search"
-                      name="search"
-                      defaultValue={search}
-                      placeholder="Buscar por marca, modelo, año..."
-                      startContent={<Search className="w-5 h-5 text-gray-400" />}
-                      size="lg"
-                      variant="flat"
-                      className="w-full"
-                      classNames={{
-                        input: "text-lg",
-                        inputWrapper: "bg-gray-50 border-0 hover:bg-gray-100 focus-within:bg-white"
-                      }}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    color="danger"
-                    size="lg"
-                    className="px-8 font-medium"
-                    endContent={<ArrowRight className="w-5 h-5" />}
-                  >
-                    Buscar Autos
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          </Form>
-        </div>
-      </section>
+      <HeroSection type="home" search={search} />
 
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Filters and View Controls */}
