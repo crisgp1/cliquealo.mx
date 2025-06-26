@@ -97,6 +97,30 @@ export const CreditApplicationModel = {
     return { ...application, _id: result.insertedId }
   },
 
+  // Crear nueva solicitud usando Clerk ID
+  async createWithClerkId(applicationData: Omit<CreditApplication, '_id' | 'createdAt' | 'updatedAt' | 'status' | 'userId'> & { clerkId: string }) {
+    // Buscar el usuario por Clerk ID para obtener su ObjectId
+    const user = await db.collection('users').findOne({ clerkId: applicationData.clerkId })
+    if (!user) {
+      throw new Error('Usuario no encontrado')
+    }
+
+    const application = {
+      ...applicationData,
+      userId: user._id,
+      listingId: applicationData.listingId ? new ObjectId(applicationData.listingId) : undefined,
+      status: 'pending' as const,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+    
+    // Remover clerkId del objeto antes de insertar
+    const { clerkId, ...applicationToInsert } = application
+    
+    const result = await db.collection<CreditApplication>('credit_applications').insertOne(applicationToInsert)
+    return { ...applicationToInsert, _id: result.insertedId }
+  },
+
   // Buscar por ID
   async findById(id: string) {
     return await db.collection<CreditApplication>('credit_applications').findOne({ 
@@ -140,7 +164,7 @@ export const CreditApplicationModel = {
     return result[0] || null
   },
 
-  // Buscar solicitudes por usuario
+  // Buscar solicitudes por usuario (usando MongoDB ObjectId)
   async findByUserId(userId: string, limit = 20, skip = 0) {
     return await db.collection<CreditApplication>('credit_applications').aggregate([
       { $match: { userId: new ObjectId(userId) } },
@@ -155,6 +179,38 @@ export const CreditApplicationModel = {
       { $sort: { createdAt: -1 } },
       { $skip: skip },
       { $limit: limit }
+    ]).toArray()
+  },
+
+  // Buscar solicitudes por Clerk ID
+  async findByClerkId(clerkId: string, limit = 20, skip = 0) {
+    return await db.collection<CreditApplication>('credit_applications').aggregate([
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      { $unwind: '$user' },
+      { $match: { 'user.clerkId': clerkId } },
+      {
+        $lookup: {
+          from: 'listings',
+          localField: 'listingId',
+          foreignField: '_id',
+          as: 'listing'
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $project: {
+          user: 0 // No incluir datos del usuario en el resultado
+        }
+      }
     ]).toArray()
   },
 

@@ -3,7 +3,7 @@ import { useLoaderData, useNavigate } from "@remix-run/react"
 import { BankPartnerModel } from "~/models/BankPartner.server"
 import { ListingModel } from "~/models/Listing.server"
 import { CreditSimulator } from "~/components/forms/CreditSimulator"
-import { getUserId } from "~/lib/session.server"
+import { getClerkUser } from "~/lib/auth-clerk.server"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
@@ -35,12 +35,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const userId = await getUserId(request)
+export async function action(args: ActionFunctionArgs) {
+  const user = await getClerkUser(args)
   
-  if (!userId) {
-    // Redirigir a login/registro si no está autenticado
-    const formData = await request.formData()
+  if (!user) {
+    // Redirigir al home si no está autenticado
+    const formData = await args.request.formData()
     const returnData = {
       bankId: formData.get("bankId"),
       amount: formData.get("amount"),
@@ -59,11 +59,11 @@ export async function action({ request }: ActionFunctionArgs) {
     
     const returnUrl = `/credit/apply?${urlParams.toString()}`
     
-    return redirect(`/auth/register?returnTo=${encodeURIComponent(returnUrl)}`)
+    return redirect(`/?returnTo=${encodeURIComponent(returnUrl)}`)
   }
   
   // Si está autenticado, redirigir directamente a la solicitud de crédito
-  const formData = await request.formData()
+  const formData = await args.request.formData()
   const queryParams = new URLSearchParams()
   
   for (const [key, value] of formData.entries()) {

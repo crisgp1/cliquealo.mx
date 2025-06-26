@@ -1,8 +1,9 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useActionData, Form, Link } from "@remix-run/react"
 import { useState } from "react"
-import { requireSuperAdmin } from "~/lib/auth.server"
+import { requireClerkSuperAdmin } from "~/lib/auth-clerk.server"
 import { BankPartnerModel } from "~/models/BankPartner.server"
+import { AdminLayout } from "~/components/admin/AdminLayout"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
@@ -11,26 +12,27 @@ import { Card } from "~/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog"
 import { ConfirmDialog } from "~/components/ui/confirm-dialog"
 import { toast } from "~/components/ui/toast"
-import { 
-  Building2, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
+import {
+  Building2,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
   Search,
   Percent,
   DollarSign,
   Calendar,
   Phone,
   Mail,
-  Globe
+  Globe,
+  TrendingUp
 } from "lucide-react"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireSuperAdmin(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const user = await requireClerkSuperAdmin(args)
   
-  const url = new URL(request.url)
+  const url = new URL(args.request.url)
   const search = url.searchParams.get("search") || ""
   const isActive = url.searchParams.get("active")
   
@@ -46,9 +48,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ partners, stats, currentUser: user, search, isActive })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireSuperAdmin(request)
-  const formData = await request.formData()
+export async function action(args: ActionFunctionArgs) {
+  const user = await requireClerkSuperAdmin(args)
+  const formData = await args.request.formData()
   const intent = formData.get("intent")
   
   try {
@@ -135,74 +137,96 @@ export default function AdminBankPartners() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AdminLayout>
+      <div className="space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-light text-gray-900 mb-2">
-                Aliados Bancarios
-              </h1>
-              <p className="text-gray-600">
-                Gestiona los bancos aliados y sus tasas de crédito
-              </p>
-            </div>
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              className="mt-4 sm:mt-0"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Agregar Aliado
-            </Button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Aliados Bancarios
+            </h1>
+            <p className="text-gray-600">
+              Gestiona los bancos aliados y sus tasas de crédito
+            </p>
           </div>
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Agregar Aliado
+          </Button>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="flex items-center">
-              <Building2 className="w-8 h-8 text-blue-600" />
-              <div className="ml-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Total Aliados</p>
-                <p className="text-2xl font-light text-gray-900">{stats.total}</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm text-blue-600 flex items-center mt-1">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  Todos los bancos
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="flex items-center">
-              <Eye className="w-8 h-8 text-green-600" />
-              <div className="ml-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Activos</p>
-                <p className="text-2xl font-light text-gray-900">{stats.active}</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.active}</p>
+                <p className="text-sm text-green-600 flex items-center mt-1">
+                  <Eye className="w-4 h-4 mr-1" />
+                  Disponibles
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Eye className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="flex items-center">
-              <Percent className="w-8 h-8 text-orange-600" />
-              <div className="ml-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Tasa Promedio</p>
-                <p className="text-2xl font-light text-gray-900">{formatRate(stats.avgRate)}</p>
+                <p className="text-3xl font-bold text-gray-900">{formatRate(stats.avgRate)}</p>
+                <p className="text-sm text-orange-600 flex items-center mt-1">
+                  <Percent className="w-4 h-4 mr-1" />
+                  Anual
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Percent className="w-6 h-6 text-orange-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <div className="flex items-center">
-              <DollarSign className="w-8 h-8 text-purple-600" />
-              <div className="ml-4">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Mejor Tasa</p>
-                <p className="text-2xl font-light text-gray-900">{formatRate(stats.minRate)}</p>
+                <p className="text-3xl font-bold text-gray-900">{formatRate(stats.minRate)}</p>
+                <p className="text-sm text-purple-600 flex items-center mt-1">
+                  <DollarSign className="w-4 h-4 mr-1" />
+                  Más competitiva
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-purple-600" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <Card className="p-6 mb-8">
+        <Card className="p-6">
           <Form method="get" className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Label htmlFor="search">Buscar</Label>
@@ -410,7 +434,7 @@ export default function AdminBankPartners() {
           destructive={true}
         />
       </div>
-    </div>
+    </AdminLayout>
   )
 }
 

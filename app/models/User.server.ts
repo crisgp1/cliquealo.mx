@@ -16,6 +16,7 @@ export interface User {
   avatar?: string
   phone?: string
   lastLogin?: Date
+  clerkId?: string // Clerk user ID
 }
 
 export const UserModel = {
@@ -80,6 +81,67 @@ export const UserModel = {
     return await db.collection<User>('users').findOne({
       _id: new ObjectId(id)
     })
+  },
+
+  // Buscar por Clerk ID
+  async findByClerkId(clerkId: string) {
+    return await db.collection<User>('users').findOne({
+      clerkId: clerkId,
+      isActive: true
+    })
+  },
+
+  // Crear usuario desde Clerk
+  async createFromClerk(clerkUser: {
+    id: string,
+    firstName?: string,
+    lastName?: string,
+    emailAddresses: Array<{ emailAddress: string }>,
+    phoneNumbers?: Array<{ phoneNumber: string }>,
+    imageUrl?: string
+  }) {
+    const email = clerkUser.emailAddresses[0]?.emailAddress
+    if (!email) throw new Error('Email requerido')
+
+    const name = `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'Usuario'
+    const phone = clerkUser.phoneNumbers?.[0]?.phoneNumber || ''
+    
+    // Generate username from email
+    const emailUsername = email.toLowerCase().trim().split('@')[0]
+    const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+    const username = `${emailUsername}_${randomSuffix}`
+    
+    const user = {
+      name,
+      email: email.toLowerCase().trim(),
+      phone,
+      username,
+      passwordHash: '', // No password needed for Clerk users
+      role: 'user' as User['role'], // Default role
+      likedListings: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isActive: true,
+      avatar: clerkUser.imageUrl,
+      clerkId: clerkUser.id
+    }
+    
+    const result = await db.collection<User>('users').insertOne(user)
+    return { ...user, _id: result.insertedId }
+  },
+
+  // Sincronizar rol con Clerk metadata
+  async syncRoleWithClerk(userId: string, role: User['role']) {
+    const result = await db.collection<User>('users').updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $set: {
+          role,
+          updatedAt: new Date()
+        }
+      }
+    )
+    return result.modifiedCount > 0
   },
 
   // Verificar contraseña

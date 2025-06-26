@@ -1,22 +1,14 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useSearchParams } from "@remix-run/react"
 import { CreditApplicationModel } from "~/models/CreditApplication.server"
-import { getUserId, requireUser } from "~/lib/session.server"
-import { UserModel } from "~/models/User.server"
+import { getClerkUser, requireClerkUser } from "~/lib/auth-clerk.server"
 import { ListingModel } from "~/models/Listing.server"
 import { CreditApplicationForm } from "~/components/forms/CreditApplicationForm"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await getUserId(request)
-  if (!userId) {
-    // Redirigir a registro con parámetros para volver después
-    const url = new URL(request.url)
-    const searchParams = url.searchParams
-    const returnUrl = `/credit/apply?${searchParams.toString()}`
-    return redirect(`/auth/register?returnTo=${encodeURIComponent(returnUrl)}`)
-  }
+export async function loader(args: LoaderFunctionArgs) {
+  const user = await requireClerkUser(args)
 
-  const url = new URL(request.url)
+  const url = new URL(args.request.url)
   const listingId = url.searchParams.get("listing")
   
   // Obtener datos del simulador si vienen en la URL
@@ -36,26 +28,51 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   return json({
-    user: await UserModel.findById(userId),
+    userId: user.clerkId,
     listing,
     simulatorData
   })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireUser(request)
-  const userId = user._id!.toString()
+export async function action(args: ActionFunctionArgs) {
+  const user = await getClerkUser(args)
+  if (!user) {
+    throw redirect("/")
+  }
+  
+  const userId = user.clerkId
   
   try {
-    const applicationData = await request.json()
+    const applicationData = await args.request.json()
+    
+    // Función para validar teléfono (10 dígitos)
+    const validatePhone = (phone: string): boolean => {
+      const cleanPhone = phone.replace(/\D/g, '');
+      return cleanPhone.length === 10;
+    };
     
     // Validar datos requeridos
-    if (!applicationData.personalInfo?.fullName || 
-        !applicationData.personalInfo?.email || 
+    if (!applicationData.personalInfo?.fullName ||
+        !applicationData.personalInfo?.email ||
         !applicationData.personalInfo?.phone ||
         !applicationData.employmentInfo?.monthlyIncome ||
         !applicationData.financialInfo?.requestedAmount) {
       return json({ error: "Faltan campos requeridos" }, { status: 400 })
+    }
+
+    // Validar teléfono personal (10 dígitos)
+    if (!validatePhone(applicationData.personalInfo.phone)) {
+      return json({ error: "El teléfono personal debe tener exactamente 10 dígitos" }, { status: 400 })
+    }
+
+    // Validar teléfono de trabajo si está presente (10 dígitos)
+    if (applicationData.employmentInfo.workPhone && !validatePhone(applicationData.employmentInfo.workPhone)) {
+      return json({ error: "El teléfono de trabajo debe tener exactamente 10 dígitos" }, { status: 400 })
+    }
+
+    // Validar teléfono de contacto de emergencia (10 dígitos)
+    if (!validatePhone(applicationData.emergencyContact.phone)) {
+      return json({ error: "El teléfono de contacto de emergencia debe tener exactamente 10 dígitos" }, { status: 400 })
     }
 
     // Validar CURP (18 caracteres)
@@ -75,7 +92,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Verificar si ya existe una solicitud pendiente para este usuario y listing
     if (applicationData.listingId) {
-      const existingApplications = await CreditApplicationModel.findByUserId(userId, 1, 0)
+      const existingApplications = await CreditApplicationModel.findByClerkId(userId!, 1, 0)
       const pendingApplication = existingApplications.find(app => 
         app.listingId?.toString() === applicationData.listingId && 
         ['pending', 'under_review'].includes(app.status)
@@ -89,8 +106,8 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Crear la solicitud
-    const application = await CreditApplicationModel.create({
-      userId: userId as any, // El modelo ya maneja la conversión a ObjectId
+    const application = await CreditApplicationModel.createWithClerkId({
+      clerkId: userId!,
       listingId: applicationData.listingId || undefined,
       personalInfo: {
         ...applicationData.personalInfo,
@@ -117,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function CreditApply() {
-  const { user, listing, simulatorData } = useLoaderData<typeof loader>()
+  const { userId, listing, simulatorData } = useLoaderData<typeof loader>()
   const [searchParams] = useSearchParams()
   
   const handleSuccess = () => {

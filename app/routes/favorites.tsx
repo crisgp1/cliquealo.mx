@@ -1,10 +1,10 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link, useFetcher } from "@remix-run/react"
 import { UserModel } from "~/models/User.server"
-import { requireUser } from "~/lib/session.server"
+import { getClerkUser } from "~/lib/auth-clerk.server"
 import { toast } from "~/components/ui/toast"
-import { 
-  Heart, 
+import {
+  Heart,
   Eye,
   ArrowRight,
   Calendar,
@@ -16,23 +16,33 @@ import { useEffect } from 'react'
 // Tipo para la respuesta del action
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string; listingId?: string }
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireUser(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const user = await getClerkUser(args)
+  
+  if (!user) {
+    throw new Response("Unauthorized", { status: 401 })
+  }
   
   // Obtener todos los listings que el usuario ha marcado como favoritos
+  // Usar el _id de MongoDB del usuario, no el clerkId
   const likedListings = await UserModel.getLikedListings(user._id!.toString(), 50)
   
-  return json({ 
-    user,
+  return json({
+    userId: user._id!.toString(),
     likedListings,
     totalLikes: likedListings.length
   })
 }
 
 // Action para quitar favoritos
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireUser(request)
-  const formData = await request.formData()
+export async function action(args: ActionFunctionArgs) {
+  const user = await getClerkUser(args)
+  
+  if (!user) {
+    return json({ error: "Debes iniciar sesión" }, { status: 401 })
+  }
+  
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   const listingId = formData.get("listingId") as string
 
@@ -42,6 +52,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     if (intent === "unlike") {
+      // Usar el _id de MongoDB del usuario, no el clerkId
       const success = await UserModel.unlikeListing(user._id!.toString(), listingId)
       if (success) {
         return json({ success: true, action: "unliked", listingId })
@@ -97,7 +108,7 @@ function RemoveFavoriteButton({ listing }: { listing: any }) {
 }
 
 export default function Favorites() {
-  const { user, likedListings, totalLikes } = useLoaderData<typeof loader>()
+  const { userId, likedListings, totalLikes } = useLoaderData<typeof loader>()
 
   return (
     <div className="min-h-screen bg-white">

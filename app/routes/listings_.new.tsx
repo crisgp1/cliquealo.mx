@@ -1,7 +1,7 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node";
 import { useActionData, Link, useNavigation, useLoaderData, useSubmit } from "@remix-run/react";
 import { ListingModel } from "~/models/Listing.server";
-import { requireAdmin } from "~/lib/auth.server";
+import { requireClerkAdmin } from "~/lib/auth-clerk.server";
 import { HeroCarListingForm } from "~/components/forms/HeroCarListingForm";
 import { useState, useEffect } from "react";
 import { 
@@ -57,9 +57,9 @@ const PAGE_TEXTS = {
   }
 } as const;
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   try {
-    const user = await requireAdmin(request);
+    const user = await requireClerkAdmin(args);
     return json({ user });
   } catch (error) {
     console.error('Error in listings.new loader:', error);
@@ -67,8 +67,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireAdmin(request);
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
+  const user = await requireClerkAdmin(args);
   const formData = await request.formData();
   
   // Extract form data

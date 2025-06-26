@@ -1,10 +1,9 @@
-import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from "@remix-run/node"
+import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from "@remix-run/node"
 import { useLoaderData, Link, Form, useFetcher } from "@remix-run/react"
 import { DEFAULT_SEO, generateBasicMeta } from "~/lib/seo"
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
-import { Auth } from "~/lib/auth.server"
-import { getUser, requireUser } from "~/lib/session.server"
+import { getClerkUser, ClerkAuth } from "~/lib/auth-clerk.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
@@ -56,7 +55,8 @@ export const meta: MetaFunction = () => {
   });
 };
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const { request } = args
   const url = new URL(request.url)
   const search = url.searchParams.get("search") || ""
   const brand = url.searchParams.get("brand") || ""
@@ -65,6 +65,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const minYear = url.searchParams.get("minYear") ? parseInt(url.searchParams.get("minYear") || "") : undefined
   const maxYear = url.searchParams.get("maxYear") ? parseInt(url.searchParams.get("maxYear") || "") : undefined
   const toastParam = url.searchParams.get("toast")
+  const redirectTo = url.searchParams.get("redirectTo")
+  
+  // Get user first to check authentication status
+  const user = await getClerkUser(args)
+  
+  // If user is authenticated and there's a redirectTo parameter, redirect them
+  if (user && redirectTo) {
+    const decodedRedirectTo = decodeURIComponent(redirectTo)
+    // Validate that the redirect URL is safe (internal to our app)
+    if (decodedRedirectTo.startsWith('/') && !decodedRedirectTo.startsWith('//')) {
+      throw redirect(decodedRedirectTo)
+    }
+  }
   
   const listings = await ListingModel.findMany({
     search,
@@ -83,10 +96,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     hotStatus: getHotStatus(listing as any)
   }))
   
-  const user = await getUser(request)
-  
   // Check user permissions on the server side
-  const canCreateListings = user ? Auth.canCreateListings(user) : false
+  const canCreateListings = user ? ClerkAuth.canCreateListings(user) : false
   
   //  Verificar qué listings tienen like del usuario actual
   let likedListings: string[] = []
@@ -114,16 +125,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 // Action para manejar likes/unlikes
-export async function action({ request }: ActionFunctionArgs) {
-  // Verificar si hay usuario autenticado
-  let user
-  try {
-    user = await requireUser(request)
-  } catch (error) {
+export async function action(args: ActionFunctionArgs) {
+  const user = await getClerkUser(args)
+  
+  if (!user) {
     return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
   }
 
-  const formData = await request.formData()
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   const listingId = formData.get("listingId") as string
 
@@ -226,13 +235,10 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
     return (
       <button
         onClick={() => {
-          toast.error("¡Inicia sesión para dar like! 💖", {
-            description: "Regístrate o inicia sesión para guardar tus autos favoritos",
-            action: {
-              label: "Registrarse",
-              onClick: () => window.location.href = "/auth/register"
-            }
-          })
+          toast.error(
+            "¡Inicia sesión para dar like! 💖",
+            "Regístrate o inicia sesión para guardar tus autos favoritos"
+          )
         }}
         className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-red-50 hover:scale-105 transition-all duration-200 cursor-pointer"
         title="Haz clic para registrarte y dar like"
@@ -249,6 +255,13 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
       <button
         type="submit"
         disabled={isLoading}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          if (!isLoading) {
+            e.currentTarget.form?.requestSubmit()
+          }
+        }}
         className={`absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 ${
           currentlyLiked
             ? 'hover:bg-red-50 scale-110'
@@ -256,12 +269,12 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
         } ${isLoading ? 'opacity-50 cursor-not-allowed animate-pulse' : 'hover:scale-105'}`}
         title={currentlyLiked ? 'Quitar de favoritos' : 'Agregar a favoritos'}
       >
-        <Heart 
+        <Heart
           className={`w-5 h-5 transition-all duration-200 ${
-            currentlyLiked 
-              ? 'fill-red-500 text-red-500' 
+            currentlyLiked
+              ? 'fill-red-500 text-red-500'
               : 'text-gray-600'
-          }`} 
+          }`}
         />
       </button>
     </fetcher.Form>
@@ -288,13 +301,28 @@ export default function Index() {
 
   const hasActiveFilters = brand || minPrice || maxPrice || minYear || maxYear
 
+  // Detectar si se debe mostrar un mensaje de sign-in
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const shouldSignIn = urlParams.get('signin') === 'true'
+    const redirectTo = urlParams.get('redirectTo')
+    
+    if (shouldSignIn && !user) {
+      // Mostrar un toast informativo para que el usuario sepa que debe iniciar sesión
+      toast.error(
+        'Inicia sesión para continuar',
+        redirectTo ? 'Necesitas una cuenta para acceder a esta función. Usa los botones de "Entrar" o "Registrarse" en la parte superior.' : 'Usa los botones de "Entrar" o "Registrarse" en la parte superior.'
+      )
+    }
+  }, [user])
+
   // Manejar toast para listing no encontrado
   useEffect(() => {
     if (toastParam === 'listing-not-found') {
-      toast.error('El elemento que buscas ya no existe', {
-        description: 'Es posible que haya sido eliminado o movido. Te hemos redirigido al catálogo principal.',
-        duration: 5000
-      })
+      toast.error(
+        'El elemento que buscas ya no existe',
+        'Es posible que haya sido eliminado o movido. Te hemos redirigido al catálogo principal.'
+      )
     }
   }, [toastParam])
 

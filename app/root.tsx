@@ -12,15 +12,16 @@ import {
 } from "@remix-run/react";
 import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { 
-  DEFAULT_SEO, 
+import {
+  DEFAULT_SEO,
   generateBasicMeta,
   generateOrganizationJsonLd,
   generateWebsiteJsonLd
 } from "~/lib/seo";
 import { useState, useEffect } from "react";
-import { getUser } from "~/lib/session.server";
-import { Auth } from "~/lib/auth.server";
+// Import Clerk
+import { rootAuthLoader } from '@clerk/remix/ssr.server'
+import { ClerkApp, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from '@clerk/remix'
 import { X, Plus, User, LogOut, Shield, Heart, Menu, Search, Info, Home, LogIn, UserPlus, CreditCard, Crown } from "lucide-react"; // 🔥 AGREGADO más iconos
 import {
   HeroUIProvider,
@@ -37,7 +38,7 @@ import {
   Link as HeroLink
 } from "@heroui/react";
 
-import { Toaster } from "~/components/ui/toast";
+import { ToastProvider, Toaster } from "~/components/ui/toast";
 import { Preloader } from "~/components/ui/preloader";
 import styles from "./tailwind.css";
 
@@ -50,15 +51,37 @@ export const meta: MetaFunction = () => {
   });
 };
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const user = await getUser(request);
-  const canCreateListings = user ? Auth.canCreateListings(user) : false;
-  return json({ user, canCreateListings });
+// Export rootAuthLoader as the root route loader with proper error handling
+export const loader = async (args: LoaderFunctionArgs) => {
+  try {
+    return await rootAuthLoader(args);
+  } catch (error) {
+    console.error('Clerk authentication error:', error);
+    
+    // Check if it's a configuration error
+    if (error instanceof Error && error.message?.includes('CLERK_')) {
+      console.warn('⚠️ Clerk configuration issue detected. Running in fallback mode.');
+    }
+    
+    // Return a basic response if Clerk fails
+    return json({
+      user: null,
+      userId: null,
+      sessionId: null,
+      orgId: null,
+      orgRole: null,
+      orgSlug: null,
+      __clerk_ssr_state: null,
+      __clerk_error: true // Flag to indicate Clerk error
+    });
+  }
 };
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
   { rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" },
+  { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+  { rel: "shortcut icon", href: "/favicon.ico", type: "image/x-icon" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -96,8 +119,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <HeroUIProvider>
-          {children}
-          <Toaster />
+          <ToastProvider>
+            {children}
+            <Toaster />
+          </ToastProvider>
         </HeroUIProvider>
         <ScrollRestoration />
         <Scripts />
@@ -106,10 +131,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
-  const { user, canCreateListings } = useLoaderData<typeof loader>();
+function App() {
+  const { user } = useUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  // Determine user role and permissions from Clerk metadata
+  const userRole = user?.publicMetadata?.role as 'user' | 'admin' | 'superadmin' || 'user';
+  const canCreateListings = userRole === 'admin' || userRole === 'superadmin';
+
+  // Check if current route is admin route
+  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
 
   // Handle scroll effect for navbar
   useEffect(() => {
@@ -120,6 +152,58 @@ export default function App() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Prevent unwanted page refreshes from form submissions and clicks
+  useEffect(() => {
+    const handleFormSubmit = (e: Event) => {
+      const target = e.target as HTMLFormElement;
+      
+      // Only prevent default if it's a form without proper action or method
+      if (target.tagName === 'FORM') {
+        const action = target.getAttribute('action');
+        const method = target.getAttribute('method');
+        
+        // If form has no action or method, it might cause a page refresh
+        if (!action || (!method && !action.startsWith('/'))) {
+          console.warn('Preventing form submission that could cause page refresh:', target);
+          e.preventDefault();
+        }
+      }
+    };
+
+    const handleClick = (e: Event) => {
+      const target = e.target as HTMLElement;
+      
+      // Prevent clicks on empty href links
+      if (target.tagName === 'A') {
+        const href = target.getAttribute('href');
+        if (href === '' || href === '#') {
+          e.preventDefault();
+        }
+      }
+      
+      // Prevent double-clicks that might cause issues
+      if (target.dataset.clicked === 'true') {
+        e.preventDefault();
+        return;
+      }
+      
+      // Mark as clicked temporarily
+      target.dataset.clicked = 'true';
+      setTimeout(() => {
+        delete target.dataset.clicked;
+      }, 1000);
+    };
+
+    // Add global event listeners
+    document.addEventListener('submit', handleFormSubmit, true);
+    document.addEventListener('click', handleClick, true);
+    
+    return () => {
+      document.removeEventListener('submit', handleFormSubmit, true);
+      document.removeEventListener('click', handleClick, true);
+    };
   }, []);
 
   // Close mobile menu when clicking outside
@@ -138,17 +222,18 @@ export default function App() {
     <div className="min-h-screen bg-white flex flex-col">
       <Preloader />
       
-      {/* HeroUI Navbar */}
-      <Navbar
-        isBlurred
-        className={`transition-all duration-300 ${
-          scrolled
-            ? 'bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm'
-            : 'bg-white border-b border-gray-50'
-        }`}
-        maxWidth="full"
-        height="4rem"
-      >
+      {/* HeroUI Navbar - Hidden on admin routes */}
+      {!isAdminRoute && (
+        <Navbar
+          isBlurred
+          className={`transition-all duration-300 ${
+            scrolled
+              ? 'bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm'
+              : 'bg-white border-b border-gray-50'
+          }`}
+          maxWidth="full"
+          height="4rem"
+        >
         {/* Logo */}
         <NavbarBrand>
           <Link to="/" className="flex items-center space-x-3 group">
@@ -238,7 +323,7 @@ export default function App() {
             </NavbarItem>
           )}
           
-          {user?.role === 'superadmin' && (
+          {userRole === 'superadmin' && (
             <NavbarItem>
               <Button
                 as={Link}
@@ -255,94 +340,100 @@ export default function App() {
 
         {/* User Section */}
         <NavbarContent justify="end">
-          {user ? (
+          <SignedIn>
             <NavbarItem className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm text-gray-600 font-medium">
-                  {user.name}
+                  {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress}
                 </span>
-                {(user.role === 'admin' || user.role === 'superadmin') && (
+                {(userRole === 'admin' || userRole === 'superadmin') && (
                   <Chip
                     size="sm"
                     color="primary"
                     variant="flat"
                     className="text-xs"
                   >
-                    {user.role}
+                    {userRole}
                   </Chip>
                 )}
               </div>
               
-              <Avatar
-                size="sm"
-                icon={<User className="w-4 h-4" />}
-                classNames={{
-                  base: "bg-gradient-to-br from-gray-100 to-gray-200",
-                  icon: "text-gray-600"
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8"
+                  }
                 }}
               />
-              
-              <Form method="post" action="/auth/logout" className="inline">
+            </NavbarItem>
+          </SignedIn>
+          
+          <SignedOut>
+            <NavbarItem className="flex items-center gap-2">
+              <SignInButton
+                mode="modal"
+                fallbackRedirectUrl="/"
+                signUpFallbackRedirectUrl="/"
+              >
                 <Button
-                  type="submit"
+                  variant="light"
+                  size="sm"
+                  className="hidden sm:flex"
+                >
+                  Entrar
+                </Button>
+              </SignInButton>
+              
+              <SignUpButton
+                mode="modal"
+                fallbackRedirectUrl="/"
+                signInFallbackRedirectUrl="/"
+              >
+                <Button
+                  color="default"
+                  variant="solid"
+                  size="sm"
+                  className="bg-black text-white hover:bg-gray-800 hidden sm:flex"
+                >
+                  Registrarse
+                </Button>
+              </SignUpButton>
+              
+              {/* Mobile auth buttons */}
+              <SignInButton
+                mode="modal"
+                fallbackRedirectUrl="/"
+                signUpFallbackRedirectUrl="/"
+              >
+                <Button
                   isIconOnly
                   variant="light"
                   size="sm"
-                  className="text-gray-400 hover:text-red-500"
-                  aria-label="Cerrar sesión"
+                  className="flex sm:hidden"
+                  aria-label="Entrar"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogIn className="w-5 h-5" />
                 </Button>
-              </Form>
-            </NavbarItem>
-          ) : (
-            <NavbarItem className="flex items-center gap-2">
-              <Button
-                as={Link}
-                to="/auth/login"
-                variant="light"
-                size="sm"
-                className="hidden sm:flex"
-              >
-                Entrar
-              </Button>
-              <Button
-                as={Link}
-                to="/auth/register"
-                color="default"
-                variant="solid"
-                size="sm"
-                className="bg-black text-white hover:bg-gray-800 hidden sm:flex"
-              >
-                Registrarse
-              </Button>
+              </SignInButton>
               
-              {/* Mobile auth buttons */}
-              <Button
-                as={Link}
-                to="/auth/login"
-                isIconOnly
-                variant="light"
-                size="sm"
-                className="flex sm:hidden"
-                aria-label="Entrar"
+              <SignUpButton
+                mode="modal"
+                fallbackRedirectUrl="/"
+                signInFallbackRedirectUrl="/"
               >
-                <LogIn className="w-5 h-5" />
-              </Button>
-              <Button
-                as={Link}
-                to="/auth/register"
-                isIconOnly
-                color="default"
-                variant="solid"
-                size="sm"
-                className="bg-black text-white hover:bg-gray-800 flex sm:hidden"
-                aria-label="Registrarse"
-              >
-                <UserPlus className="w-5 h-5" />
-              </Button>
+                <Button
+                  isIconOnly
+                  color="default"
+                  variant="solid"
+                  size="sm"
+                  className="bg-black text-white hover:bg-gray-800 flex sm:hidden"
+                  aria-label="Registrarse"
+                >
+                  <UserPlus className="w-5 h-5" />
+                </Button>
+              </SignUpButton>
             </NavbarItem>
-          )}
+          </SignedOut>
           
           {/* Mobile menu toggle */}
           <NavbarMenuToggle
@@ -366,7 +457,7 @@ export default function App() {
             </Button>
           </NavbarMenuItem>
           
-          {user && (
+          <SignedIn>
             <NavbarMenuItem>
               <Button
                 as={Link}
@@ -379,9 +470,7 @@ export default function App() {
                 Mis Favoritos
               </Button>
             </NavbarMenuItem>
-          )}
-          
-          {user && (
+            
             <NavbarMenuItem>
               <Button
                 as={Link}
@@ -394,7 +483,7 @@ export default function App() {
                 Mis Solicitudes de Crédito
               </Button>
             </NavbarMenuItem>
-          )}
+          </SignedIn>
           
           <NavbarMenuItem>
             <Button
@@ -423,22 +512,33 @@ export default function App() {
             </Button>
           </NavbarMenuItem>
           
-          {user && canCreateListings && (
-            <NavbarMenuItem>
-              <Button
-                as={Link}
-                to="/listings/new"
-                variant="light"
-                startContent={<Plus className="w-4 h-4 text-blue-500" />}
-                className="w-full justify-start text-gray-600"
-                onPress={() => setMobileMenuOpen(false)}
-              >
-                Crear Listing
-              </Button>
-            </NavbarMenuItem>
-          )}
+          <SignedIn>
+            {canCreateListings && (
+              <NavbarMenuItem>
+                <Button
+                  as={Link}
+                  to="/listings/new"
+                  variant="flat"
+                  startContent={
+                    <div className="relative">
+                      <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-full p-1">
+                        <Plus className="w-3 h-3 text-white" />
+                      </div>
+                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                    </div>
+                  }
+                  className="w-full justify-start bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 hover:from-red-100 hover:to-orange-100 transition-all duration-300"
+                  onPress={() => setMobileMenuOpen(false)}
+                >
+                  <span className="font-semibold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                    ¡Crear Listing!
+                  </span>
+                </Button>
+              </NavbarMenuItem>
+            )}
+          </SignedIn>
           
-          {user?.role === 'superadmin' && (
+          {userRole === 'superadmin' && (
             <NavbarMenuItem>
               <Button
                 as={Link}
@@ -453,31 +553,32 @@ export default function App() {
             </NavbarMenuItem>
           )}
           
-          {user && (
+          <SignedIn>
             <NavbarMenuItem className="mt-4 pt-4 border-t border-gray-100">
-              <Form method="post" action="/auth/logout">
-                <Button
-                  type="submit"
-                  variant="light"
-                  startContent={<LogOut className="w-4 h-4" />}
-                  className="w-full justify-start text-gray-600 hover:text-red-600"
-                  onPress={() => setMobileMenuOpen(false)}
-                >
-                  Cerrar Sesión
-                </Button>
-              </Form>
+              <UserButton
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "w-8 h-8",
+                    userButtonPopoverCard: "bg-white shadow-lg border border-gray-200",
+                    userButtonPopoverActionButton: "text-gray-700 hover:bg-gray-50"
+                  }
+                }}
+                showName
+              />
             </NavbarMenuItem>
-          )}
+          </SignedIn>
         </NavbarMenu>
-      </Navbar>
+        </Navbar>
+      )}
 
       {/* Main Content */}
-      <main className="flex-1 pb-20 md:pb-0">
+      <main className={`flex-1 ${!isAdminRoute ? 'pb-20 md:pb-0' : ''}`}>
         <Outlet />
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+      {/* Mobile Bottom Navigation - Hidden on admin routes */}
+      {!isAdminRoute && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
         <div className="flex items-center justify-around py-2">
           <Link
             to="/"
@@ -497,7 +598,7 @@ export default function App() {
             <span className="hidden sm:block text-xs font-medium">Explorar</span>
           </Link>
           
-          {user && (
+          <SignedIn>
             <Link
               to="/favorites"
               className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-red-600 transition-colors min-w-0"
@@ -506,9 +607,7 @@ export default function App() {
               <Heart className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
               <span className="hidden sm:block text-xs font-medium">Favoritos</span>
             </Link>
-          )}
-          
-          {user && (
+            
             <Link
               to="/credit/my-applications"
               className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-green-600 transition-colors min-w-0"
@@ -517,20 +616,34 @@ export default function App() {
               <CreditCard className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
               <span className="hidden sm:block text-xs font-medium">Créditos</span>
             </Link>
-          )}
+            
+            {canCreateListings && (
+              <Link
+                to="/listings/new"
+                className="relative flex flex-col items-center py-2 px-1 min-w-0 group"
+                title="Crear Listing"
+              >
+                {/* Fondo animado */}
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl opacity-0 group-hover:opacity-20 transition-all duration-300 transform group-hover:scale-110"></div>
+                
+                {/* Círculo de fondo para el ícono */}
+                <div className="relative bg-gradient-to-r from-red-500 to-orange-500 rounded-full p-2 shadow-lg transform group-hover:scale-110 transition-all duration-300 group-hover:shadow-xl">
+                  <Plus className="w-5 h-5 text-white animate-pulse" />
+                </div>
+                
+                {/* Texto con gradiente */}
+                <span className="hidden sm:block text-xs font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent mt-1">
+                  Crear
+                </span>
+                
+                {/* Indicador de pulso */}
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+              </Link>
+            )}
+          </SignedIn>
           
-          {user && canCreateListings && (
-            <Link
-              to="/listings/new"
-              className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-blue-600 transition-colors min-w-0"
-              title="Crear"
-            >
-              <Plus className="w-6 h-6 sm:w-5 sm:h-5 sm:mb-1" />
-              <span className="hidden sm:block text-xs font-medium">Crear</span>
-            </Link>
-          )}
-          
-          {user?.role === 'superadmin' && (
+          {userRole === 'superadmin' && (
             <Link
               to="/admin"
               className="flex flex-col items-center py-2 px-1 text-gray-600 hover:text-purple-600 transition-colors min-w-0"
@@ -560,10 +673,12 @@ export default function App() {
             <span className="hidden sm:block text-xs font-medium">Club</span>
           </Link>
         </div>
-      </nav>
+        </nav>
+      )}
 
-      {/* Modern Responsive Footer */}
-      <footer className="bg-gradient-to-br from-gray-50 to-gray-100 border-t border-gray-200 mt-auto">
+      {/* Modern Responsive Footer - Hidden on admin routes */}
+      {!isAdminRoute && (
+        <footer className="bg-gradient-to-br from-gray-50 to-gray-100 border-t border-gray-200 mt-auto">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Main Footer Content */}
           <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -635,20 +750,18 @@ export default function App() {
                     Lounge Club <span className="inline-block ml-1 text-amber-500">★</span>
                   </Link>
                 </li>
-                {user && (
-                  <>
-                    <li>
-                      <Link to="/favorites" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                        Mis Favoritos
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/credit/my-applications" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                        Mis Créditos
-                      </Link>
-                    </li>
-                  </>
-                )}
+                <SignedIn>
+                  <li>
+                    <Link to="/favorites" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                      Mis Favoritos
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/credit/my-applications" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
+                      Mis Créditos
+                    </Link>
+                  </li>
+                </SignedIn>
               </ul>
             </div>
 
@@ -707,7 +820,8 @@ export default function App() {
             </div>
           </div>
         </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }
@@ -864,8 +978,9 @@ export function ErrorBoundary() {
             </div>
           </div>
         </div>
-    );
-  }
+      );
+    }
+    
 
   // Handle other errors
   return (
@@ -887,3 +1002,6 @@ export function ErrorBoundary() {
     </div>
   );
 }
+
+// Wrap the App component with ClerkApp
+export default ClerkApp(App);

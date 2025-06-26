@@ -1,12 +1,13 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, Link, useLoaderData, useNavigation, useSearchParams, useSubmit } from "@remix-run/react"
-import { requireAdmin } from "~/lib/auth.server"
+import { requireClerkAdmin } from "~/lib/auth-clerk.server"
 import { db } from "~/lib/db.server"
 import { ListingModel } from "~/models/Listing.server"
-import { 
-  Search, 
-  Filter, 
-  Plus, 
+import { AdminLayout } from "~/components/admin/AdminLayout"
+import {
+  Search,
+  Filter,
+  Plus,
   Edit,
   Trash2,
   Eye,
@@ -22,14 +23,15 @@ import {
   Clock,
   Loader2,
   MoreHorizontal,
-  Car
+  Car,
+  TrendingUp
 } from 'lucide-react'
 import { useState } from 'react'
-import { TicketCatalog } from "~/components/ui/ticket-catalog"
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const { request } = args;
   // Ensure user is admin
-  await requireAdmin(request)
+  await requireClerkAdmin(args)
   
   // Parse URL params for filtering and pagination
   const url = new URL(request.url)
@@ -67,9 +69,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
   })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
   // Ensure user is admin
-  const user = await requireAdmin(request)
+  const user = await requireClerkAdmin(args)
   
   const formData = await request.formData()
   const intent = formData.get("intent") as string
@@ -217,21 +220,20 @@ export default function AdminListings() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+    <AdminLayout>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-light text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Gestión de Listings
             </h1>
             <p className="text-gray-600">
-              {totalCount} listings en total
+              {totalCount} listings registrados en la plataforma
             </p>
           </div>
           
-          <div className="mt-4 sm:mt-0 flex space-x-3">
-            <TicketCatalog />
-            
+          <div className="mt-4 sm:mt-0">
             <Link
               to="/listings/new"
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -239,18 +241,11 @@ export default function AdminListings() {
               <Plus className="w-4 h-4" />
               <span>Nuevo Listing</span>
             </Link>
-            
-            <Link
-              to="/admin"
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Volver
-            </Link>
           </div>
         </div>
         
         {/* Filters */}
-        <div className="bg-white p-4 rounded-xl border border-gray-200 mb-6">
+        <div className="bg-white p-4 rounded-xl border border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <Form method="get" className="flex-1 flex flex-col sm:flex-row gap-4">
               <div className="flex-1 flex gap-2">
@@ -614,17 +609,17 @@ export default function AdminListings() {
             </div>
           )}
         </div>
-      </div>
-      
-      {/* Loading overlay */}
-      {isSubmitting && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl flex items-center space-x-4">
-            <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-            <p className="text-lg text-gray-700">Procesando...</p>
+
+        {/* Loading overlay */}
+        {isSubmitting && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl flex items-center space-x-4">
+              <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+              <p className="text-lg text-gray-700">Procesando...</p>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </AdminLayout>
   )
 }

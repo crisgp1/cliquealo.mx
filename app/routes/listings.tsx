@@ -2,7 +2,7 @@ import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-r
 import { useLoaderData, Link, Form, useSearchParams, useFetcher } from "@remix-run/react"
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
-import { getUser, requireUser } from "~/lib/session.server"
+import { getClerkUser } from "~/lib/auth-clerk.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
@@ -40,8 +40,8 @@ import {
 // Tipo para la respuesta del action
 type ActionResponse = { success?: boolean; action?: 'liked' | 'unliked'; error?: string; listingId?: string }
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const url = new URL(request.url)
+export async function loader(args: LoaderFunctionArgs) {
+  const url = new URL(args.request.url)
   const search = url.searchParams.get("search") || ""
   const brand = url.searchParams.get("brand") || ""
   const minPrice = url.searchParams.get("minPrice") ? parseInt(url.searchParams.get("minPrice") || "") : undefined
@@ -67,7 +67,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     skip
   })
   
-  const user = await getUser(request)
+  const user = await getClerkUser(args)
 
   // Get brands for filter dropdown
   const brands = await ListingModel.getBrandStats()
@@ -100,16 +100,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 // Action para manejar likes/unlikes
-export async function action({ request }: ActionFunctionArgs) {
-  // Verificar si hay usuario autenticado
-  let user
-  try {
-    user = await requireUser(request)
-  } catch (error) {
+export async function action(args: ActionFunctionArgs) {
+  const user = await getClerkUser(args)
+  
+  if (!user) {
     return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
   }
 
-  const formData = await request.formData()
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   const listingId = formData.get("listingId") as string
 
@@ -212,13 +210,10 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
     return (
       <button
         onClick={() => {
-          toast.error("¡Inicia sesión para dar like! 💖", {
-            description: "Regístrate o inicia sesión para guardar tus autos favoritos",
-            action: {
-              label: "Registrarse",
-              onClick: () => window.location.href = "/auth/register"
-            }
-          })
+          toast.error(
+            "¡Inicia sesión para dar like! 💖",
+            "Regístrate o inicia sesión para guardar tus autos favoritos"
+          )
         }}
         className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-red-50 hover:scale-105 transition-all duration-200 cursor-pointer"
         title="Haz clic para registrarte y dar like"
@@ -235,6 +230,13 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
       <button
         type="submit"
         disabled={isLoading}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          if (!isLoading) {
+            e.currentTarget.form?.requestSubmit()
+          }
+        }}
         className={`absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 ${
           currentlyLiked
             ? 'hover:bg-red-50 scale-110'
@@ -242,12 +244,12 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
         } ${isLoading ? 'opacity-50 cursor-not-allowed animate-pulse' : 'hover:scale-105'}`}
         title={currentlyLiked ? 'Quitar de favoritos' : 'Agregar a favoritos'}
       >
-        <Heart 
+        <Heart
           className={`w-5 h-5 transition-all duration-200 ${
-            currentlyLiked 
-              ? 'fill-red-500 text-red-500' 
+            currentlyLiked
+              ? 'fill-red-500 text-red-500'
               : 'text-gray-600'
-          }`} 
+          }`}
         />
       </button>
     </fetcher.Form>

@@ -9,8 +9,7 @@ import {
 import { ListingModel } from "~/models/Listing.server"
 import { UserModel } from "~/models/User.server"
 import { BankPartnerModel } from "~/models/BankPartner.server"
-import { getUser } from "~/lib/session.server"
-import { requireUser, Auth } from "~/lib/auth.server"
+import { getClerkUser, ClerkAuth } from "~/lib/auth-clerk.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus, type Listing } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
@@ -80,7 +79,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     });
   }
 
-  const listing = data.listing;
+  const listing = data.listing as any;
   
   // Construir description optimizada para SEO
   const description = `${listing.year} ${listing.brand} ${listing.model} en venta. ${
@@ -108,7 +107,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   });
 };
 
-export async function loader({ params, request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const { params, request } = args
   const listingId = params.id
   console.log('🎯 LOADER - Listing ID:', listingId)
   
@@ -118,7 +118,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     return redirect("/?toast=listing-not-found")
   }
 
-  const user = await getUser(request)
+  const user = await getClerkUser(args)
   console.log('👤 Usuario actual:', user?.name || 'No logueado')
   
   // Buscar el listing con información del dueño
@@ -155,7 +155,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const bankPartners = await BankPartnerModel.findActiveForSimulator()
   
   // Verificar permisos de edición
-  const canEdit = user ? Auth.canEditListing(user, listing) : false
+  const canEdit = user ? ClerkAuth.canEditListing(user, listing) : false
 
   console.log('🔍 Loader debug:')
   console.log('- Usuario:', user?.name || 'No logueado')
@@ -172,8 +172,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   })
 }
 
-export async function action({ params, request }: ActionFunctionArgs) {
-  const listingId = params.id
+export async function action(args: ActionFunctionArgs) {
+  const listingId = args.params.id
   console.log('🎯 ACTION EJECUTADO - Listing ID:', listingId)
   
   if (!listingId) {
@@ -182,17 +182,16 @@ export async function action({ params, request }: ActionFunctionArgs) {
     return redirect("/?toast=listing-not-found")
   }
 
-  // Verificar si hay usuario autenticado
-  let user
-  try {
-    user = await requireUser(request)
-    console.log('✅ Usuario autenticado:', user.name, 'ID:', user._id)
-  } catch (error) {
+  const user = await getClerkUser(args)
+  
+  if (!user) {
     console.log('❌ Usuario NO autenticado')
     return json({ error: "Debes iniciar sesión para dar like" }, { status: 401 })
   }
 
-  const formData = await request.formData()
+  console.log('✅ Usuario autenticado:', user.name, 'ID:', user._id)
+
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   console.log('🎯 Intent recibido:', intent)
 
@@ -225,7 +224,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
       
       case "delete": {
         const listing = await ListingModel.findById(listingId)
-        if (!listing || !Auth.canEditListing(user, listing)) {
+        if (!listing || !ClerkAuth.canEditListing(user, listing)) {
           throw new Response("No autorizado", { status: 403 })
         }
         
@@ -252,7 +251,9 @@ type LoaderData = {
   canEdit: boolean
 }
 
-type MetaData = LoaderData | {}
+type MetaData = {
+  listing?: Listing & { hotStatus: string }
+}
 
 // Script para JSON-LD estructurado
 const ListingJsonLd = ({ listing }: { listing: any }) => {
@@ -689,13 +690,10 @@ export default function ListingDetail() {
                   variant="light"
                   color="default"
                   onClick={() => {
-                    toast.error("¡Inicia sesión para dar like! 💖", {
-                      description: "Regístrate o inicia sesión para guardar tus autos favoritos",
-                      action: {
-                        label: "Registrarse",
-                        onClick: () => window.location.href = "/auth/register"
-                      }
-                    })
+                    toast.error(
+                      "¡Inicia sesión para dar like! 💖",
+                      "Regístrate o inicia sesión para guardar tus autos favoritos"
+                    )
                   }}
                   title="Haz clic para registrarte y dar like"
                 >
@@ -1382,47 +1380,46 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                           </CardBody>
                         </Card>
 
-                        {/* Credit Request Buttons */}
-                        <div className="space-y-3">
-                          {/* New Integrated Credit Application */}
-                          <Button
-                            as={Link}
-                            to={`/credit/apply?listing=${listing._id}`}
-                            color="primary"
-                            size="lg"
-                            startContent={<FileText className="w-5 h-5" />}
-                            className="w-full font-semibold"
-                          >
-                            Aplicar a Crédito Online
-                          </Button>
-                          
-                          {/* WhatsApp Credit Request */}
-                          <Button
-                            color={
-                              creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price
-                                ? "success"
-                                : "default"
-                            }
-                            size="lg"
-                            variant="bordered"
-                            startContent={<MessageCircle className="w-5 h-5" />}
-                            isDisabled={creditData.downPayment < minDownPayment || creditData.downPayment > listing.price}
-                            className="w-full font-semibold"
-                            onClick={() => {
-                              if (creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price) {
-                                setShowCreditModal(true)
-                                setCreditStep(1)
-                              } else if (creditData.downPayment < minDownPayment) {
-                                toast.error("Ajusta el enganche al mínimo del 30% para continuar")
-                              } else {
-                                toast.error("El enganche no puede ser mayor al 100% del precio del vehículo")
-                              }
-                            }}
-                          >
-                            Solicitar por WhatsApp
-                          </Button>
-                        </div>
-
+                       {/* Credit Request Buttons - DISEÑO ULTRA MINIMALISTA */}
+                          <div className="space-y-3">
+                            {/* Botón Aplicar Crédito Online - AZUL SÓLIDO */}
+                            <Button
+                              as={Link}
+                              to={`/credit/apply?listing=${listing._id}`}
+                              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium 
+                                        rounded-lg transition-all duration-200 border-0"
+                              size="lg"
+                            >
+                              <div className="flex items-center gap-2">
+                                <FileText className="w-4 h-4" />
+                                <span>Aplicar Crédito Online</span>
+                              </div>
+                            </Button>
+                            
+                            {/* Separador minimalista */}
+                            <div className="flex items-center gap-3 py-2">
+                              <div className="flex-1 h-px bg-gray-200"></div>
+                              <span className="text-xs text-gray-400">o</span>
+                              <div className="flex-1 h-px bg-gray-200"></div>
+                            </div>
+                            
+                            {/* WhatsApp Credit Request - SOLO BORDE VERDE */}
+                            <Button
+                              variant="bordered"
+                              className={`w-full h-12 font-medium rounded-lg transition-all duration-200
+                                ${creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price
+                                  ? 'border-green-600 text-green-600 hover:border-green-700 hover:text-green-700'
+                                  : 'border-gray-300 text-gray-400 cursor-not-allowed'
+                                }`}
+                              isDisabled={creditData.downPayment < minDownPayment || creditData.downPayment > listing.price}
+                              onPress={() => setShowCreditModal(true)}
+                            >
+                              <div className="flex items-center gap-2">
+                                <MessageCircle className="w-4 h-4" />
+                                <span>Solicitar por WhatsApp</span>
+                              </div>
+                            </Button>
+                          </div>
                         <p className="text-xs text-gray-500 text-center">
                           * Los cálculos son estimados. Las condiciones finales pueden variar según la institución financiera.
                         </p>

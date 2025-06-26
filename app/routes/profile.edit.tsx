@@ -1,6 +1,6 @@
 import { json, redirect, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { Form, useLoaderData, useNavigation, useActionData } from "@remix-run/react"
-import { requireUser } from "~/lib/auth.server"
+import { getClerkUser, requireClerkUser } from "~/lib/auth-clerk.server"
 import { UserModel } from "~/models/User.server"
 import {
   ArrowLeftIcon,
@@ -13,8 +13,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { Link } from "@remix-run/react"
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireUser(request)
+export async function loader(args: LoaderFunctionArgs) {
+  const user = await requireClerkUser(args)
   
   // Only allow admin and superadmin to edit their profiles
   if (user.role !== 'admin' && user.role !== 'superadmin') {
@@ -24,15 +24,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ user })
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireUser(request)
+export async function action(args: ActionFunctionArgs) {
+  const user = await getClerkUser(args)
+  
+  if (!user) {
+    return json({ error: "Debes iniciar sesión" }, { status: 401 })
+  }
   
   // Only allow admin and superadmin to edit their profiles
   if (user.role !== 'admin' && user.role !== 'superadmin') {
     return json({ error: "No tienes permisos para realizar esta acción" }, { status: 403 })
   }
   
-  const formData = await request.formData()
+  const formData = await args.request.formData()
   const intent = formData.get("intent") as string
   
   try {
