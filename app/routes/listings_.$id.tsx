@@ -1380,47 +1380,46 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                           </CardBody>
                         </Card>
 
-                        {/* Credit Request Buttons */}
-                        <div className="space-y-3">
-                          {/* New Integrated Credit Application */}
-                          <Button
-                            as={Link}
-                            to={`/credit/apply?listing=${listing._id}`}
-                            color="primary"
-                            size="lg"
-                            startContent={<FileText className="w-5 h-5" />}
-                            className="w-full font-semibold"
-                          >
-                            Aplicar a Crédito Online
-                          </Button>
-                          
-                          {/* WhatsApp Credit Request */}
-                          <Button
-                            color={
-                              creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price
-                                ? "success"
-                                : "default"
-                            }
-                            size="lg"
-                            variant="bordered"
-                            startContent={<MessageCircle className="w-5 h-5" />}
-                            isDisabled={creditData.downPayment < minDownPayment || creditData.downPayment > listing.price}
-                            className="w-full font-semibold"
-                            onClick={() => {
-                              if (creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price) {
-                                setShowCreditModal(true)
-                                setCreditStep(1)
-                              } else if (creditData.downPayment < minDownPayment) {
-                                toast.error("Ajusta el enganche al mínimo del 30% para continuar")
-                              } else {
-                                toast.error("El enganche no puede ser mayor al 100% del precio del vehículo")
-                              }
-                            }}
-                          >
-                            Solicitar por WhatsApp
-                          </Button>
-                        </div>
-
+                       {/* Credit Request Buttons - DISEÑO ULTRA MINIMALISTA */}
+                          <div className="space-y-3">
+                            {/* Botón Aplicar Crédito Online - AZUL SÓLIDO */}
+                            <Button
+                              as={Link}
+                              to={`/credit/apply?listing=${listing._id}`}
+                              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium 
+                                        rounded-lg transition-all duration-200 border-0"
+                              size="lg"
+                            >
+                              <div className="flex items-center gap-2">
+                                <FileText className="w-4 h-4" />
+                                <span>Aplicar Crédito Online</span>
+                              </div>
+                            </Button>
+                            
+                            {/* Separador minimalista */}
+                            <div className="flex items-center gap-3 py-2">
+                              <div className="flex-1 h-px bg-gray-200"></div>
+                              <span className="text-xs text-gray-400">o</span>
+                              <div className="flex-1 h-px bg-gray-200"></div>
+                            </div>
+                            
+                            {/* WhatsApp Credit Request - SOLO BORDE VERDE */}
+                            <Button
+                              variant="bordered"
+                              className={`w-full h-12 font-medium rounded-lg transition-all duration-200
+                                ${creditData.downPayment >= minDownPayment && creditData.downPayment <= listing.price
+                                  ? 'border-green-600 text-green-600 hover:border-green-700 hover:text-green-700'
+                                  : 'border-gray-300 text-gray-400 cursor-not-allowed'
+                                }`}
+                              isDisabled={creditData.downPayment < minDownPayment || creditData.downPayment > listing.price}
+                              onPress={() => setShowCreditModal(true)}
+                            >
+                              <div className="flex items-center gap-2">
+                                <MessageCircle className="w-4 h-4" />
+                                <span>Solicitar por WhatsApp</span>
+                              </div>
+                            </Button>
+                          </div>
                         <p className="text-xs text-gray-500 text-center">
                           * Los cálculos son estimados. Las condiciones finales pueden variar según la institución financiera.
                         </p>
