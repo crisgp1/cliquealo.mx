@@ -137,6 +137,11 @@ export function CreditSimulator({
     }
   };
 
+  // ✨ CONFIGURACIÓN AVANZADA DE CLASES CSS
+  // Clases optimizadas con especificidad controlada para elementos de formulario
+  const selectBaseClasses = "w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 !text-gray-900";
+  const termSelectClasses = "w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 !text-gray-900";
+
   return (
     <div className="space-y-8">
       {/* Información del Vehículo (si está disponible) */}
@@ -230,7 +235,7 @@ export function CreditSimulator({
               id="term"
               value={term}
               onChange={(e) => setTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={termSelectClasses}
               required
             >
               <option value="12">12 meses</option>
@@ -244,13 +249,17 @@ export function CreditSimulator({
 
           <div>
             <Label htmlFor="bankPartner">Escoge tu Aliado *</Label>
-            <select
-              id="bankPartner"
-              value={selectedBankId}
-              onChange={(e) => setSelectedBankId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
+              <select
+                id="bankPartner"
+                value={selectedBankId}
+                onChange={(e) => setSelectedBankId(e.target.value)}
+                className={selectBaseClasses}
+                style={{ 
+                  color: '#111827 !important',
+                  backgroundColor: '#ffffff'
+                }}
+                required
+              >
               <option value="">Selecciona un banco</option>
               {bankPartners.map((bank) => (
                 <option key={bank._id} value={bank._id}>
@@ -258,6 +267,43 @@ export function CreditSimulator({
                 </option>
               ))}
             </select>
+            
+            {/* Vista previa del banco seleccionado */}
+            {selectedBankId && (
+              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                {(() => {
+                  const selectedBank = bankPartners.find(bank => bank._id === selectedBankId);
+                  if (!selectedBank) return null;
+                  
+                  return (
+                    <div className="flex items-center">
+                      {selectedBank.logo ? (
+                        <img 
+                          src={selectedBank.logo} 
+                          alt={selectedBank.name} 
+                          className="w-8 h-8 rounded-md object-cover mr-3"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center mr-3">
+                          <Building2 className="w-4 h-4 text-blue-600" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-medium text-gray-900">{selectedBank.name}</div>
+                        <div className="flex items-center text-sm text-blue-600">
+                          <Percent className="w-3 h-3 mr-1" />
+                          {formatRate(selectedBank.creditRate)} anual
+                        </div>
+                      </div>
+                      <div className="ml-auto flex items-center text-xs text-green-600">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Seleccionado
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         </div>
 
