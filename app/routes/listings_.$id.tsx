@@ -43,7 +43,8 @@ import {
   Receipt,
   CheckCircle,
   ArrowRight,
-  X
+  X,
+  Building
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { Splide } from '@splidejs/splide'
@@ -1306,29 +1307,105 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
 
                           {/* Bank Partner Selector */}
                           <div>
-                            <Select
-                              label="Escoge tu Aliado Bancario"
-                              placeholder="Selecciona un banco"
-                              selectedKeys={creditData.selectedBankId ? [creditData.selectedBankId] : []}
-                              onSelectionChange={(keys) => {
-                                const selectedKey = Array.from(keys)[0] as string
-                                setCreditData({
-                                  ...creditData,
-                                  selectedBankId: selectedKey || ''
-                                })
-                              }}
-                              description={
-                                creditData.selectedBankId && bankPartners.find(bank => bank._id === creditData.selectedBankId)
-                                  ? `Tasa: ${bankPartners.find(bank => bank._id === creditData.selectedBankId)?.creditRate}% anual`
-                                  : 'Selecciona un banco para ver la tasa de interés'
-                              }
-                            >
-                              {bankPartners.map((bank) => (
-                                <SelectItem key={bank._id}>
-                                  {bank.name} - {bank.creditRate}% anual
-                                </SelectItem>
-                              ))}
-                            </Select>
+                            <div>
+                                <Select
+                                  label="Escoge tu Aliado Bancario"
+                                  placeholder="Selecciona un banco"
+                                  selectedKeys={creditData.selectedBankId ? new Set([creditData.selectedBankId]) : new Set([])}
+                                  onSelectionChange={(keys) => {
+                                    const selectedKey = Array.from(keys)[0] as string
+                                    console.log("Banco seleccionado:", selectedKey)
+                                    setCreditData({
+                                      ...creditData,
+                                      selectedBankId: selectedKey || ''
+                                    })
+                                  }}
+                                  classNames={{
+                                    trigger: "border-2 hover:border-blue-500 focus:border-blue-500",
+                                    value: "font-medium text-blue-700",
+                                    label: "font-semibold text-gray-800",
+                                    base: "min-h-12"
+                                  }}
+                                  description={
+                                    creditData.selectedBankId && bankPartners.find(bank => bank._id === creditData.selectedBankId)
+                                      ? `Tasa: ${bankPartners.find(bank => bank._id === creditData.selectedBankId)?.creditRate}% anual`
+                                      : 'Selecciona un banco para ver la tasa de interés'
+                                  }
+                                  renderValue={(items) => {
+                                    const selectedBank = bankPartners.find(bank => bank._id === creditData.selectedBankId);
+                                    if (!selectedBank) return null;
+                                    
+                                    return (
+                                      <div className="flex items-center gap-2">
+                                        <Chip 
+                                          size="sm" 
+                                          color="primary" 
+                                          variant="flat"
+                                          className="mr-1"
+                                        >
+                                          {selectedBank.creditRate}%
+                                        </Chip>
+                                        <span className="font-medium">{selectedBank.name}</span>
+                                      </div>
+                                    );
+                                  }}
+                                >
+                                  {bankPartners.map((bank) => (
+                                    <SelectItem 
+                                      key={bank._id}
+                                      className="py-2 px-3 hover:bg-blue-50 data-[selected=true]:bg-blue-100"
+                                      startContent={
+                                        <Chip 
+                                          size="sm" 
+                                          variant="flat" 
+                                          color="primary"
+                                          className="mr-2"
+                                        >
+                                          {bank.creditRate}%
+                                        </Chip>
+                                      }
+                                      endContent={
+                                        bank._id === creditData.selectedBankId && (
+                                          <CheckCircle className="w-4 h-4 text-blue-600" />
+                                        )
+                                      }
+                                    >
+                                      <span className="font-medium">{bank.name}</span>
+                                    </SelectItem>
+                                  ))}
+                                </Select>
+                              
+                              {/* Confirmación visual de banco seleccionado */}
+                              {creditData.selectedBankId && (
+                                <div className="mt-2 p-3 bg-blue-50 border-2 border-blue-300 rounded-lg shadow-sm">
+                                  {(() => {
+                                    const selectedBank = bankPartners.find(bank => bank._id === creditData.selectedBankId);
+                                    if (!selectedBank) return null;
+                                    
+                                    return (
+                                      <div className="flex items-center">
+                                        <Building className="w-5 h-5 text-blue-600 mr-3" />
+                                        <div>
+                                          <div className="font-semibold text-gray-900">{selectedBank.name}</div>
+                                          <div className="text-sm text-blue-600 font-medium">
+                                            Tasa: {selectedBank.creditRate}% anual
+                                          </div>
+                                        </div>
+                                        <Chip 
+                                          size="sm" 
+                                          color="success" 
+                                          variant="flat"
+                                          className="ml-auto"
+                                          startContent={<CheckCircle className="w-3 h-3" />}
+                                        >
+                                          Seleccionado
+                                        </Chip>
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
 
