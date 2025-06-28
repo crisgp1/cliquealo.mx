@@ -14,6 +14,7 @@ import { toast } from "~/components/ui/toast"
 import { getHotStatus, type Listing } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
 import { EnhancedLightbox, type MediaItem } from "~/components/ui/enhanced-lightbox"
+import { OptimizedCarousel } from "~/components/lazy"
 import {
   ArrowLeft,
   Heart,
@@ -46,8 +47,7 @@ import {
   X,
   Building
 } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
-import { Splide } from '@splidejs/splide'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Card,
   CardBody,
@@ -291,10 +291,6 @@ export default function ListingDetail() {
   const [activeTab, setActiveTab] = useState('info')
   const [showCreditModal, setShowCreditModal] = useState(false)
   const [creditStep, setCreditStep] = useState(1)
-  
-  // Referencias para Splide
-  const mainSplideRef = useRef<HTMLDivElement>(null)
-  const thumbnailSplideRef = useRef<HTMLDivElement>(null)
   
   // Estados para el enhanced lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -552,14 +548,27 @@ export default function ListingDetail() {
   }
 
   // Convertir imágenes y videos a formato MediaItem para el lightbox
+  // Utilizamos URLs optimizadas para calidad ultra-alta en el lightbox
   const mediaItems: MediaItem[] = [
-    ...images.map((image: string, index: number) => ({
-      id: `image-${index}`,
-      src: image,
-      type: 'image' as const,
-      title: `${listing.title} - Imagen ${index + 1}`,
-      description: `Imagen ${index + 1} de ${images.length + videos.length}`
-    })),
+    ...images.map((image: string, index: number) => {
+      // Optimizar URL para calidad ultra si es una URL de Cloudinary
+      let optimizedSrc = image;
+      if (image.includes('cloudinary.com')) {
+        // Reemplazar los parámetros de transformación con calidad ultra
+        optimizedSrc = image.replace(/\/upload\/([^/]*\/)?/, '/upload/w_1800,q_100,f_auto/');
+      } else if (image.startsWith('/')) {
+        // Para imágenes locales, usar la API de optimización
+        optimizedSrc = `/api/optimize-image?src=${encodeURIComponent(image)}&quality=ultra`;
+      }
+      
+      return {
+        id: `image-${index}`,
+        src: optimizedSrc,
+        type: 'image' as const,
+        title: `${listing.title} - Imagen ${index + 1}`,
+        description: `Imagen ${index + 1} de ${images.length + videos.length}`
+      };
+    }),
     ...videos.map((video: string, index: number) => ({
       id: `video-${index}`,
       src: video,
@@ -579,58 +588,23 @@ export default function ListingDetail() {
     setLightboxOpen(false)
   }
 
-  // Inicializar Splide cuando los medios estén disponibles
-  useEffect(() => {
-    if (allMedia.length > 1) {
-      // Inicializar el carousel principal
-      if (mainSplideRef.current) {
-        const mainSplide = new Splide(mainSplideRef.current, {
-          type: 'fade',
-          rewind: true,
-          pagination: false,
-          arrows: false,
-          cover: true,
-          height: '400px',
-        })
-
-        // Inicializar el carousel de thumbnails
-        if (thumbnailSplideRef.current) {
-          const thumbnailSplide = new Splide(thumbnailSplideRef.current, {
-            fixedWidth: 80,
-            fixedHeight: 80,
-            gap: 10,
-            rewind: true,
-            pagination: false,
-            arrows: false,
-            cover: true,
-            focus: 'center',
-            isNavigation: true,
-            drag: true,
-            snap: true,
-            slideFocus: true,
-          })
-
-          // Sincronizar ambos carousels
-          mainSplide.sync(thumbnailSplide)
-          
-          // Montar ambos carousels
-          mainSplide.mount()
-          thumbnailSplide.mount()
-
-          // Actualizar el índice actual cuando cambie la imagen
-          mainSplide.on('moved', (newIndex) => {
-            setCurrentImageIndex(newIndex)
-          })
-
-          // Cleanup
-          return () => {
-            mainSplide.destroy()
-            thumbnailSplide.destroy()
-          }
-        }
-      }
-    }
-  }, [allMedia.length])
+  // Preparar media para OptimizedCarousel
+  const optimizedMedias = useMemo(() => {
+    return [...images.map((url: string, index: number) => ({
+      id: `image-${index}`,
+      url,
+      type: 'image' as const,
+      title: listing.title,
+      alt: `${listing.title} - Imagen ${index + 1}`
+    })),
+    ...videos.map((url: string, index: number) => ({
+      id: `video-${index}`,
+      url,
+      type: 'video' as const,
+      title: listing.title,
+      alt: `${listing.title} - Video ${index + 1}`
+    }))];
+  }, [images, videos, listing.title]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-red-50/30 overflow-x-hidden">
@@ -750,113 +724,21 @@ export default function ListingDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-12">
           {/* Columna principal - Imágenes e info */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-8 min-w-0">
-            {/* Galería de imágenes y videos con Splide */}
+            {/* Galería optimizada de imágenes y videos */}
             <div className="space-y-4">
               {hasMedia ? (
-                <>
-                  {/* Carousel principal */}
-                  <div className="relative">
-                    <div
-                      ref={mainSplideRef}
-                      className="splide border-2 border-red-500/20 hover:border-red-500/40 transition-colors rounded-2xl overflow-hidden"
-                    >
-                      <div className="splide__track">
-                        <ul className="splide__list">
-                          {allMedia.map((media, index: number) => (
-                            <li key={index} className="splide__slide">
-                              {media.type === 'image' ? (
-                                <img
-                                  src={media.url}
-                                  alt={`${listing.title} - Imagen ${index + 1}`}
-                                  className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                  onClick={() => openLightbox(index)}
-                                />
-                              ) : (
-                                <div className="relative w-full h-full bg-black rounded-lg overflow-hidden flex items-center justify-center">
-                                  <video
-                                    src={media.url}
-                                    className="max-w-full max-h-full object-contain"
-                                    controls
-                                    muted
-                                    playsInline
-                                    preload="metadata"
-                                    autoPlay
-                                    loop
-                                    style={{ maxHeight: '400px' }}
-                                  />
-                                  <div
-                                    className="absolute top-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 cursor-pointer transition-all"
-                                    onClick={() => openLightbox(index)}
-                                    title="Ver en pantalla completa"
-                                  >
-                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Thumbnails con Splide */}
-                  {allMedia.length > 1 && (
-                    <div className="relative">
-                      <div
-                        ref={thumbnailSplideRef}
-                        className="splide splide--thumbnails"
-                      >
-                        <div className="splide__track">
-                          <ul className="splide__list">
-                            {allMedia.map((media, index: number) => (
-                              <li key={index} className="splide__slide">
-                                {media.type === 'image' ? (
-                                  <img
-                                    src={media.url}
-                                    alt={`Thumbnail ${index + 1}`}
-                                    className="w-full h-full object-cover rounded-lg border-2 border-transparent hover:border-red-300 transition-colors cursor-pointer"
-                                  />
-                                ) : (
-                                  <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
-                                    <video
-                                      src={media.url}
-                                      className="w-full h-full object-cover rounded-lg border-2 border-transparent hover:border-red-300 transition-colors cursor-pointer"
-                                      muted
-                                      playsInline
-                                      preload="metadata"
-                                    />
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-lg pointer-events-none">
-                                      <div className="w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                                        <svg className="w-3 h-3 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                          <path d="M8 5v14l11-7z"/>
-                                        </svg>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      
-                      {/* Indicador de touch */}
-                      <div className="mt-2 text-center">
-                        <div className="inline-flex items-center gap-2 text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full">
-                          <span>👆 Desliza para ver más {allMedia.some(m => m.type === 'video') ? 'fotos y videos' : 'fotos'}</span>
-                          <div className="flex gap-1">
-                            <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse"></div>
-                            <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                            <div className="w-1 h-1 bg-gray-300 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </>
+                <div className="border-2 border-red-500/20 hover:border-red-500/40 transition-colors rounded-2xl overflow-hidden">
+                  <OptimizedCarousel
+                    medias={optimizedMedias}
+                    className="w-full"
+                    onMediaClick={openLightbox}
+                    autoPlay={false}
+                    showThumbnails={true}
+                    maxVisibleThumbnails={8}
+                    preloadCount={2}
+                    imageQuality="high"
+                  />
+                </div>
               ) : (
                 <div className="aspect-[4/3] bg-gray-100 rounded-2xl flex items-center justify-center">
                   <Car className="w-16 h-16 text-gray-400" />
@@ -1570,6 +1452,7 @@ className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                     setCreditStep(1)
                   }}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Cerrar"
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>

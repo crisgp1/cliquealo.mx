@@ -7,6 +7,30 @@ import { toast } from "~/components/ui/toast";
 import { LottiePlayer } from "~/components/ui/lottie-player";
 import { X, Upload, Check, AlertCircle, GripVertical } from "lucide-react";
 
+// 1. AÑADIR INTERFACE DE RESPUESTA DE LA API
+interface UploadResponse {
+  success: boolean;
+  data?: {
+    originalUrl: string;
+    optimizedUrl: string;
+    fallbackUrl: string;
+    responsiveUrls: Record<string, string>;
+    metadata: {
+      originalFormat: string;
+      optimizedFormat: string;
+      originalSize: number;
+      optimizedSize: number;
+      compressionRatio: number;
+      processingTime: number;
+      qualityProfile: string;
+    };
+  };
+  error?: {
+    code: string;
+    message: string;
+  };
+}
+
 type ImageUploadProps = {
   label?: string;
   maxFiles?: number;
@@ -31,6 +55,8 @@ interface UploadState {
   failed: string[];
 }
 
+// 2. AÑADIR ESTADO PARA METADATA DE OPTIMIZACIÓN
+
 export function ImageUpload({
   label = "Upload Images",
   maxFiles = 30, // ✅ Aumentado a 30 imágenes máximo
@@ -53,11 +79,29 @@ export function ImageUpload({
     completed: [],
     failed: []
   });
+  
+  // 2. AÑADIR ESTADO PARA METADATA DE OPTIMIZACIÓN
+  const [optimizationMetadata, setOptimizationMetadata] = useState<Record<string, any>>({});
+  const [webpSupport, setWebpSupport] = useState<boolean | null>(null);
 
   // ✅ Estados para drag & drop de reordenamiento
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingToReorder, setIsDraggingToReorder] = useState(false);
+  
+  // 3. DETECCIÓN DE SOPORTE WEBP
+  useEffect(() => {
+    // Detectar soporte WebP del navegador
+    const detectWebPSupport = () => {
+      const webp = new Image();
+      webp.onload = webp.onerror = () => {
+        setWebpSupport(webp.height === 2);
+      };
+      webp.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+    };
+
+    detectWebPSupport();
+  }, []);
 
   // Generar ID único para archivos
   const generateFileId = useCallback(() => 
@@ -138,29 +182,77 @@ export function ImageUpload({
     disabled: uploadState.uploading
   });
 
-  // Subir archivo individual
+  // 4. MODIFICAR LA FUNCIÓN uploadFile EXISTENTE
   const uploadFile = useCallback(async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
-
+    
+    // ⭐ CONFIGURACIÓN OPTIMIZADA PARA WEBP
+    formData.append("type", "listing-gallery"); // Tipo de imagen para el carrusel
+    formData.append("forceWebP", "true"); // Forzar conversión WebP
+    formData.append("customQuality", "high"); // Calidad alta para evitar borrosidad
+    
+    // Headers optimizados
+    const headers: HeadersInit = {};
+    if (webpSupport) {
+      headers['Accept'] = 'image/webp,image/jpeg,image/png,*/*';
+    }
+    
     try {
       const response = await fetch("/api/upload-image", {
         method: "POST",
         body: formData,
+        headers
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Error uploading file");
+        const errorData: UploadResponse = await response.json();
+        throw new Error(errorData.error?.message || "Error uploading file");
       }
 
-      const data = await response.json();
-      return data.url;
+      const data: UploadResponse = await response.json();
+      if (!data.success || !data.data) {
+        throw new Error(data.error?.message || "Upload failed");
+      }
+
+      // ⭐ ALMACENAR METADATA DE OPTIMIZACIÓN
+      const imageUrl = data.data?.optimizedUrl || ''; // Usar URL WebP optimizada
+      setOptimizationMetadata(prev => ({
+        ...prev,
+        [imageUrl]: {
+          ...(data.data?.metadata || {}),
+          responsiveUrls: data.data?.responsiveUrls || {},
+          isWebP: data.data?.metadata?.optimizedFormat === 'image/webp'
+        }
+      }));
+
+      // ⭐ LOG DE OPTIMIZACIÓN PARA DEBUGGING
+      if (process.env.NODE_ENV === 'development' && data.data?.metadata) {
+        console.log(
+          `📸 Imagen optimizada: 🔄 ${data.data.metadata.originalFormat} → ${data.data.metadata.optimizedFormat} 💾 ${(data.data.metadata.originalSize / 1024).toFixed(1)}KB → ${(data.data.metadata.optimizedSize / 1024).toFixed(1)}KB 📈 Compresión: ${data.data.metadata.compressionRatio.toFixed(1)}% ⏱️ Tiempo: ${data.data.metadata.processingTime}ms 🎯 Perfil: ${data.data.metadata.qualityProfile} `
+        );
+      }
+
+      // Toast de éxito con información de optimización
+      if (data.data?.metadata?.compressionRatio > 20) {
+        toast.success(
+          `Imagen optimizada: ${data.data.metadata.compressionRatio.toFixed(1)}% menos peso`,
+          `Formato: ${data.data.metadata.optimizedFormat.split('/')[1]?.toUpperCase()}`
+        );
+      }
+
+      return imageUrl;
     } catch (error) {
       console.error("Error uploading file:", error);
+      
+      // Toast de error específico
+      if (error instanceof Error) {
+        toast.error("Error al subir imagen", error.message);
+      }
+      
       throw error;
     }
-  }, []);
+  }, [webpSupport]);
 
   // Subir todos los archivos
   const handleUpload = useCallback(async () => {
@@ -272,6 +364,83 @@ export function ImageUpload({
       return newUrls;
     });
   }, [onImagesChange]);
+  
+  // 5. COMPONENTE DE INDICADOR DE OPTIMIZACIÓN MEJORADO
+  const OptimizationIndicator: React.FC<{ imageUrl: string; className?: string; }> = ({ imageUrl, className = "" }) => {
+    const metadata = optimizationMetadata[imageUrl];
+    if (!metadata) return null;
+    
+    const getQualityColor = (ratio: number) => {
+      if (ratio > 50) return 'bg-green-600 text-white';
+      if (ratio > 30) return 'bg-blue-600 text-white';
+      if (ratio > 10) return 'bg-yellow-600 text-white';
+      return 'bg-red-600 text-white';
+    };
+    
+    const getFormatIcon = (format: string) => {
+      if (format.includes('webp')) return '🚀';
+      if (format.includes('avif')) return '⚡';
+      return '📷';
+    };
+    
+    return (
+      <div className={`flex items-center space-x-1 text-xs ${className}`}>
+        {/* Badge de formato */}
+        <span className={`px-2 py-1 rounded font-medium ${
+          metadata.isWebP ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+        }`}>
+          {getFormatIcon(metadata.optimizedFormat)} {metadata.optimizedFormat.split('/')[1]?.toUpperCase()}
+        </span>
+        
+        {/* Badge de compresión */}
+        {metadata.compressionRatio > 0 && (
+          <span className={`px-2 py-1 rounded font-medium ${getQualityColor(metadata.compressionRatio)}`}>
+            -{metadata.compressionRatio.toFixed(1)}%
+          </span>
+        )}
+        
+        {/* Badge de calidad */}
+        <span className="px-2 py-1 rounded font-medium bg-purple-100 text-purple-800">
+          {metadata.qualityProfile}
+        </span>
+      </div>
+    );
+  };
+  
+  // 6. COMPONENTE DE IMAGEN OPTIMIZADA PARA PREVIEW
+  const OptimizedImagePreview: React.FC<{ src: string; alt: string; className?: string; }> = ({ src, alt, className }) => {
+    const metadata = optimizationMetadata[src];
+    
+    return (
+      <div className="relative group">
+        <img
+          src={src}
+          alt={alt}
+          className={`${className} transition-all duration-300 group-hover:scale-105`}
+          loading="lazy"
+          decoding="async"
+          style={{ contentVisibility: 'auto', containIntrinsicSize: '200px 150px' }}
+        />
+        
+        {/* Overlay de información al hover */}
+        {metadata && (
+          <div className="absolute inset-0 bg-black bg-opacity-75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <div className="text-white text-center text-xs p-2">
+              <div className="font-semibold">
+                {metadata.optimizedFormat.split('/')[1]?.toUpperCase()}
+              </div>
+              <div>
+                {(metadata.optimizedSize / 1024).toFixed(1)}KB
+              </div>
+              <div className="text-green-400">
+                -{metadata.compressionRatio.toFixed(1)}%
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // ✅ Funciones para reordenar imágenes
   const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
@@ -523,7 +692,7 @@ export function ImageUpload({
           )}
         </div>
 
-        {/* ✅ Imágenes subidas con reordenamiento */}
+        {/* 7. MODIFICAR EL RENDERIZADO DE IMÁGENES SUBIDAS */}
         {uploadedUrls.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-900 flex items-center">
@@ -545,11 +714,20 @@ export function ImageUpload({
                     ${dragOverIndex === index && draggedIndex !== index ? 'drag-over' : ''}
                   `}
                 >
-                  <img
-                    src={url}
-                    alt={`Imagen subida ${index + 1}`}
-                    className="w-full h-full object-cover"
+                  {/* ⭐ USAR COMPONENTE OPTIMIZADO */}
+                  <OptimizedImagePreview 
+                    src={url} 
+                    alt={`Imagen subida ${index + 1}`} 
+                    className="w-full h-full object-cover rounded-lg"
                   />
+                  
+                  {/* ⭐ INDICADOR DE OPTIMIZACIÓN */}
+                  <div className="absolute bottom-2 left-2">
+                    <OptimizationIndicator 
+                      imageUrl={url} 
+                      className="bg-black bg-opacity-50 rounded p-1"
+                    />
+                  </div>
                   
                   {/* Indicador de drag */}
                   <div className="absolute top-2 left-2 bg-gray-800 bg-opacity-75 text-white rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -557,7 +735,7 @@ export function ImageUpload({
                   </div>
                   
                   {/* Número de orden */}
-                  <div className="absolute bottom-2 left-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
+                  <div className="absolute top-2 right-12 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
                     {index + 1}
                   </div>
                   
@@ -569,11 +747,49 @@ export function ImageUpload({
                   >
                     <X className="w-3 h-3" />
                   </button>
-                  <div className="absolute bottom-2 right-2 bg-green-500 text-white rounded-full p-1">
-                    <Check className="w-3 h-3" />
-                  </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+        
+        {/* 8. AGREGAR INFORMACIÓN DE ESTADÍSTICAS GLOBALES */}
+        {uploadedUrls.length > 0 && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <h4 className="text-sm font-medium text-gray-900 mb-2">
+              Estadísticas de Optimización
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+              <div className="text-center">
+                <div className="font-semibold text-blue-600">
+                  {uploadedUrls.filter(url => optimizationMetadata[url]?.isWebP).length}
+                </div>
+                <div className="text-gray-600">WebP</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-green-600">
+                  {uploadedUrls.reduce((acc, url) => {
+                    const meta = optimizationMetadata[url];
+                    return acc + (meta?.compressionRatio || 0);
+                  }, 0).toFixed(1)}%
+                </div>
+                <div className="text-gray-600">Ahorro promedio</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-purple-600">
+                  {uploadedUrls.reduce((acc, url) => {
+                    const meta = optimizationMetadata[url];
+                    return acc + (meta?.optimizedSize || 0);
+                  }, 0) / 1024 / uploadedUrls.length || 0}KB
+                </div>
+                <div className="text-gray-600">Tamaño promedio</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-orange-600">
+                  {webpSupport ? '✅' : '❌'}
+                </div>
+                <div className="text-gray-600">WebP soportado</div>
+              </div>
             </div>
           </div>
         )}
