@@ -19,9 +19,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
-  TrendingUp
+  TrendingUp,
+  User  // ✅ IMPORT AGREGADO
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { SignInButton, SignUpButton } from '@clerk/remix'  // ✅ IMPORT AGREGADO
 import {
   Card,
   CardBody,
@@ -275,6 +277,8 @@ export default function ListingsIndex() {
   const [searchParams] = useSearchParams()
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)  // ✅ ESTADO AGREGADO
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)  // ✅ ESTADO AGREGADO
 
   const hasActiveFilters = brand || minPrice || maxPrice || minYear || maxYear
 
@@ -667,39 +671,109 @@ export default function ListingsIndex() {
           </div>
         )}
 
-        {/* Enhanced Pagination with HeroUI */}
-        {totalPages > 1 && (
-          <div className="mt-12 flex flex-col items-center gap-6">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">
-                Página {currentPage} de {totalPages}
-              </p>
-              <p className="text-xs text-gray-500">
-                Mostrando {listings.length} de {totalCount} autos en total
-              </p>
-            </div>
-            
-            <div className="flex justify-center">
-              <Pagination
-                total={totalPages}
-                page={currentPage}
-                onChange={(page) => {
-                  const newSearchParams = new URLSearchParams(searchParams.toString())
-                  newSearchParams.set('page', page.toString())
-                  window.location.href = `?${newSearchParams.toString()}`
+        {/* ✅ MANTENER: Solo el botón sin información adicional */}
+{currentPage < totalPages && (
+  <div className="mt-12 flex justify-center">
+    {user ? (
+      <a
+        href={`/listings?${new URLSearchParams({
+          ...Object.fromEntries(searchParams.entries()),
+          page: (currentPage + 1).toString()
+        }).toString()}`}
+        className="inline-flex items-center space-x-2 bg-red-100 text-red-700 px-8 py-3 rounded-xl hover:bg-red-200 transition-colors font-medium border border-red-200 hover:border-red-300 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+      >
+        <span>Ver más resultados</span>
+      </a>
+    ) : (
+      <button
+        onClick={() => {
+          const nextPageUrl = `/listings?${new URLSearchParams({
+            ...Object.fromEntries(searchParams.entries()),
+            page: (currentPage + 1).toString()
+          }).toString()}`;
+          
+          setPendingRedirect(nextPageUrl);
+          setShowAuthModal(true);
+          
+          toast.info(
+            'Inicia sesión para continuar',
+            'Necesitas una cuenta para ver más resultados. Es gratis y toma solo unos segundos.'
+          );
+        }}
+        className="inline-flex items-center space-x-2 bg-red-100 text-red-700 px-8 py-3 rounded-xl hover:bg-red-200 transition-colors font-medium border border-red-200 hover:border-red-300 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+      >
+        <span>Ver más resultados</span>
+      </button>
+    )}
+  </div>
+)}
+
+        {/* ✅ MODAL DE AUTENTICACIÓN AGREGADO */}
+        {showAuthModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+              {/* Header */}
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <User className="w-8 h-8 text-red-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Únete a Cliquéalo.mx
+                </h2>
+                <p className="text-gray-600">
+                  Crea tu cuenta gratuita para ver más autos y acceder a todas las funciones
+                </p>
+              </div>
+
+              {/* Botones de autenticación */}
+              <div className="space-y-3 mb-6">
+                <SignUpButton
+                  mode="modal"
+                  afterSignInUrl={pendingRedirect || "/listings"}
+                  afterSignUpUrl={pendingRedirect || "/listings"}
+                >
+                  <button className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-6 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95">
+                    Registrarse Gratis
+                  </button>
+                </SignUpButton>
+
+                <SignInButton
+                  mode="modal"
+                  afterSignInUrl={pendingRedirect || "/listings"}
+                  afterSignUpUrl={pendingRedirect || "/listings"}
+                >
+                  <button className="w-full bg-white text-red-700 py-3 px-6 rounded-xl border-2 border-red-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200 font-medium">
+                    Ya tengo cuenta
+                  </button>
+                </SignInButton>
+              </div>
+
+              {/* Beneficios */}
+              <div className="text-sm text-gray-500 mb-6">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Acceso completo al catálogo</span>
+                </div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Guardar autos favoritos</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Aplicar para créditos automotrices</span>
+                </div>
+              </div>
+
+              {/* Botón cerrar */}
+              <button
+                onClick={() => {
+                  setShowAuthModal(false);
+                  setPendingRedirect(null);
                 }}
-                showControls
-                showShadow
-                color="danger"
-                size="lg"
-                classNames={{
-                  wrapper: "gap-0 overflow-visible",
-                  item: "w-10 h-10 text-small rounded-none bg-transparent",
-                  cursor: "bg-gradient-to-r from-red-600 to-red-700 shadow-lg text-white font-bold",
-                  prev: "bg-white border border-gray-200 hover:bg-gray-50",
-                  next: "bg-white border border-gray-200 hover:bg-gray-50"
-                }}
-              />
+                className="w-full text-gray-500 hover:text-gray-700 py-2 transition-colors"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         )}

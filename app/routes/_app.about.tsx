@@ -1,6 +1,8 @@
+// Líneas 1-20 - Imports con dependencias de autenticación
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, Link } from "@remix-run/react"
 import { getClerkUser } from "~/lib/auth-clerk.server"
+import { SignInButton, SignUpButton } from "@clerk/remix"  // ✅ AGREGADO
 import {
   Heart,
   Lightbulb,
@@ -13,9 +15,12 @@ import {
   Globe,
   Award,
   Coffee,
-  Leaf
+  Leaf,
+  ArrowRight,
+  User,      // ✅ AGREGADO - Ícono para avatar del modal
+  X          // ✅ AGREGADO - Ícono para botón de cierre
 } from 'lucide-react'
-import { useEffect } from "react"
+import { useEffect, useState } from "react"  // ✅ MODIFICADO - Agregado useState
 
 export async function loader(args: LoaderFunctionArgs) {
   const user = await getClerkUser(args)
@@ -92,7 +97,15 @@ function useSmoothScroll() {
 export default function About() {
   const { user } = useLoaderData<typeof loader>()
   useSmoothScroll();
+// ✅ GESTIÓN DE ESTADO PARA MODAL DE AUTENTICACIÓN
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
 
+  // ✅ HANDLER PARA ACTIVACIÓN DEL MODAL
+  const handleBeginNow = () => {
+    setPendingRedirect("/listings")
+    setShowAuthModal(true)
+  }
   // Enhanced animations for elegant matcha latte style
   useEffect(() => {
     // Fade-in animation with staggered delay for children
@@ -469,47 +482,178 @@ export default function About() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="contacto" className="py-32 bg-gradient-to-br from-green-900 via-emerald-800 to-teal-800 scroll-fade opacity-0 relative">
-        <div className="absolute inset-0 bg-[url('/img/texture.png')] opacity-10 mix-blend-overlay"></div>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <Coffee className="w-12 h-12 text-green-300 mx-auto" />
-              <h2 className="text-4xl sm:text-5xl font-light text-white">
-                ¿Listo para ser parte de
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-teal-200">
-                  la experiencia?
-                </span>
+{/* ✅ CTA Section - CORREGIDA Y OPTIMIZADA */}
+<section 
+  id="contacto" 
+  className="py-32 bg-gradient-to-br from-green-900 via-emerald-800 to-teal-800 relative opacity-100 transition-opacity duration-1000"
+  style={{ pointerEvents: 'auto' }}
+>
+  {/* ✅ Overlay corregido - No interfiere con clicks */}
+  <div 
+    className="absolute inset-0 bg-[url('/img/texture.png')] opacity-10 mix-blend-overlay"
+    style={{ pointerEvents: 'none', zIndex: 1 }}
+  ></div>
+  
+  {/* ✅ Contenido con z-index superior */}
+  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <Coffee className="w-12 h-12 text-green-300 mx-auto" />
+        <h2 className="text-4xl sm:text-5xl font-light text-white">
+          ¿Listo para ser parte de
+          <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-teal-200">
+            la experiencia?
+          </span>
+        </h2>
+        <p className="text-xl text-gray-300 leading-relaxed">
+          Únete a nosotros y descubre cómo podemos transformar tu manera de ver los negocios digitales.
+        </p>
+      </div>
+      
+      {/* ✅ BOTÓN COMPLETAMENTE INTERACTIVO */}
+      <div 
+        className="flex flex-col sm:flex-row gap-6 justify-center items-center relative z-20"
+        style={{ pointerEvents: 'auto' }}
+      >
+        <Link
+          to="/listings"
+          className="group inline-flex items-center space-x-2 bg-white text-gray-900 px-8 py-4 rounded-xl font-medium shadow-xl transition-all duration-300 ease-out hover:bg-gray-50 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/20 cursor-pointer"
+          style={{ 
+            pointerEvents: 'auto',
+            zIndex: 30,
+            position: 'relative'
+          }}
+          aria-label="Explorar catálogo de autos disponibles"
+        >
+          <span className="transition-colors duration-200">Explorar Catálogo</span>
+          <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1" />
+        </Link>
+{/* ✅ BOTÓN COMENZAR AHORA - Integración Modal */}
+<button
+  onClick={handleBeginNow}
+  className="group inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-4 rounded-xl font-medium shadow-xl transition-all duration-300 ease-out hover:from-green-600 hover:to-teal-600 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-400/20 cursor-pointer"
+  style={{ 
+    pointerEvents: 'auto',
+    zIndex: 30,
+    position: 'relative'
+  }}
+  aria-label="Comenzar proceso de registro"
+>
+  <span className="transition-colors duration-200">Comenzar Ahora</span>
+  <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1" />
+</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+      {/* 🚀 SISTEMA MODAL DE AUTENTICACIÓN - Arquitectura Enterprise */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl relative">
+            
+            {/* ✅ Modal Header - Control de Ciclo de Vida */}
+            <button
+              onClick={() => {
+                setShowAuthModal(false);
+                setPendingRedirect(null);
+              }}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
+              aria-label="Cerrar modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* ✅ Branding Section - Contextual Identity */}
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <User className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Únete a Cliquéalo.mx
               </h2>
-              <p className="text-xl text-gray-300 leading-relaxed">
-                Únete a nosotros y descubre cómo podemos transformar tu manera de ver los negocios digitales.
+              <p className="text-gray-600">
+                Crea tu cuenta gratuita para ver más autos y acceder a todas las funciones
               </p>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link
-                to="/listings"
-                className="inline-flex items-center space-x-2 bg-white text-gray-900 px-8 py-4 rounded-xl hover:bg-gray-100 transition-colors font-medium shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+
+            {/* ✅ Authentication Flow - Clerk SDK Integration */}
+            <div className="space-y-3 mb-6">
+              <SignUpButton
+                mode="modal"
+  fallbackRedirectUrl={pendingRedirect || "/"}     // ✅ Prop correcta
+  signInFallbackRedirectUrl={pendingRedirect || "/"}  // ✅ Prop adicional requerida
               >
-                <span>Explorar Catálogo</span>
-              </Link>
-              
-              <Link
-                to="/?signup=true"
-                className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-4 rounded-xl hover:from-green-600 hover:to-teal-600 transition-all font-medium shadow-xl hover:shadow-2xl hover:-translate-y-1 duration-300"
+                <button className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95">
+                  Registrarse Gratis
+                </button>
+              </SignUpButton>
+
+              <SignInButton
+                mode="modal"
+  fallbackRedirectUrl={pendingRedirect || "/"}     // ✅ Prop correcta
+  signUpFallbackRedirectUrl={pendingRedirect || "/"}  // ✅ Prop adicional requerida
               >
-                <span>Comenzar Ahora</span>
-              </Link>
+                <button className="w-full bg-white text-green-700 py-3 px-6 rounded-xl border-2 border-green-200 hover:border-green-300 hover:bg-green-50 transition-all duration-200 font-medium">
+                  Ya tengo cuenta
+                </button>
+              </SignInButton>
+            </div>
+
+            {/* ✅ Value Proposition - Conversion Optimization */}
+            <div className="text-sm text-gray-500 mb-6">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Acceso completo al catálogo</span>
+              </div>
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Guardar autos favoritos</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Aplicar para créditos automotrices</span>
+              </div>
             </div>
           </div>
         </div>
-      </section>
+      )}
 
-      {/* CSS Animations */}
-      {/* Enhanced Style for Matcha Latte Animations */}
+      {/* ✅ Enhanced CSS Animations - Modal Support Integration */}
       <style>{`
-        /* Elegant blob animation */
+        /* 🔧 Interactivity Enforcement */
+        a, button {
+          pointer-events: auto !important;
+          cursor: pointer !important;
+        }
+        
+        /* 🎬 Modal Animation Framework */
+        .modal-overlay {
+          backdrop-filter: blur(4px);
+          animation: fadeIn 300ms ease-out;
+        }
+        
+        .modal-content {
+          animation: slideIn 300ms ease-out;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+          from { 
+            opacity: 0;
+            transform: scale(0.95) translateY(-10px);
+          }
+          to { 
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        /* 🎨 Elegant blob animation - Preserved */
         @keyframes blob {
           0% {
             transform: translate(0px, 0px) scale(1);
@@ -522,32 +666,6 @@ export default function About() {
           }
           100% {
             transform: translate(0px, 0px) scale(1);
-          }
-        }
-        
-        /* Soft pulse highlight animation */
-        @keyframes pulseHighlight {
-          0% {
-            box-shadow: 0 0 0 0 rgba(167, 243, 208, 0.5);
-          }
-          70% {
-            box-shadow: 0 0 0 20px rgba(167, 243, 208, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(167, 243, 208, 0);
-          }
-        }
-        
-        /* Smooth floating animation */
-        @keyframes floatElement {
-          0% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-          100% {
-            transform: translateY(0px);
           }
         }
         
@@ -572,55 +690,28 @@ export default function About() {
           animation: fadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
         
-        .animation-delay-300 {
-          animation-delay: 300ms;
+        /* 🌟 Focus Management Enhancement */
+        .focus-trap {
+          outline: 2px solid #3B82F6;
+          outline-offset: 2px;
         }
         
-        .animation-delay-500 {
-          animation-delay: 500ms;
+        /* 🎯 Z-Index Layer Management */
+        .modal-layer {
+          z-index: 9999;
         }
         
-        .animation-delay-700 {
-          animation-delay: 700ms;
-        }
-        
-        .animation-delay-1000 {
-          animation-delay: 1000ms;
-        }
-        
-        /* Elegant fade in with slight lift */
-        @keyframes fadeIn {
-          0% {
-            opacity: 0;
-            transform: translateY(15px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        /* Active navigation state */
-        .nav-item.active {
-          color: #047857; /* Emerald-700 */
-          transform: scale(1.2);
-        }
-        
-        .nav-item.active:after {
-          content: '';
+        /* ♿ Accessibility Compliance */
+        .sr-only {
           position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          bottom: -2px;
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background-color: #047857;
-        }
-        
-        /* Pulse highlight for sections */
-        .pulse-highlight {
-          animation: pulseHighlight 1s cubic-bezier(0.4, 0, 0.6, 1);
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
         }
       `}</style>
     </div>
