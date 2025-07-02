@@ -686,13 +686,13 @@ export default function Index() {
                         )}
                       </div>
 
-                      <Link
-                        to={`/listings/${listing._id}`}
-                        className="flex items-center space-x-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium group shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-                      >
-                        <span>Ver detalles</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                      </Link>
+                     <Link
+  to={`/listings/${listing._id}`}
+  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium group shadow-md hover:shadow-lg w-[110px] h-[45px] flex items-center justify-center text-center flex-shrink-0 text-sm gap-2"
+>
+  <span>Ver detalles</span>
+  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+</Link>
                     </div>
                   </div>
                 </article>
