@@ -322,6 +322,8 @@ export default function ListingsIndex() {
                   ? 'bg-gray-100 text-gray-900'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
+              title="Ver en cuadrícula"
+              aria-label="Ver autos en formato cuadrícula"
             >
               <Grid className="w-5 h-5" />
             </button>
@@ -332,6 +334,8 @@ export default function ListingsIndex() {
                   ? 'bg-gray-100 text-gray-900'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
+              title="Ver en lista"
+              aria-label="Ver autos en formato lista"
             >
               <List className="w-5 h-5" />
             </button>
@@ -491,7 +495,7 @@ export default function ListingsIndex() {
           <div className={`grid gap-8 ${
             viewMode === 'grid'
               ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-              : 'grid-cols-1 max-w-4xl mx-auto'
+              : 'grid-cols-1 max-w-4xl mx-auto px-2 sm:px-4'
           }`}>
             {listings.map((listing) => {
               //  Verificar si este listing tiene like del usuario
@@ -506,13 +510,13 @@ export default function ListingsIndex() {
                 <article
                   key={listing._id}
                   className={`group ${
-                    viewMode === 'list' ? 'flex space-x-6' : ''
+                    viewMode === 'list' ? 'flex flex-col sm:flex-row sm:space-x-6 space-y-4 sm:space-y-0' : ''
                   } ${(isHot || isSuperHot) ? 'ring-2 ring-red-200 rounded-2xl p-2' : ''}`}
                 >
                   <Link
                     to={`/listings/${listing._id}`}
                     className={`relative overflow-hidden rounded-2xl bg-gray-100 block ${
-                      viewMode === 'list' ? 'w-80 h-60 flex-shrink-0' : 'aspect-[4/3]'
+                      viewMode === 'list' ? 'w-full sm:w-80 h-48 xs:h-52 sm:h-60 flex-shrink-0' : 'aspect-[4/3]'
                     } ${(isHot || isSuperHot) ? 'border-2 border-red-300' : 'border border-gray-200 hover:border-red-300 transition-colors'}`}
                   >
                     {listing.images && listing.images.length > 0 ? (
@@ -576,14 +580,14 @@ export default function ListingsIndex() {
                     />
                   </Link>
 
-                  <div className={`${viewMode === 'list' ? 'flex-1 py-2' : 'pt-6'}`}>
+                  <div className={`${viewMode === 'list' ? 'flex-1 py-2 w-full' : 'pt-6'}`}>
                     <Link
                       to={`/listings/${listing._id}`}
                       className="block"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="text-lg font-medium text-gray-900 mb-1 group-hover:text-gray-600 transition-colors">
+                          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-1 group-hover:text-gray-600 transition-colors line-clamp-1">
                             {capitalizeBrandInTitle(listing.title)}
                           </h3>
                           {listing.brand && listing.model && (
@@ -601,8 +605,8 @@ export default function ListingsIndex() {
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-light text-gray-900">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 space-y-2 sm:space-y-0">
+                      <span className="text-xl sm:text-2xl font-light text-gray-900 truncate max-w-full">
                         ${listing.price ? listing.price.toLocaleString() : 0}
                       </span>
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
@@ -619,7 +623,7 @@ export default function ListingsIndex() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
                       <div className="text-sm text-gray-500">
                         {listing.owner?.name && (
                           <div>Por {listing.owner.name}</div>
@@ -628,10 +632,10 @@ export default function ListingsIndex() {
 
                       <Link
                         to={`/listings/${listing._id}`}
-                        className="flex items-center space-x-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium group shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+                        className="flex items-center justify-center space-x-1 sm:space-x-2 w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-700 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 text-sm sm:text-base font-medium group shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 max-w-full overflow-hidden"
                       >
-                        <span>Ver detalles</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        <span className="truncate">Ver detalles</span>
+                        <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
                       </Link>
                     </div>
                   </div>

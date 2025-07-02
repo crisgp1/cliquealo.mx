@@ -706,7 +706,7 @@ function MediaGridItem({ item, index, onRemove, onReorder, isDragged, setDragged
             <Play className="w-8 h-8 text-white" />
           </div>
         </div>
-      ) : item.url.toLowerCase().includes('.pdf') || item.name?.toLowerCase().endsWith('.pdf') ? (
+      ) : (item.url && item.url.toLowerCase().includes('.pdf')) || item.name?.toLowerCase()?.endsWith('.pdf') ? (
         <div className="relative w-full h-full bg-red-50 flex items-center justify-center border-2 border-red-200">
           <div className="text-center">
             <FileText className="w-12 h-12 text-red-600 mx-auto mb-2" />
@@ -730,7 +730,7 @@ function MediaGridItem({ item, index, onRemove, onReorder, isDragged, setDragged
       <div className="absolute top-2 right-2 bg-blue-500 text-white rounded p-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {item.type === 'video' ? (
           <Video className="w-3 h-3" />
-        ) : item.url.toLowerCase().includes('.pdf') || item.name?.toLowerCase().endsWith('.pdf') ? (
+        ) : (item.url && item.url.toLowerCase().includes('.pdf')) || item.name?.toLowerCase()?.endsWith('.pdf') ? (
           <FileText className="w-3 h-3" />
         ) : (
           <ImageIcon className="w-3 h-3" />

@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { LazyImage } from './LazyImage';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ZoomIn, Download, Share2 } from 'lucide-react';
+import LazyImage from './LazyImage';
+import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 
 // ========================================
 // TIPOS Y INTERFACES
@@ -18,263 +17,151 @@ interface OptimizedGalleryProps {
   thumbnailsPosition?: 'bottom' | 'right' | 'left';
 }
 
-interface GalleryState {
-  currentIndex: number;
-  loadedImages: Set<number>;
-  isLightboxOpen: boolean;
-  preloadQueue: number[];
-  touchStartX: number | null;
-  touchEndX: number | null;
-}
-
-const VIRTUALIZATION_CONFIG = {
+// ========================================
+// CONFIGURACIÓN ESTÁTICA
+// ========================================
+const GALLERY_CONFIG = {
   defaultMaxVisible: 8,
   preloadBuffer: 2,
-  touchThreshold: 50,
   autoPlayDefault: 5000,
   transitionDuration: 300
-};
+} as const;
 
+// ========================================
+// COMPONENTE PRINCIPAL SIMPLIFICADO
+// ========================================
 export function OptimizedGallery({
   images,
   className = "",
-  maxVisible = VIRTUALIZATION_CONFIG.defaultMaxVisible,
-  enableVirtualization = true,
+  maxVisible = GALLERY_CONFIG.defaultMaxVisible,
   enableLightbox = true,
   autoPlay = false,
-  autoPlayInterval = VIRTUALIZATION_CONFIG.autoPlayDefault,
+  autoPlayInterval = GALLERY_CONFIG.autoPlayDefault,
   showThumbnails = true,
   thumbnailsPosition = 'bottom'
 }: OptimizedGalleryProps) {
 
   // ========================================
-  // ESTADO DEL COMPONENTE
+  // ESTADO SIMPLIFICADO
   // ========================================
-  const [galleryState, setGalleryState] = useState<GalleryState>({
-    currentIndex: 0,
-    loadedImages: new Set([0]),
-    isLightboxOpen: false,
-    preloadQueue: [],
-    touchStartX: null,
-    touchEndX: null
-  });
-
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  
+  // Referencias estables
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
-  const mainImageRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
 
   // ========================================
-  // LÓGICA DE VIRTUALIZACIÓN
+  // MEMOIZACIÓN DE IMÁGENES FILTRADAS
   // ========================================
-  const virtualizedThumbnails = useMemo(() => {
-    if (!enableVirtualization || images.length <= maxVisible) {
-      return images.map((src, index) => ({ src, originalIndex: index }));
-    }
-
-    const { currentIndex } = galleryState;
-    const halfVisible = Math.floor(maxVisible / 2);
-    
-    // Calcular rango visible centrado en la imagen actual
-    let start = Math.max(0, currentIndex - halfVisible);
-    let end = Math.min(images.length, start + maxVisible);
-    
-    // Ajustar si estamos cerca del final
-    if (end === images.length) {
-      start = Math.max(0, end - maxVisible);
-    }
-
-    return images.slice(start, end).map((src, index) => ({
-      src,
-      originalIndex: start + index
-    }));
-  }, [images, galleryState.currentIndex, maxVisible, enableVirtualization]);
+  const validImages = useMemo(() => {
+    return images.filter(img => img && typeof img === 'string' && img.trim() !== '');
+  }, [images]);
 
   // ========================================
-  // PRELOAD DE IMÁGENES ADYACENTES
+  // NAVEGACIÓN ESTABLE
   // ========================================
-  const preloadAdjacentImages = useCallback((centerIndex: number) => {
-    const { loadedImages } = galleryState;
-    const newLoadedImages = new Set(loadedImages);
-    
-    // Precargar imágenes en un rango alrededor de la actual
-    const preloadRange = VIRTUALIZATION_CONFIG.preloadBuffer;
-    for (let i = -preloadRange; i <= preloadRange; i++) {
-      const targetIndex = centerIndex + i;
-      if (targetIndex >= 0 && targetIndex < images.length) {
-        newLoadedImages.add(targetIndex);
-      }
-    }
-
-    setGalleryState(prev => ({
-      ...prev,
-      loadedImages: newLoadedImages
-    }));
-  }, [galleryState.loadedImages, images.length]);
-
-  // ========================================
-  // NAVEGACIÓN DE IMÁGENES
-  // ========================================
-  const navigateToImage = useCallback((newIndex: number, source: 'click' | 'auto' | 'swipe' = 'click') => {
-    if (newIndex < 0 || newIndex >= images.length || newIndex === galleryState.currentIndex) {
-      return;
-    }
-
-    setGalleryState(prev => ({
-      ...prev,
-      currentIndex: newIndex
-    }));
-
-    preloadAdjacentImages(newIndex);
-
-    // Reiniciar autoplay si la navegación fue manual
-    if (source !== 'auto' && autoPlay) {
-      resetAutoPlay();
-    }
-  }, [images.length, galleryState.currentIndex, preloadAdjacentImages, autoPlay]);
-
   const goToPrevious = useCallback(() => {
-    const newIndex = galleryState.currentIndex === 0 
-      ? images.length - 1 
-      : galleryState.currentIndex - 1;
-    navigateToImage(newIndex, 'click');
-  }, [galleryState.currentIndex, images.length, navigateToImage]);
+    setCurrentIndex(prev => prev === 0 ? validImages.length - 1 : prev - 1);
+  }, [validImages.length]);
 
   const goToNext = useCallback(() => {
-    const newIndex = galleryState.currentIndex === images.length - 1 
-      ? 0 
-      : galleryState.currentIndex + 1;
-    navigateToImage(newIndex, 'click');
-  }, [galleryState.currentIndex, images.length, navigateToImage]);
+    setCurrentIndex(prev => prev === validImages.length - 1 ? 0 : prev + 1);
+  }, [validImages.length]);
+
+  const goToIndex = useCallback((index: number) => {
+    if (index >= 0 && index < validImages.length) {
+      setCurrentIndex(index);
+    }
+  }, [validImages.length]);
 
   // ========================================
-  // AUTOPLAY FUNCTIONALITY
+  // AUTOPLAY CONTROLADO
   // ========================================
   const resetAutoPlay = useCallback(() => {
+    if (!autoPlay || validImages.length <= 1) return;
+
     if (autoPlayRef.current) {
       clearInterval(autoPlayRef.current);
     }
-    
-    if (autoPlay) {
-      autoPlayRef.current = setInterval(() => {
-        setGalleryState(prev => {
-          const nextIndex = prev.currentIndex === images.length - 1 ? 0 : prev.currentIndex + 1;
-          navigateToImage(nextIndex, 'auto');
-          return prev;
-        });
-      }, autoPlayInterval);
+
+    autoPlayRef.current = setInterval(() => {
+      setCurrentIndex(prev => prev === validImages.length - 1 ? 0 : prev + 1);
+    }, autoPlayInterval);
+  }, [autoPlay, validImages.length, autoPlayInterval]);
+
+  const pauseAutoPlay = useCallback(() => {
+    if (autoPlayRef.current) {
+      clearInterval(autoPlayRef.current);
+      autoPlayRef.current = null;
     }
-  }, [autoPlay, autoPlayInterval, images.length, navigateToImage]);
-
-  // ========================================
-  // MANEJO DE GESTOS TÁCTILES
-  // ========================================
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    setGalleryState(prev => ({
-      ...prev,
-      touchStartX: e.touches[0].clientX,
-      touchEndX: null
-    }));
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    setGalleryState(prev => ({
-      ...prev,
-      touchEndX: e.touches[0].clientX
-    }));
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    const { touchStartX, touchEndX } = galleryState;
-    
-    if (!touchStartX || !touchEndX) return;
-    
-    const distance = touchStartX - touchEndX;
-    const isLeftSwipe = distance > VIRTUALIZATION_CONFIG.touchThreshold;
-    const isRightSwipe = distance < -VIRTUALIZATION_CONFIG.touchThreshold;
-
-    if (isLeftSwipe) {
-      goToNext();
-    } else if (isRightSwipe) {
-      goToPrevious();
-    }
-
-    setGalleryState(prev => ({
-      ...prev,
-      touchStartX: null,
-      touchEndX: null
-    }));
-  }, [galleryState.touchStartX, galleryState.touchEndX, goToNext, goToPrevious]);
-
-  // ========================================
-  // LIGHTBOX FUNCTIONALITY
-  // ========================================
-  const openLightbox = useCallback(() => {
-    if (enableLightbox) {
-      setGalleryState(prev => ({ ...prev, isLightboxOpen: true }));
-      document.body.style.overflow = 'hidden'; // Prevenir scroll
-    }
-  }, [enableLightbox]);
-
-  const closeLightbox = useCallback(() => {
-    setGalleryState(prev => ({ ...prev, isLightboxOpen: false }));
-    document.body.style.overflow = 'unset';
   }, []);
 
   // ========================================
-  // EFECTOS Y LIFECYCLE
+  // EFECTOS ESTABLES
   // ========================================
   useEffect(() => {
-    preloadAdjacentImages(0);
     resetAutoPlay();
-
     return () => {
       if (autoPlayRef.current) {
         clearInterval(autoPlayRef.current);
       }
-      document.body.style.overflow = 'unset';
     };
+  }, [resetAutoPlay]);
+
+  // ========================================
+  // LIGHTBOX HANDLERS
+  // ========================================
+  const openLightbox = useCallback((index?: number) => {
+    if (index !== undefined) {
+      setCurrentIndex(index);
+    }
+    setIsLightboxOpen(true);
   }, []);
 
-  useEffect(() => {
-    resetAutoPlay();
-  }, [resetAutoPlay]);
+  const closeLightbox = useCallback(() => {
+    setIsLightboxOpen(false);
+  }, []);
 
   // ========================================
   // MANEJO DE TECLADO
   // ========================================
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (galleryState.isLightboxOpen) {
-        switch (e.key) {
-          case 'ArrowLeft':
-            e.preventDefault();
-            goToPrevious();
-            break;
-          case 'ArrowRight':
-            e.preventDefault();
-            goToNext();
-            break;
-          case 'Escape':
-            e.preventDefault();
-            closeLightbox();
-            break;
-        }
+      if (!isLightboxOpen) return;
+
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          goToPrevious();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          goToNext();
+          break;
+        case 'Escape':
+          e.preventDefault();
+          closeLightbox();
+          break;
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [galleryState.isLightboxOpen, goToPrevious, goToNext, closeLightbox]);
+  }, [isLightboxOpen, goToPrevious, goToNext, closeLightbox]);
 
   // ========================================
-  // RENDERIZADO DEL COMPONENTE
+  // RENDERIZADO
   // ========================================
-  if (images.length === 0) {
+  if (validImages.length === 0) {
     return (
       <div className={`bg-gray-100 rounded-lg p-8 text-center ${className}`}>
-        <p className="text-gray-500">No hay imágenes para mostrar</p>
+        <p className="text-gray-500">No hay imágenes disponibles</p>
       </div>
     );
   }
+
+  const currentImage = validImages[currentIndex];
 
   return (
     <div className={`optimized-gallery ${className}`}>
@@ -283,233 +170,162 @@ export function OptimizedGallery({
           IMAGEN PRINCIPAL
           ======================================== */}
       <div 
-        ref={mainImageRef}
-        className="main-image-container relative mb-4 group cursor-pointer"
-        onClick={openLightbox}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        ref={galleryRef}
+        className="relative group"
+        onMouseEnter={pauseAutoPlay}
+        onMouseLeave={resetAutoPlay}
       >
-        <motion.div
-          key={galleryState.currentIndex}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="relative"
-        >
+        <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors">
+          
+          {/* Imagen actual */}
           <LazyImage
-            src={images[galleryState.currentIndex]}
-            alt={`Imagen ${galleryState.currentIndex + 1} de ${images.length}`}
-            className="w-full h-96 object-cover rounded-lg"
+            src={currentImage}
+            alt={`Imagen ${currentIndex + 1} de ${validImages.length}`}
+            className="w-full h-full cursor-pointer"
             quality="high"
-            priority={true}
+            priority={currentIndex === 0}
+            onLoad={() => console.log(`Imagen ${currentIndex + 1} cargada`)}
           />
 
-          {/* Overlay con controles */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-lg flex items-center justify-center">
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex space-x-2">
-              {enableLightbox && (
-                <button 
-                  aria-label="Ampliar imagen" 
-                  className="p-2 bg-white bg-opacity-90 rounded-full hover:bg-opacity-100 transition-all duration-200"
-                >
-                  <ZoomIn className="w-5 h-5 text-gray-700" />
-                </button>
-              )}
-              <button 
-                aria-label="Compartir imagen"
-                className="p-2 bg-white bg-opacity-90 rounded-full hover:bg-opacity-100 transition-all duration-200"
+          {/* Overlay de interacción */}
+          <div 
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => enableLightbox && openLightbox(currentIndex)}
+          >
+            {/* Botón de pantalla completa */}
+            {enableLightbox && (
+              <button
+                className="absolute top-3 right-3 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openLightbox(currentIndex);
+                }}
+                aria-label="Ver en pantalla completa"
               >
-                <Share2 className="w-5 h-5 text-gray-700" />
+                <ZoomIn className="w-4 h-4" />
               </button>
-              <button 
-                aria-label="Descargar imagen"
-                className="p-2 bg-white bg-opacity-90 rounded-full hover:bg-opacity-100 transition-all duration-200"
-              >
-                <Download className="w-5 h-5 text-gray-700" />
-              </button>
+            )}
+
+            {/* Contador */}
+            <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/50 text-white text-xs rounded">
+              {currentIndex + 1} / {validImages.length}
             </div>
           </div>
 
           {/* Controles de navegación */}
-          {images.length > 1 && (
+          {validImages.length > 1 && (
             <>
               <button
-                aria-label="Imagen anterior"
                 onClick={(e) => {
                   e.stopPropagation();
                   goToPrevious();
                 }}
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                aria-label="Imagen anterior"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               
               <button
-                aria-label="Imagen siguiente"
                 onClick={(e) => {
                   e.stopPropagation();
                   goToNext();
                 }}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                aria-label="Imagen siguiente"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </>
           )}
-
-          {/* Contador de imágenes */}
-          <div className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
-            {galleryState.currentIndex + 1} / {images.length}
-          </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* ========================================
-          THUMBNAILS VIRTUALIZADOS
+          THUMBNAILS
           ======================================== */}
-      {showThumbnails && images.length > 1 && (
-        <div className={`thumbnails-container ${
-          thumbnailsPosition === 'bottom' ? 'w-full' : 'h-96'
-        }`}>
-          <div className={`flex ${
-            thumbnailsPosition === 'bottom' 
-              ? 'space-x-2 overflow-x-auto pb-2' 
-              : 'flex-col space-y-2 overflow-y-auto pr-2'
-          }`}>
-            {virtualizedThumbnails.map(({ src, originalIndex }) => (
-              <motion.button
-                key={originalIndex}
-                onClick={() => navigateToImage(originalIndex)}
-                className={`relative flex-shrink-0 ${
-                  thumbnailsPosition === 'bottom' ? 'w-20 h-20' : 'w-full h-20'
-                } rounded-md overflow-hidden border-2 transition-all duration-200 ${
-                  originalIndex === galleryState.currentIndex
-                    ? 'border-blue-500 shadow-md ring-2 ring-blue-200'
+      {showThumbnails && validImages.length > 1 && (
+        <div className="mt-3">
+          <div className="flex space-x-2 overflow-x-auto pb-2">
+            {validImages.map((image, index) => (
+              <button
+                key={`thumb-${index}`}
+                onClick={() => goToIndex(index)}
+                className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all ${
+                  index === currentIndex
+                    ? 'border-red-500 ring-2 ring-red-200'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
+                aria-label={`Ver imagen ${index + 1}`}
               >
                 <LazyImage
-                  src={src}
-                  alt={`Thumbnail ${originalIndex + 1}`}
-                  className="w-full h-full object-cover"
+                  src={image}
+                  alt={`Thumbnail ${index + 1}`}
+                  className="w-full h-full"
                   quality="low"
-                  priority={galleryState.loadedImages.has(originalIndex)}
+                  priority={Math.abs(index - currentIndex) <= 2} // Prioridad para thumbnails cercanos
                 />
-                
-                {/* Overlay activo */}
-                {originalIndex === galleryState.currentIndex && (
-                  <motion.div
-                    className="absolute inset-0 bg-blue-500 bg-opacity-20 border border-blue-400"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                  />
-                )}
-
-                {/* Indicador de carga */}
-                {!galleryState.loadedImages.has(originalIndex) && (
-                  <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-                )}
-              </motion.button>
+              </button>
             ))}
           </div>
-
-          {/* Indicadores de paginación para virtualización */}
-          {enableVirtualization && images.length > maxVisible && (
-            <div className="flex justify-center mt-4 space-x-2">
-              {Array.from({ 
-                length: Math.ceil(images.length / maxVisible) 
-              }).map((_, pageIndex) => (
-                <button
-                  key={pageIndex}
-                  aria-label={`Ir a página ${pageIndex + 1} de miniaturas`}
-                  onClick={() => navigateToImage(pageIndex * maxVisible)}
-                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                    Math.floor(galleryState.currentIndex / maxVisible) === pageIndex
-                      ? 'bg-blue-500 w-6'
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
         </div>
       )}
 
       {/* ========================================
-          LIGHTBOX MODAL
+          LIGHTBOX SIMPLE
           ======================================== */}
-      <AnimatePresence>
-        {galleryState.isLightboxOpen && enableLightbox && (
-          <motion.div
-            className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeLightbox}
-          >
-            <div className="relative max-w-7xl max-h-full p-4">
-              <button
-                aria-label="Cerrar vista ampliada"
-                onClick={closeLightbox}
-                className="absolute top-4 right-4 z-10 p-2 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-all duration-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              
-              <motion.div
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.8 }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <LazyImage
-                  src={images[galleryState.currentIndex]}
-                  alt={`Imagen ${galleryState.currentIndex + 1} en lightbox`}
-                  className="max-w-full max-h-[90vh] object-contain"
-                  quality="high"
-                  priority={true}
-                />
-              </motion.div>
+      {isLightboxOpen && enableLightbox && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="relative max-w-full max-h-full p-4">
+            
+            {/* Imagen en lightbox */}
+            <LazyImage
+              src={currentImage}
+              alt={`Imagen ${currentIndex + 1} ampliada`}
+              className="max-w-full max-h-full object-contain"
+              quality="high"
+              priority={true}
+            />
 
-              {/* Controles de navegación en lightbox */}
-              {images.length > 1 && (
-                <>
-                  <button
-                    aria-label="Imagen anterior"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToPrevious();
-                    }}
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-all duration-200"
-                  >
-                    <ChevronLeft className="w-6 h-6" />
-                  </button>
-                  
-                  <button
-                    aria-label="Imagen siguiente"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToNext();
-                    }}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 p-3 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-all duration-200"
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                </>
-              )}
+            {/* Botón cerrar */}
+            <button
+              onClick={closeLightbox}
+              className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black/70"
+              aria-label="Cerrar lightbox"
+            >
+              <span className="w-5 h-5 block">✕</span>
+            </button>
+
+            {/* Navegación en lightbox */}
+            {validImages.length > 1 && (
+              <>
+                <button
+                  onClick={goToPrevious}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70"
+                  aria-label="Imagen anterior"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                
+                <button
+                  onClick={goToNext}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70"
+                  aria-label="Imagen siguiente"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
+
+            {/* Contador en lightbox */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 text-white text-sm rounded">
+              {currentIndex + 1} / {validImages.length}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+export default OptimizedGallery;
