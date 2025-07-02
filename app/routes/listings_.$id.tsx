@@ -13,7 +13,7 @@ import { getClerkUser, ClerkAuth } from "~/lib/auth-clerk.server"
 import { toast } from "~/components/ui/toast"
 import { getHotStatus, type Listing } from "~/models/Listing"
 import { capitalizeBrandInTitle } from "~/lib/utils"
-import { EnhancedLightbox, type MediaItem } from "~/components/ui/enhanced-lightbox"
+import { SimpleLightbox, useSimpleLightbox, type MediaItem } from "~/components/ui/simple-lightbox"
 import { OptimizedCarousel } from "~/components/lazy"
 import {
   ArrowLeft,
@@ -292,9 +292,14 @@ export default function ListingDetail() {
   const [showCreditModal, setShowCreditModal] = useState(false)
   const [creditStep, setCreditStep] = useState(1)
   
-  // Estados para el enhanced lightbox
-  const [lightboxOpen, setLightboxOpen] = useState(false)
-  const [lightboxIndex, setLightboxIndex] = useState(0)
+  // Hook para el simple lightbox
+  const {
+    isOpen: lightboxOpen,
+    currentIndex: lightboxIndex,
+    openLightbox,
+    closeLightbox,
+    updateSlides
+  } = useSimpleLightbox()
   
   // Estados para calculadora de crédito
   const [creditData, setCreditData] = useState({
@@ -549,7 +554,7 @@ export default function ListingDetail() {
 
   // Convertir imágenes y videos a formato MediaItem para el lightbox
   // Utilizamos URLs optimizadas para calidad ultra-alta en el lightbox
-  const mediaItems: MediaItem[] = [
+  const mediaItems: MediaItem[] = useMemo(() => [
     ...images.map((image: string, index: number) => {
       // Optimizar URL para calidad ultra si es una URL de Cloudinary
       let optimizedSrc = image;
@@ -562,7 +567,6 @@ export default function ListingDetail() {
       }
       
       return {
-        id: `image-${index}`,
         src: optimizedSrc,
         type: 'image' as const,
         title: `${listing.title} - Imagen ${index + 1}`,
@@ -570,23 +574,17 @@ export default function ListingDetail() {
       };
     }),
     ...videos.map((video: string, index: number) => ({
-      id: `video-${index}`,
       src: video,
       type: 'video' as const,
       title: `${listing.title} - Video ${index + 1}`,
       description: `Video ${index + 1} de ${images.length + videos.length}`
     }))
-  ]
+  ], [images, videos, listing.title])
 
-  // Funciones para el enhanced lightbox
-  const openLightbox = (index: number) => {
-    setLightboxIndex(index)
-    setLightboxOpen(true)
-  }
-
-  const closeLightbox = () => {
-    setLightboxOpen(false)
-  }
+  // Actualizar slides del lightbox cuando cambien los medios
+  useEffect(() => {
+    updateSlides(mediaItems)
+  }, [mediaItems, updateSlides])
 
   // Preparar media para OptimizedCarousel
   const optimizedMedias = useMemo(() => {
@@ -731,7 +729,10 @@ export default function ListingDetail() {
                   <OptimizedCarousel
                     medias={optimizedMedias}
                     className="w-full"
-                    onMediaClick={openLightbox}
+                    onMediaClick={(index) => {
+                      console.log('🔍 Opening lightbox at index:', index);
+                      openLightbox(index);
+                    }}
                     autoPlay={false}
                     showThumbnails={true}
                     maxVisibleThumbnails={8}
@@ -1702,13 +1703,12 @@ text-yellow-600 mt-0.5" />
         </div>
       )}
 
-      {/* Enhanced Lightbox */}
-      <EnhancedLightbox
+      {/* Simple Lightbox */}
+      <SimpleLightbox
         slides={mediaItems}
         isOpen={lightboxOpen}
         onClose={closeLightbox}
         index={lightboxIndex}
-        onIndexChange={setLightboxIndex}
       />
 
       {/* Delete Confirmation Modal */}
