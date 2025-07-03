@@ -139,6 +139,74 @@ export function CreditApplicationForm({
     const cleanPhone = phone.replace(/\D/g, '');
     return cleanPhone.length === 10;
   };
+// Función para convertir fecha local sin problemas de zona horaria
+const formatDateForDisplay = (dateString: string): string => {
+  if (!dateString) return '';
+  
+  // Crear fecha directamente desde los componentes de la fecha
+  const [year, month, day] = dateString.split('-').map(num => parseInt(num, 10));
+  const date = new Date(year, month - 1, day); // month - 1 porque los meses en JS son 0-indexed
+  
+  return date.toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'America/Mexico_City'
+  });
+};
+
+// Función corregida para calcular la edad
+const calculateAge = (dateOfBirth: string): number => {
+  if (!dateOfBirth) return 0;
+  
+  // Crear fecha directamente desde los componentes para evitar problemas de zona horaria
+  const [year, month, day] = dateOfBirth.split('-').map(num => parseInt(num, 10));
+  const birthDate = new Date(year, month - 1, day);
+  const today = new Date();
+  
+  // Verificar que la fecha sea válida
+  if (isNaN(birthDate.getTime())) return 0;
+  
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  const dayDiff = today.getDate() - birthDate.getDate();
+  
+  // Si aún no ha llegado el cumpleaños este año, restar 1
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+    age--;
+  }
+  
+  return age;
+};
+
+// Función para validar edad mínima y máxima
+const validateAge = (dateOfBirth: string): { isValid: boolean; reason?: string } => {
+  if (!dateOfBirth) return { isValid: false, reason: 'required' };
+  
+  const age = calculateAge(dateOfBirth);
+  
+  if (age < 18) {
+    return { isValid: false, reason: 'too_young' };
+  }
+  
+  if (age > 70) {
+    return { isValid: false, reason: 'too_old' };
+  }
+  
+  return { isValid: true };
+};
+
+// Función auxiliar para verificar solo si es válida (para compatibilidad)
+const isValidAge = (dateOfBirth: string): boolean => {
+  return validateAge(dateOfBirth).isValid;
+};
+
+// Función especial para manejar cambios en el input de fecha
+const handleDateChange = (field: keyof FormData, value: string) => {
+  // Asegurar que el valor se mantenga en formato local
+  handleInputChange(field, value);
+};
+
 
   // Format phone number as user types
   const formatPhoneNumber = (value: string): string => {
@@ -166,10 +234,10 @@ export function CreditApplicationForm({
 
   const validateStep = (step: number): boolean => {
     switch (step) {
-      case 1:
-        return !!(formData.fullName && formData.email && formData.phone &&
-                 formData.dateOfBirth && formData.curp && formData.maritalStatus &&
-                 validatePhoneNumber(formData.phone));
+case 1:
+      return !!(formData.fullName && formData.email && formData.phone &&
+               formData.dateOfBirth && formData.curp && formData.maritalStatus &&
+               validatePhoneNumber(formData.phone) && isValidAge(formData.dateOfBirth));
       case 2:
         return !!(formData.employmentType && formData.monthlyIncome && formData.workExperience &&
                  (!formData.workPhone || validatePhoneNumber(formData.workPhone)));
@@ -453,16 +521,65 @@ export function CreditApplicationForm({
                   </p>
                 )}
               </div>
-              <div>
-                <Label htmlFor="dateOfBirth">Fecha de Nacimiento *</Label>
-                <Input
-                  id="dateOfBirth"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                  required
-                />
-              </div>
+<div>
+  <Label htmlFor="dateOfBirth">Fecha de Nacimiento *</Label>
+  <Input
+    id="dateOfBirth"
+    type="date"
+    value={formData.dateOfBirth}
+    onChange={(e) => handleDateChange('dateOfBirth', e.target.value)}
+    min={(() => {
+      // Fecha mínima: hace 70 años
+      const today = new Date();
+      const year = today.getFullYear() - 70;
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    })()}
+    max={(() => {
+      // Fecha máxima: hace 18 años
+      const today = new Date();
+      const year = today.getFullYear() - 18;
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    })()}
+    className={formData.dateOfBirth && !isValidAge(formData.dateOfBirth) ? 
+      'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}
+    required
+  />
+  
+  {/* Mensajes de error específicos */}
+  {formData.dateOfBirth && (() => {
+    const validation = validateAge(formData.dateOfBirth);
+    if (!validation.isValid) {
+      switch (validation.reason) {
+        case 'too_young':
+          return (
+            <p className="text-xs text-red-500 mt-1">
+              Debes ser mayor de 18 años para solicitar un crédito
+            </p>
+          );
+        case 'too_old':
+          return (
+            <p className="text-xs text-red-500 mt-1">
+              No se pueden procesar solicitudes para personas mayores de 70 años
+            </p>
+          );
+        default:
+          return null;
+      }
+    }
+    return null;
+  })()}
+  
+  {/* Mostrar fecha formateada para verificación */}
+  {formData.dateOfBirth && (
+    <p className="text-xs text-gray-500 mt-1">
+      Fecha seleccionada: {formatDateForDisplay(formData.dateOfBirth)}
+    </p>
+  )}
+</div>
               <div>
                 <Label htmlFor="curp">CURP *</Label>
                 <Input

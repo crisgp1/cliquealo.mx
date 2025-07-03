@@ -17,6 +17,19 @@ import {
   Car
 } from "lucide-react"
 
+// Función para traducir motivos de rechazo
+const getRejectionReasonLabel = (reason: string) => {
+  const translations = {
+    'insufficient_income': 'Ingresos insuficientes',
+    'poor_credit_history': 'Historial crediticio deficiente',
+    'incomplete_documentation': 'Documentación incompleta',
+    'high_debt_ratio': 'Relación deuda-ingreso muy alta',
+    'employment_instability': 'Inestabilidad laboral',
+    'other': 'Otro motivo'
+  }
+  return translations[reason as keyof typeof translations] || reason
+}
+
 export async function loader(args: LoaderFunctionArgs) {
   const user = await requireClerkUser(args)
   
@@ -239,8 +252,8 @@ export default function MyApplications() {
                       </h4>
                       {application.reviewInfo.rejectionReason && (
                         <p className="text-red-800 text-sm">
-                          <span className="font-medium">Motivo: </span>
-                          {application.reviewInfo.rejectionReason}
+                         <span className="font-medium">Motivo: </span>
+                          {getRejectionReasonLabel(application.reviewInfo.rejectionReason)}
                         </p>
                       )}
                       {application.reviewInfo.comments && (

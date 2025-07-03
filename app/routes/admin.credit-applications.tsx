@@ -62,6 +62,142 @@ import {
   Tab
 } from "@heroui/react"
 
+
+// Función para traducir estado civil
+const getMaritalStatusLabel = (status: string) => {
+  const translations = {
+    'single': 'Soltero(a)',
+    'married': 'Casado(a)', 
+    'divorced': 'Divorciado(a)',
+    'widowed': 'Viudo(a)'
+  }
+  return translations[status as keyof typeof translations] || status
+}
+
+// Agregar después de getMaritalStatusLabel
+const getRejectionReasonLabel = (reason: string) => {
+  const translations = {
+    'insufficient_income': 'Ingresos insuficientes',
+    'poor_credit_history': 'Historial crediticio deficiente',
+    'incomplete_documentation': 'Documentación incompleta',
+    'high_debt_ratio': 'Relación deuda-ingreso muy alta',
+    'employment_instability': 'Inestabilidad laboral',
+    'other': 'Otro motivo'
+  }
+  return translations[reason as keyof typeof translations] || reason
+}
+
+// Función para traducir tipo de empleo
+const getEmploymentTypeLabel = (type: string) => {
+  const translations = {
+    'employee': 'Empleado',
+    'self_employed': 'Trabajador Independiente',
+    'business_owner': 'Empresario',
+    'retired': 'Jubilado',
+    'unemployed': 'Desempleado'
+  }
+  return translations[type as keyof typeof translations] || type
+}
+
+// Función para traducir tipo de cuenta bancaria
+const getAccountTypeLabel = (type: string) => {
+  const translations = {
+    'checking': 'Cuenta Corriente',
+    'savings': 'Cuenta de Ahorros'
+  }
+  return translations[type as keyof typeof translations] || type
+}
+
+// Función para traducir estado de solicitud
+const getStatusLabel = (status: string) => {
+  const translations = {
+    'pending': 'Pendiente',
+    'under_review': 'En Revisión',
+    'approved': 'Aprobado',
+    'rejected': 'Rechazado',
+    'cancelled': 'Cancelado'
+  }
+  return translations[status as keyof typeof translations] || status
+}
+
+// Función para traducir tipo de documento
+const getDocumentTypeLabel = (type: string) => {
+  const translations = {
+    'identification': 'Identificación',
+    'income_proof': 'Comprobante de Ingresos',
+    'address_proof': 'Comprobante de Domicilio',
+    'bank_statement': 'Estado de Cuenta',
+    'other': 'Otro'
+  }
+  return translations[type as keyof typeof translations] || type
+}
+
+// Función para obtener badge de estado traducido
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'pending':
+      return (
+        <Chip
+          startContent={<Clock className="w-4 h-4" />}
+          variant="flat"
+          color="warning"
+          className="bg-yellow-50 text-yellow-700 border-yellow-200"
+        >
+          Pendiente
+        </Chip>
+      )
+    case 'under_review':
+      return (
+        <Chip
+          startContent={<Eye className="w-4 h-4" />}
+          variant="flat"
+          color="primary"
+          className="bg-blue-50 text-blue-700 border-blue-200"
+        >
+          En Revisión
+        </Chip>
+      )
+    case 'approved':
+      return (
+        <Chip
+          startContent={<CheckCircle className="w-4 h-4" />}
+          variant="flat"
+          color="success"
+          className="bg-green-50 text-green-700 border-green-200"
+        >
+          Aprobado
+        </Chip>
+      )
+    case 'rejected':
+      return (
+        <Chip
+          startContent={<XCircle className="w-4 h-4" />}
+          variant="flat"
+          color="danger"
+          className="bg-red-50 text-red-700 border-red-200"
+        >
+          Rechazado
+        </Chip>
+      )
+    case 'cancelled':
+      return (
+        <Chip
+          startContent={<XCircle className="w-4 h-4" />}
+          variant="flat"
+          color="default"
+          className="bg-gray-50 text-gray-700 border-gray-200"
+        >
+          Cancelado
+        </Chip>
+      )
+    default:
+      return (
+        <Chip variant="flat" color="default">
+          {getStatusLabel(status)}
+        </Chip>
+      )
+  }
+}
 export async function loader(args: LoaderFunctionArgs) {
   const user = await requireClerkAdmin(args)
 
@@ -503,8 +639,7 @@ export default function AdminCreditApplications() {
                             )}
                             {application.status === 'rejected' && (
                               <p className="text-sm font-semibold text-red-700">
-                                {application.reviewInfo.rejectionReason || 'Solicitud Rechazada'}
-                              </p>
+{application.reviewInfo.rejectionReason ? getRejectionReasonLabel(application.reviewInfo.rejectionReason) : 'Solicitud Rechazada'}                              </p>
                             )}
                           </div>
                         )}
@@ -867,7 +1002,7 @@ export default function AdminCreditApplications() {
                               <Heart className="w-4 h-4 text-gray-400" />
                               <label className="text-sm font-medium text-gray-500">Estado Civil</label>
                             </div>
-                            <p className="text-sm text-gray-900 capitalize">{selectedApplication.personalInfo.maritalStatus}</p>
+                            <p className="text-sm text-gray-900">{getMaritalStatusLabel(selectedApplication.personalInfo.maritalStatus)}</p>
                           </div>
                           
                           <div className="space-y-2">
@@ -1092,13 +1227,12 @@ export default function AdminCreditApplications() {
                   className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="">Seleccionar motivo</option>
-                  <option value="insufficient_income">Ingresos insuficientes</option>
-                  <option value="poor_credit_history">Historial crediticio deficiente</option>
-                  <option value="incomplete_documentation">Documentación incompleta</option>
-                  <option value="high_debt_ratio">Relación deuda-ingreso muy alta</option>
-                  <option value="employment_instability">Inestabilidad laboral</option>
-                  <option value="other">Otro</option>
+                <option value="insufficient_income">{getRejectionReasonLabel('insufficient_income')}</option>
+                <option value="poor_credit_history">{getRejectionReasonLabel('poor_credit_history')}</option>
+                <option value="incomplete_documentation">{getRejectionReasonLabel('incomplete_documentation')}</option>
+                <option value="high_debt_ratio">{getRejectionReasonLabel('high_debt_ratio')}</option>
+                <option value="employment_instability">{getRejectionReasonLabel('employment_instability')}</option>
+                <option value="other">{getRejectionReasonLabel('other')}</option>
                 </select>
               </div>
               
