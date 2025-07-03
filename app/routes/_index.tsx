@@ -30,15 +30,6 @@ import {
 import { SignInButton, SignUpButton } from '@clerk/remix'
 import { useState, useEffect } from 'react'
 
-// Función para manejar click en "Ver más resultados"
-const handleViewMoreClick = (user: any, href: string) => {
-  if (!user) {
-    // Si no hay usuario, mostrar modal de auth
-    return null; // El componente manejará esto
-  }
-  // Si hay usuario, navegar normalmente
-  window.location.href = href;
-};
 import {
   Card,
   CardBody,
@@ -76,6 +67,7 @@ export async function loader(args: LoaderFunctionArgs) {
   const maxPrice = url.searchParams.get("maxPrice") ? parseInt(url.searchParams.get("maxPrice") || "") : undefined
   const minYear = url.searchParams.get("minYear") ? parseInt(url.searchParams.get("minYear") || "") : undefined
   const maxYear = url.searchParams.get("maxYear") ? parseInt(url.searchParams.get("maxYear") || "") : undefined
+  const page = parseInt(url.searchParams.get("page") || "1")
   const toastParam = url.searchParams.get("toast")
   const redirectTo = url.searchParams.get("redirectTo")
   
@@ -91,6 +83,10 @@ export async function loader(args: LoaderFunctionArgs) {
     }
   }
   
+  // Calculate pagination
+  const limit = 24
+  const skip = (page - 1) * limit
+  
   const listings = await ListingModel.findMany({
     search,
     brand,
@@ -99,7 +95,8 @@ export async function loader(args: LoaderFunctionArgs) {
     minYear,
     maxYear,
     status: 'active', // Solo mostrar listings activos en la página principal
-    limit: 24
+    limit,
+    skip
   })
 
   // Add hot status to each listing on the server side
@@ -121,6 +118,9 @@ export async function loader(args: LoaderFunctionArgs) {
     }
   }
   
+  // Get total count for pagination info
+  const totalCount = await ListingModel.getStats()
+  
   return json({
     listings: listingsWithHotStatus,
     search,
@@ -132,7 +132,10 @@ export async function loader(args: LoaderFunctionArgs) {
     user,
     canCreateListings,
     likedListings,
-    toastParam
+    toastParam,
+    currentPage: page,
+    totalPages: Math.ceil(totalCount.total / limit),
+    totalCount: totalCount.total
   })
 }
 
@@ -295,7 +298,7 @@ function LikeButton({ listing, isLiked: initialLiked, user }: {
 
 export default function Index() {
   const {
-    listings,
+    listings: initialListings,
     search,
     brand,
     minPrice,
@@ -305,15 +308,23 @@ export default function Index() {
     user,
     canCreateListings,
     likedListings,
-    toastParam
+    toastParam,
+    currentPage,
+    totalPages,
+    totalCount
   } = useLoaderData<typeof loader>()
   
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
-  
-  // AGREGAR ESTAS LÍNEAS:
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
+  
+  // Estado para manejar la carga infinita
+  const [allListings, setAllListings] = useState(initialListings)
+  const [nextPage, setNextPage] = useState(currentPage + 1)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  
+  const fetcher = useFetcher()
 
   const hasActiveFilters = brand || minPrice || maxPrice || minYear || maxYear
 
@@ -342,6 +353,66 @@ export default function Index() {
     }
   }, [toastParam])
 
+  // Función para cargar más resultados
+  const loadMoreResults = () => {
+    if (!user) {
+      // Si no hay usuario, mostrar modal de auth
+      const nextPageUrl = `/?${new URLSearchParams({
+        ...(search && { search }),
+        ...(brand && { brand }),
+        ...(minPrice && { minPrice: minPrice.toString() }),
+        ...(maxPrice && { maxPrice: maxPrice.toString() }),
+        ...(minYear && { minYear: minYear.toString() }),
+        ...(maxYear && { maxYear: maxYear.toString() }),
+        page: nextPage.toString()
+      }).toString()}`;
+      
+      setPendingRedirect(nextPageUrl);
+      setShowAuthModal(true);
+      
+      toast.info(
+        'Inicia sesión para continuar',
+        'Necesitas una cuenta para ver más resultados. Es gratis y toma solo unos segundos.'
+      );
+      return;
+    }
+
+    if (isLoadingMore || nextPage > totalPages) return;
+    
+    setIsLoadingMore(true);
+    
+    // Usar fetcher para cargar la siguiente página
+    const searchParams = new URLSearchParams({
+      ...(search && { search }),
+      ...(brand && { brand }),
+      ...(minPrice && { minPrice: minPrice.toString() }),
+      ...(maxPrice && { maxPrice: maxPrice.toString() }),
+      ...(minYear && { minYear: minYear.toString() }),
+      ...(maxYear && { maxYear: maxYear.toString() }),
+      page: nextPage.toString()
+    });
+    
+    fetcher.load(`/?${searchParams.toString()}`);
+  };
+
+  // Manejar la respuesta del fetcher
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle' && isLoadingMore) {
+      const newData = fetcher.data as typeof initialListings;
+      if (newData.listings && newData.listings.length > 0) {
+        setAllListings(prev => [...prev, ...newData.listings]);
+        setNextPage(prev => prev + 1);
+      }
+      setIsLoadingMore(false);
+    }
+  }, [fetcher.data, fetcher.state, isLoadingMore]);
+
+  // Reset listings cuando cambian los filtros
+  useEffect(() => {
+    setAllListings(initialListings);
+    setNextPage(currentPage + 1);
+  }, [initialListings, currentPage]);
+
   return (
     <div>
       {/* Hero Section with Stats */}
@@ -366,9 +437,9 @@ export default function Index() {
               )}
             </button>
 
-            {listings.length > 0 && (
+            {allListings.length > 0 && (
               <span className="text-sm text-gray-600">
-                {listings.length} resultado{listings.length !== 1 ? 's' : ''}
+                {allListings.length} resultado{allListings.length !== 1 ? 's' : ''}
               </span>
             )}
           </div>
@@ -547,13 +618,13 @@ export default function Index() {
         )}
 
         {/* Results */}
-        {listings.length > 0 ? (
+        {allListings.length > 0 ? (
           <div className={`grid gap-8 ${
             viewMode === 'grid'
               ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
               : 'grid-cols-1 max-w-4xl mx-auto'
           }`}>
-            {listings.map((listing) => {
+            {allListings.map((listing) => {
               //  Verificar si este listing tiene like del usuario
               const isLiked = likedListings.includes(listing._id)
               
@@ -686,13 +757,13 @@ export default function Index() {
                         )}
                       </div>
 
-                      <Link
-                        to={`/listings/${listing._id}`}
-                        className="flex items-center space-x-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium group shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-                      >
-                        <span>Ver detalles</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                      </Link>
+                     <Link
+  to={`/listings/${listing._id}`}
+  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium group shadow-md hover:shadow-lg w-[110px] h-[45px] flex items-center justify-center text-center flex-shrink-0 text-sm gap-2"
+>
+  <span>Ver detalles</span>
+  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+</Link>
                     </div>
                   </div>
                 </article>
@@ -735,54 +806,37 @@ export default function Index() {
           </div>
         )}
 
-        {/* Load More - CON VERIFICACIÓN DE AUTENTICACIÓN */}
-        {listings.length >= 24 && (
+        {/* Load More Button - Carga Infinita */}
+        {nextPage <= totalPages && (
           <div className="text-center mt-16">
-            {user ? (
-              // Usuario logueado: mostrar enlace normal a página 2
-              <a
-                href={`/?${new URLSearchParams({
-                  ...(search && { search }),
-                  ...(brand && { brand }),
-                  ...(minPrice && { minPrice: minPrice.toString() }),
-                  ...(maxPrice && { maxPrice: maxPrice.toString() }),
-                  ...(minYear && { minYear: minYear.toString() }),
-                  ...(maxYear && { maxYear: maxYear.toString() }),
-                  page: "2"
-                }).toString()}`}
-                className="inline-flex items-center space-x-2 bg-red-100 text-red-700 px-8 py-3 rounded-xl hover:bg-red-200 transition-colors font-medium border border-red-200 hover:border-red-300 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-              >
-                <span>Ver más resultados</span>
-              </a>
-            ) : (
-              // Usuario NO logueado: mostrar botón que abre modal de auth
-              <button
-                onClick={() => {
-                  // Guardar la URL a la que queremos redirigir después del login
-                  const nextPageUrl = `/?${new URLSearchParams({
-                    ...(search && { search }),
-                    ...(brand && { brand }),
-                    ...(minPrice && { minPrice: minPrice.toString() }),
-                    ...(maxPrice && { maxPrice: maxPrice.toString() }),
-                    ...(minYear && { minYear: minYear.toString() }),
-                    ...(maxYear && { maxYear: maxYear.toString() }),
-                    page: "2"
-                  }).toString()}`;
-                  
-                  setPendingRedirect(nextPageUrl);
-                  setShowAuthModal(true);
-                  
-                  // Mostrar mensaje informativo
-                  toast.info(
-                    'Inicia sesión para continuar',
-                    'Necesitas una cuenta para ver más resultados. Es gratis y toma solo unos segundos.'
-                  );
-                }}
-                className="inline-flex items-center space-x-2 bg-red-100 text-red-700 px-8 py-3 rounded-xl hover:bg-red-200 transition-colors font-medium border border-red-200 hover:border-red-300 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-              >
-                <span>Ver más resultados</span>
-              </button>
-            )}
+            <button
+              onClick={loadMoreResults}
+              disabled={isLoadingMore}
+              className={`inline-flex items-center space-x-2 bg-red-100 text-red-700 px-8 py-3 rounded-xl hover:bg-red-200 transition-colors font-medium border border-red-200 hover:border-red-300 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95 ${
+                isLoadingMore ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {isLoadingMore ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Cargando...</span>
+                </>
+              ) : (
+                <>
+                  <span>Ver más resultados</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Info de resultados cargados */}
+        {allListings.length > 0 && (
+          <div className="text-center mt-8">
+            <p className="text-sm text-gray-600">
+              Mostrando {allListings.length} de {totalCount} autos en total
+            </p>
           </div>
         )}
 

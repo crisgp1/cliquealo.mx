@@ -146,10 +146,24 @@ export function EnhancedLightbox({
       styles={{
         container: {
           backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          backdropFilter: 'blur(8px)'
+          backdropFilter: 'blur(8px)',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         },
         slide: {
-          padding: '20px'
+          padding: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          maxWidth: '100vw',
+          maxHeight: '100vh'
         }
       }}
       render={{
