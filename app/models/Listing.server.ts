@@ -214,7 +214,7 @@ export const ListingModel = {
       if (maxPrice) query.price.$lte = maxPrice
     }
 
-    // Definir orden
+    // Definir orden - Priorizar listings "hot" con más vistas
     let sortStage: any = { createdAt: -1 }
     switch (sortBy) {
       case 'price_low':
@@ -230,11 +230,67 @@ export const ListingModel = {
         sortStage = { viewsCount: -1, createdAt: -1 }
         break
       default:
-        sortStage = { createdAt: -1 }
+        // Orden inteligente: Priorizar listings "hot" y luego por vistas/reciente
+        sortStage = { 
+          viewsCount: -1,  // Primero por más vistas
+          createdAt: -1    // Luego por más reciente
+        }
     }
 
     return await db.collection<Listing>('listings').aggregate([
       { $match: query },
+      {
+        $addFields: {
+          // Calcular días desde creación
+          daysOld: {
+            $divide: [
+              { $subtract: [new Date(), '$createdAt'] },
+              1000 * 60 * 60 * 24
+            ]
+          },
+          // Calcular threshold dinámico para "hot"
+          hotThreshold: {
+            $switch: {
+              branches: [
+                { case: { $lte: [{ $divide: [{ $subtract: [new Date(), '$createdAt'] }, 1000 * 60 * 60 * 24] }, 1] }, then: 20 },
+                { case: { $lte: [{ $divide: [{ $subtract: [new Date(), '$createdAt'] }, 1000 * 60 * 60 * 24] }, 7] }, then: 35 },
+                { case: { $lte: [{ $divide: [{ $subtract: [new Date(), '$createdAt'] }, 1000 * 60 * 60 * 24] }, 30] }, then: 50 }
+              ],
+              default: 100
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          // Determinar si es "hot" o "super-hot"
+          hotStatus: {
+            $switch: {
+              branches: [
+                { 
+                  case: { $gte: ['$viewsCount', { $multiply: ['$hotThreshold', 2] }] }, 
+                  then: 'super-hot' 
+                },
+                { 
+                  case: { $gte: ['$viewsCount', '$hotThreshold'] }, 
+                  then: 'hot' 
+                }
+              ],
+              default: 'normal'
+            }
+          },
+          // Puntuación para ordenamiento (hot listings primero)
+          sortScore: {
+            $switch: {
+              branches: [
+                { case: { $eq: ['$hotStatus', 'super-hot'] }, then: 1000000 },
+                { case: { $eq: ['$hotStatus', 'hot'] }, then: 100000 }
+              ],
+              default: 0
+            }
+          }
+        }
+      },
       {
         $lookup: {
           from: 'users',
@@ -245,7 +301,13 @@ export const ListingModel = {
         }
       },
       { $unwind: '$owner' },
-      { $sort: sortStage },
+      { 
+        $sort: sortBy === 'recent' || sortBy === 'views' || !sortBy ? {
+          sortScore: -1,      // Primero listings hot/super-hot
+          viewsCount: -1,     // Luego por más vistas
+          createdAt: -1       // Finalmente por más reciente
+        } : sortStage 
+      },
       { $skip: skip },
       { $limit: limit }
     ]).toArray()
@@ -256,7 +318,7 @@ export const ListingModel = {
     return await this.findMany({ 
       isFeatured: true, 
       limit,
-      sortBy: 'popular'
+      sortBy: 'views'  // Cambiar a 'views' para que use el algoritmo hot
     })
   },
 

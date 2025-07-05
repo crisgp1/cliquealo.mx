@@ -27,16 +27,49 @@ export type CarListingSeo = SeoBase & {
   };
 };
 
-// Configuración por defecto del sitio web
+// Configuración por defecto del sitio web optimizada para SEO
 export const DEFAULT_SEO = {
-  title: "Cliquéalo.mx | Compra y Venta de Autos Usados en México",
-  description: "Plataforma confiable para compra y venta de vehículos usados en México. Catálogo seleccionado de autos certificados por nuestro equipo de expertos.",
+  title: "Cliquéalo.mx - Autos Seminuevos Certificados | Compra y Venta de Vehículos Usados #1 en México",
+  description: "🚗 Encuentra tu auto seminuevo ideal en Cliquéalo.mx. Más de 500+ vehículos certificados con financiamiento, garantía y los mejores precios en México. Toyota, Honda, Nissan ¡Compra seguro!",
   site_name: "Cliquéalo.mx",
   url: "https://cliquealo.mx",
-  keywords: "autos usados, carros seminuevos, compra de autos, venta de autos, automotriz, cliquealo, cliquealo.mx, méxico, autos certificados",
+  // Keywords optimizadas para autos seminuevos en México
+  keywords: [
+    // Términos principales de alta competencia
+    "autos seminuevos", "carros usados México", "vehículos certificados", "compra venta autos", 
+    "autos con financiamiento", "seminuevos con garantía", "agencia autos usados",
+    
+    // Long-tail keywords de alta conversión
+    "autos seminuevos Toyota Honda Nissan", "carros usados CDMX Guadalajara Monterrey",
+    "vehículos seminuevos financiamiento", "autos certificados agencia México",
+    "comprar auto seminuevo seguro", "venta autos usados verificados",
+    "autos seminuevos crédito fácil", "carros usados garantía",
+    
+    // Términos por marcas populares
+    "Toyota seminuevos México", "Honda usados certificados", "Nissan seminuevos garantía",
+    "Ford usados México", "Chevrolet seminuevos", "Volkswagen usados",
+    "Hyundai seminuevos", "Kia usados", "Mazda seminuevos",
+    
+    // Términos por tipo de vehículo
+    "sedán seminuevo", "SUV usada México", "pickup seminueva", 
+    "hatchback usado", "camioneta seminueva", "compacto usado",
+    
+    // Términos financieros
+    "crédito automotriz", "financiamiento autos", "enganche bajo autos",
+    "préstamo para auto", "crédito para vehículo", "autos a crédito",
+    
+    // Términos geográficos
+    "autos usados CDMX", "seminuevos Guadalajara", "carros usados Monterrey",
+    "autos Puebla", "seminuevos Querétaro", "carros Tijuana",
+    
+    // Términos de confianza y calidad
+    "autos verificados", "seminuevos revisados", "carros inspeccionados",
+    "autos con historia", "vehículos sin accidentes", "carros una sola dueña"
+  ].join(", "),
   locale: "es_MX",
   twitter_handle: "@cliquealo_mx",
-  image: "https://cliquealo.mx/assets/default-og-image.jpg", // Imagen por defecto para compartir
+  image: "https://cliquealo.mx/assets/og-autos-seminuevos.jpg",
+  type: "website"
 };
 
 /**

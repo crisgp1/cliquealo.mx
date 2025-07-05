@@ -1,0 +1,117 @@
+# Robots.txt optimizado para Cliquéalo.mx - Mercado de Autos Seminuevos
+# Actualizado: 2025
+
+# Configuración principal para todos los crawlers
+User-agent: *
+
+# PERMITIR: Páginas principales de alta prioridad SEO
+Allow: /
+Allow: /listings
+Allow: /listings/
+Allow: /listings/*
+Allow: /about
+Allow: /contact
+Allow: /credit
+Allow: /credit/apply
+Allow: /credit/simulator
+Allow: /favorites
+
+# PERMITIR: Recursos estáticos importantes para SEO
+Allow: /assets/
+Allow: /images/
+Allow: /api/optimize-image
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.webp
+Allow: /*.svg
+Allow: /*.ico
+
+# BLOQUEAR: Páginas administrativas y privadas
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /debug
+Disallow: /debug-clerk
+Disallow: /test-edit
+
+# BLOQUEAR: Páginas de usuario autenticado
+Disallow: /profile
+Disallow: /profile/
+Disallow: /profile/*
+Disallow: /lounge-club
+
+# BLOQUEAR: Formularios y páginas de edición
+Disallow: /listings/new
+Disallow: /listings/*/edit
+Disallow: /credit/application
+Disallow: /credit/my-applications
+
+# BLOQUEAR: Archivos del sistema y temporales
+Disallow: /*.json
+Disallow: /*.xml$
+Disallow: /temp/
+Disallow: /tmp/
+Disallow: /*.log
+Disallow: /.well-known/
+Disallow: /dot-well-known/
+
+# BLOQUEAR: Parámetros de sesión y tracking
+Disallow: /*?session=*
+Disallow: /*?token=*
+Disallow: /*?auth=*
+Disallow: /*?clerk=*
+
+# Configuración específica para Googlebot
+User-agent: Googlebot
+Allow: /
+Allow: /listings
+Allow: /listings/*
+# Priorizar crawling de listings para autos seminuevos
+Crawl-delay: 1
+
+# Configuración para Bingbot
+User-agent: Bingbot
+Allow: /
+Allow: /listings
+Allow: /listings/*
+Crawl-delay: 2
+
+# Configuración para otros motores de búsqueda importantes
+User-agent: Slurp
+User-agent: DuckDuckBot
+User-agent: Baiduspider
+Allow: /
+Allow: /listings
+Allow: /listings/*
+Crawl-delay: 3
+
+# Bloquear bots problemáticos y scrapers
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+# SITEMAPS - URLs principales para SEO
+Sitemap: https://cliquealo.mx/sitemap.xml
+Sitemap: https://cliquealo.mx/sitemap-listings.xml
+Sitemap: https://cliquealo.mx/sitemap-brands.xml
+Sitemap: https://cliquealo.mx/sitemap-images.xml
+
+# Información de contacto para webmasters
+# Contacto: seo@cliquealo.mx
+# Sitio web: https://cliquealo.mx
+# Especialidad: Autos seminuevos certificados en México

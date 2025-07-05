@@ -1,4 +1,3 @@
-import { Link } from "@remix-run/react";
 import {
   Star,
   TrendingUp,
@@ -19,9 +18,10 @@ type HeroSectionProps = {
   search?: string;
   totalCount?: number;
   brandsCount?: number;
+  listings?: any[]; // Para pasar los listings al componente de búsqueda
 };
 
-export default function HeroSection({ type, search = "", totalCount = 0, brandsCount = 0 }: HeroSectionProps) {
+export default function HeroSection({ type, search = "", totalCount = 0, brandsCount = 0, listings = [] }: HeroSectionProps) {
   return (
     <section className="bg-gradient-to-br from-gray-50 via-white to-red-50/30 border-b border-gray-100 relative">
       {/* Background pattern container with overflow hidden for visual effect only */}
@@ -172,6 +172,7 @@ export default function HeroSection({ type, search = "", totalCount = 0, brandsC
             defaultValue={search}
             type={type}
             className="w-full"
+            listings={listings}
           />
         </div>
       </div>

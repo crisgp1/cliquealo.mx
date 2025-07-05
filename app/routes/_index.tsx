@@ -95,7 +95,8 @@ export async function loader(args: LoaderFunctionArgs) {
     maxYear,
     status: 'active', // Solo mostrar listings activos en la página principal
     limit,
-    skip
+    skip,
+    sortBy: 'views' // Usar ordenamiento inteligente que prioriza hot listings
   })
 
   // Add hot status to each listing on the server side
@@ -425,7 +426,7 @@ export default function Index() {
   return (
     <div>
       {/* Hero Section with Stats */}
-      <HeroSection type="home" search={search} />
+      <HeroSection type="home" search={search} listings={allListings} />
 
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Filters and View Controls */}

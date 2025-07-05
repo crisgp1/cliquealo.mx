@@ -14,10 +14,9 @@ import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run
 import { json } from "@remix-run/node";
 import {
   DEFAULT_SEO,
-  generateBasicMeta,
-  generateOrganizationJsonLd,
-  generateWebsiteJsonLd
+  generateBasicMeta
 } from "~/lib/seo";
+import AdvancedSEO from "~/components/seo/AdvancedSEO";
 import { useState, useEffect } from "react";
 // Import Clerk
 import { rootAuthLoader } from '@clerk/remix/ssr.server'
@@ -102,20 +101,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        {/* JSON-LD para Organization */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: generateOrganizationJsonLd()
-          }}
-        />
-        {/* JSON-LD para Website */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: generateWebsiteJsonLd()
-          }}
-        />
+        
+        {/* Advanced SEO Configuration */}
+        <AdvancedSEO />
       </head>
       <body>
         <HeroUIProvider>

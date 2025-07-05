@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Form, useNavigate, useSubmit } from '@remix-run/react'
+import { Form, useNavigate, useSubmit, useFetcher } from '@remix-run/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
@@ -27,11 +27,13 @@ interface Brand {
 
 interface SearchSuggestion {
   id: string
-  type: 'brand' | 'model' | 'recent' | 'popular'
+  type: 'brand' | 'model' | 'recent' | 'hot' | 'super-hot'
   text: string
   icon?: any
   brand?: string
   count?: number
+  hotStatus?: 'hot' | 'super-hot' | 'normal'
+  viewsCount?: number
 }
 
 // Marcas populares con logos
@@ -86,27 +88,48 @@ const popularBrands: Brand[] = [
   }
 ]
 
-// Sugerencias populares de búsqueda
-const popularSuggestions: SearchSuggestion[] = [
-  { id: '1', type: 'popular', text: 'Camry 2020', icon: TrendingUp, count: 45 },
-  { id: '2', type: 'popular', text: 'Civic 2019', icon: TrendingUp, count: 38 },
-  { id: '3', type: 'popular', text: 'Sentra 2021', icon: TrendingUp, count: 32 },
-  { id: '4', type: 'popular', text: 'Jetta 2020', icon: TrendingUp, count: 28 },
-  { id: '5', type: 'popular', text: 'Accent 2022', icon: TrendingUp, count: 25 }
-]
+// Función para procesar listings y generar sugerencias hot
+const generateHotSuggestions = (listings: any[]): SearchSuggestion[] => {
+  if (!listings || listings.length === 0) return [];
+  
+  // Primero obtener los hot y super-hot
+  const hotListings = listings
+    .filter((listing: any) => listing.hotStatus === 'hot' || listing.hotStatus === 'super-hot')
+    .slice(0, 6); // Máximo 6 hot/super-hot
+  
+  // Si no hay suficientes hot, agregar los más populares por vistas
+  const popularListings = listings
+    .filter((listing: any) => listing.hotStatus !== 'hot' && listing.hotStatus !== 'super-hot')
+    .sort((a: any, b: any) => (b.viewsCount || 0) - (a.viewsCount || 0))
+    .slice(0, 8 - hotListings.length); // Completar hasta 8 total
+  
+  const allSuggestions = [...hotListings, ...popularListings];
+  
+  return allSuggestions.map((listing: any, index: number) => ({
+    id: listing._id || `suggestion-${index}`,
+    type: listing.hotStatus === 'super-hot' ? 'super-hot' : 
+          listing.hotStatus === 'hot' ? 'hot' : 'recent',
+    text: `${listing.brand} ${listing.model} ${listing.year}`,
+    hotStatus: listing.hotStatus || 'normal',
+    viewsCount: listing.viewsCount || 0,
+    count: listing.viewsCount || 0
+  }));
+}
 
 interface UltraResponsiveSearchProps {
   defaultValue?: string
   type?: 'home' | 'listings'
   onBrandClick?: (brand: string) => void
   className?: string
+  listings?: any[] // Listings para generar sugerencias hot
 }
 
 export default function UltraResponsiveSearch({ 
   defaultValue = "", 
   type = 'home',
   onBrandClick,
-  className = ""
+  className = "",
+  listings = []
 }: UltraResponsiveSearchProps) {
   const [searchValue, setSearchValue] = useState(defaultValue)
   const [isFocused, setIsFocused] = useState(false)
@@ -115,6 +138,17 @@ export default function UltraResponsiveSearch({
   const searchRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const submit = useSubmit()
+  
+  // Generar sugerencias hot dinámicamente
+  const hotSuggestions = generateHotSuggestions(listings)
+  
+  // Debug: console log para verificar que los datos lleguen
+  useEffect(() => {
+    if (listings.length > 0) {
+      console.log('🔥 Listings recibidos en search:', listings.length)
+      console.log('🔥 Hot suggestions generadas:', hotSuggestions.length)
+    }
+  }, [listings, hotSuggestions])
 
   // Cargar búsquedas recientes del localStorage
   useEffect(() => {
@@ -422,46 +456,87 @@ export default function UltraResponsiveSearch({
                   </motion.div>
                 )}
 
-                {/* Popular Suggestions */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                    Búsquedas Populares
-                  </h4>
-                  <div className="space-y-2">
-                    {popularSuggestions.map((suggestion, index) => (
-                      <motion.button
-                        key={suggestion.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        whileHover={{ 
-                          x: 5,
-                          backgroundColor: "rgba(239, 246, 255, 0.8)"
-                        }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleSuggestionClick(suggestion.text)}
-                        className="w-full p-3 rounded-lg hover:bg-blue-50 transition-all duration-200 flex items-center justify-between group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                            <TrendingUp className="w-4 h-4 text-green-600" />
-                          </div>
-                          <span className="font-medium text-gray-700 group-hover:text-gray-900">
-                            {suggestion.text}
-                          </span>
-                        </div>
-                        <Badge color="success" variant="flat" size="sm">
-                          {suggestion.count}
-                        </Badge>
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
+                {/* Trending Suggestions - Basado en algoritmo hot y popularidad */}
+                {hotSuggestions.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-red-500" />
+                      Tendencias y Populares 🔥
+                    </h4>
+                    <div className="space-y-2">
+                      {hotSuggestions.map((suggestion, index) => {
+                        const isHot = suggestion.hotStatus === 'hot' || suggestion.hotStatus === 'super-hot';
+                        const isSuperHot = suggestion.hotStatus === 'super-hot';
+                        
+                        return (
+                          <motion.button
+                            key={suggestion.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            whileHover={{ 
+                              x: 5,
+                              backgroundColor: isSuperHot 
+                                ? "rgba(254, 242, 242, 0.8)" 
+                                : isHot
+                                ? "rgba(255, 247, 237, 0.8)"
+                                : "rgba(239, 246, 255, 0.8)"
+                            }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleSuggestionClick(suggestion.text)}
+                            className={`w-full p-3 rounded-lg transition-all duration-200 flex items-center justify-between group ${
+                              isSuperHot 
+                                ? 'hover:bg-red-50 border border-red-100' 
+                                : isHot
+                                ? 'hover:bg-orange-50 border border-orange-100'
+                                : 'hover:bg-blue-50 border border-blue-100'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                isSuperHot
+                                  ? 'bg-red-100 group-hover:bg-red-200'
+                                  : isHot
+                                  ? 'bg-orange-100 group-hover:bg-orange-200'
+                                  : 'bg-blue-100 group-hover:bg-blue-200'
+                              }`}>
+                                {isSuperHot ? (
+                                  <span className="text-xs">🔥🔥</span>
+                                ) : isHot ? (
+                                  <span className="text-xs">🔥</span>
+                                ) : (
+                                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                                )}
+                              </div>
+                              <span className="font-medium text-gray-700 group-hover:text-gray-900">
+                                {suggestion.text}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {isHot && (
+                                <Badge 
+                                  color={isSuperHot ? "danger" : "warning"} 
+                                  variant="flat" 
+                                  size="sm"
+                                  className={isSuperHot ? 'animate-pulse' : ''}
+                                >
+                                  {isSuperHot ? 'Super Hot' : 'Hot'}
+                                </Badge>
+                              )}
+                              <Badge color="default" variant="flat" size="sm">
+                                {suggestion.viewsCount} vistas
+                              </Badge>
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
               </CardBody>
             </Card>
           </motion.div>

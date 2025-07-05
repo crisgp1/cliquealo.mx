@@ -65,7 +65,8 @@ export async function loader(args: LoaderFunctionArgs) {
     maxYear,
     status: 'active', // Solo mostrar listings activos en la página pública
     limit,
-    skip
+    skip,
+    sortBy: 'views' // Usar ordenamiento inteligente que prioriza hot listings
   })
   
   const user = await getClerkUser(args)
@@ -364,6 +365,7 @@ export default function ListingsIndex() {
         search={search} 
         totalCount={totalCount} 
         brandsCount={brands.length}
+        listings={allListings}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
