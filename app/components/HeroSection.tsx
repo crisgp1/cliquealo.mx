@@ -1,7 +1,5 @@
-import { Form, Link } from "@remix-run/react";
+import { Link } from "@remix-run/react";
 import {
-  Search,
-  ArrowRight,
   Star,
   TrendingUp,
   Users,
@@ -11,40 +9,28 @@ import {
 import {
   Card,
   CardBody,
-  Button,
-  Input,
-  Chip,
-  Badge,
   Divider
 } from "@heroui/react";
 import PremiumBrandsCarousel from "~/components/ui/premium-brands-carousel";
-import ListingsPhotoCarousel from "~/components/ui/listings-photo-carousel";
-
-interface Listing {
-  _id: string
-  title: string
-  images?: string[]
-  price?: number
-  brand?: string
-  model?: string
-  year?: number
-}
+import UltraResponsiveSearch from "~/components/ui/ultra-responsive-search";
 
 type HeroSectionProps = {
   type: 'home' | 'listings';
   search?: string;
   totalCount?: number;
   brandsCount?: number;
-  listings?: Listing[];
 };
 
-export default function HeroSection({ type, search = "", totalCount = 0, brandsCount = 0, listings = [] }: HeroSectionProps) {
+export default function HeroSection({ type, search = "", totalCount = 0, brandsCount = 0 }: HeroSectionProps) {
   return (
-    <section className="bg-gradient-to-br from-gray-50 via-white to-red-50/30 border-b border-gray-100 relative overflow-hidden">
-      {/* Subtle background patterns for depth */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none"></div>
+    <section className="bg-gradient-to-br from-gray-50 via-white to-red-50/30 border-b border-gray-100 relative">
+      {/* Background pattern container with overflow hidden for visual effect only */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Subtle background patterns for depth */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none"></div>
+      </div>
       
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
         {/* Hero Content */}
         <div className="max-w-3xl mx-auto text-center mb-12">
           {type === 'home' ? (
@@ -153,11 +139,6 @@ export default function HeroSection({ type, search = "", totalCount = 0, brandsC
                 </Card>
               </div>
 
-              {/* Listings Photo Carousel */}
-              {listings && listings.length > 0 && (
-                <ListingsPhotoCarousel listings={listings} />
-              )}
-
               {/* Premium Brands Carousel */}
               <PremiumBrandsCarousel />
             </>
@@ -181,48 +162,18 @@ export default function HeroSection({ type, search = "", totalCount = 0, brandsC
                 </div>
               </div>
 
-              {/* Listings Photo Carousel también en listings */}
-              {listings && listings.length > 0 && (
-                <ListingsPhotoCarousel listings={listings} />
-              )}
             </>
           )}
         </div>
 
-        {/* Enhanced Search Form */}
-        <Form method="get" className="max-w-4xl mx-auto">
-          <Card className="bg-white/80 backdrop-blur-md border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-            <CardBody className="p-6 sm:p-8">
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="flex-1">
-                  <Input
-                    type="search"
-                    name="search"
-                    defaultValue={search}
-                    placeholder="Buscar por marca, modelo, año..."
-                    startContent={<Search className="w-5 h-5 text-gray-400 group-hover:text-red-400 transition-colors" />}
-                    size="lg"
-                    variant="flat"
-                    className="w-full"
-                    classNames={{
-                      input: "text-lg",
-                      inputWrapper: "bg-gray-50 border-0 hover:bg-gray-100 focus-within:bg-white transition-colors"
-                    }}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  color="danger"
-                  size="lg"
-                  className="px-8 font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                  endContent={<ArrowRight className="w-5 h-5" />}
-                >
-                  Buscar Autos
-                </Button>
-              </div>
-            </CardBody>
-          </Card>
-        </Form>
+        {/* Ultra-Responsive Search with Framer Motion */}
+        <div className="max-w-4xl mx-auto relative z-20">
+          <UltraResponsiveSearch 
+            defaultValue={search}
+            type={type}
+            className="w-full"
+          />
+        </div>
       </div>
 
       {/* CSS for background pattern and animations */}
