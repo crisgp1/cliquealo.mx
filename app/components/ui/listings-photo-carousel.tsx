@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Link } from '@remix-run/react'
 import { Car, Sparkles, Star, TrendingUp } from 'lucide-react'
 
 interface Listing {
@@ -109,7 +110,7 @@ export default function ListingsPhotoCarousel({ listings }: ListingsPhotoCarouse
           return (
             <motion.div
               key={`${listing.listingId}-${index}-${isTop ? 'top' : 'bottom'}`}
-              className="flex-shrink-0 group cursor-pointer"
+              className="flex-shrink-0"
               style={{ width: '320px' }}
               animate={{
                 scale,
@@ -127,54 +128,78 @@ export default function ListingsPhotoCarousel({ listings }: ListingsPhotoCarouse
                 transition: { duration: 0.3 }
               }}
             >
-              {/* Imagen */}
-              <motion.div 
-                className="aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 shadow-xl"
-                whileHover={{
-                  boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
-                }}
+              <Link 
+                to={`/listings/${listing.listingId}`}
+                className="block group cursor-pointer"
               >
-                <motion.img
-                  src={listing.src}
-                  alt={listing.title}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
+                {/* Imagen */}
+                <motion.div 
+                  className="aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 shadow-xl"
                   whileHover={{
-                    scale: 1.1
+                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
                   }}
-                  transition={{ duration: 0.7 }}
-                />
-              </motion.div>
+                >
+                  <motion.img
+                    src={listing.src}
+                    alt={listing.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    whileHover={{
+                      scale: 1.1
+                    }}
+                    transition={{ duration: 0.7 }}
+                  />
+                  
+                  {/* Overlay con indicador de click */}
+                  <motion.div
+                    className="absolute inset-0 bg-black/20 opacity-0 flex items-center justify-center"
+                    whileHover={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <motion.div
+                      className="bg-white/90 backdrop-blur-sm rounded-full p-3"
+                      initial={{ scale: 0 }}
+                      whileHover={{ scale: 1 }}
+                      transition={{ duration: 0.2, delay: 0.1 }}
+                    >
+                      <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
 
-              {/* Información del auto */}
-              <motion.div 
-                className="mt-4 px-3"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <h4 className="font-medium text-lg text-gray-900 mb-2 truncate">
-                  {listing.brand} {listing.model}
-                </h4>
-                <div className="flex items-center justify-between">
-                  {listing.year && (
-                    <motion.span 
-                      className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      {listing.year}
-                    </motion.span>
-                  )}
-                  {listing.price && (
-                    <motion.span 
-                      className="text-lg font-bold text-red-600"
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      ${listing.price.toLocaleString()}
-                    </motion.span>
-                  )}
-                </div>
-              </motion.div>
+                {/* Información del auto */}
+                <motion.div 
+                  className="mt-4 px-3"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <h4 className="font-medium text-lg text-gray-900 mb-2 truncate group-hover:text-red-600 transition-colors">
+                    {listing.brand} {listing.model}
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    {listing.year && (
+                      <motion.span 
+                        className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full group-hover:bg-red-50 group-hover:text-red-600 transition-colors"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        {listing.year}
+                      </motion.span>
+                    )}
+                    {listing.price && (
+                      <motion.span 
+                        className="text-lg font-bold text-red-600 group-hover:text-red-700"
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        ${listing.price.toLocaleString()}
+                      </motion.span>
+                    )}
+                  </div>
+                </motion.div>
+              </Link>
             </motion.div>
           )
         })}
