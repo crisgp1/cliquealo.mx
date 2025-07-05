@@ -18,15 +18,27 @@ import {
   Divider
 } from "@heroui/react";
 import PremiumBrandsCarousel from "~/components/ui/premium-brands-carousel";
+import ListingsPhotoCarousel from "~/components/ui/listings-photo-carousel";
+
+interface Listing {
+  _id: string
+  title: string
+  images?: string[]
+  price?: number
+  brand?: string
+  model?: string
+  year?: number
+}
 
 type HeroSectionProps = {
   type: 'home' | 'listings';
   search?: string;
   totalCount?: number;
   brandsCount?: number;
+  listings?: Listing[];
 };
 
-export default function HeroSection({ type, search = "", totalCount = 0, brandsCount = 0 }: HeroSectionProps) {
+export default function HeroSection({ type, search = "", totalCount = 0, brandsCount = 0, listings = [] }: HeroSectionProps) {
   return (
     <section className="bg-gradient-to-br from-gray-50 via-white to-red-50/30 border-b border-gray-100 relative overflow-hidden">
       {/* Subtle background patterns for depth */}
@@ -141,6 +153,11 @@ export default function HeroSection({ type, search = "", totalCount = 0, brandsC
                 </Card>
               </div>
 
+              {/* Listings Photo Carousel */}
+              {listings && listings.length > 0 && (
+                <ListingsPhotoCarousel listings={listings} />
+              )}
+
               {/* Premium Brands Carousel */}
               <PremiumBrandsCarousel />
             </>
@@ -163,6 +180,11 @@ export default function HeroSection({ type, search = "", totalCount = 0, brandsC
                   <div className="text-sm text-gray-600">Verificados</div>
                 </div>
               </div>
+
+              {/* Listings Photo Carousel también en listings */}
+              {listings && listings.length > 0 && (
+                <ListingsPhotoCarousel listings={listings} />
+              )}
             </>
           )}
         </div>

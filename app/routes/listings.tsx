@@ -22,8 +22,7 @@ import {
   TrendingUp,
   User  // ✅ IMPORT AGREGADO
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { SignInButton, SignUpButton } from '@clerk/remix'  // ✅ IMPORT AGREGADO
+import { useState, useEffect, useRef } from 'react'
 import {
   Card,
   CardBody,
@@ -277,8 +276,83 @@ export default function ListingsIndex() {
   const [searchParams] = useSearchParams()
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)  // ✅ ESTADO AGREGADO
-  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)  // ✅ ESTADO AGREGADO
+  const [allListings, setAllListings] = useState(listings)
+  const [nextPage, setNextPage] = useState(currentPage + 1)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  
+  const fetcher = useFetcher()
+  
+  // Referencia para el elemento de carga
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const [isIntersecting, setIsIntersecting] = useState(false)
+  
+  // Configurar intersection observer
+  useEffect(() => {
+    const element = loadMoreRef.current
+    if (!element || isLoadingMore || nextPage > totalPages) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsIntersecting(entry.isIntersecting)
+      },
+      {
+        rootMargin: '100px',
+        threshold: 0.1
+      }
+    )
+
+    observer.observe(element)
+
+    return () => {
+      observer.unobserve(element)
+      observer.disconnect()
+    }
+  }, [isLoadingMore, nextPage, totalPages])
+
+  // Función para cargar más resultados
+  const loadMoreResults = () => {
+    if (isLoadingMore || nextPage > totalPages) return;
+    
+    setIsLoadingMore(true);
+    
+    // Usar fetcher para cargar la siguiente página
+    const searchParams = new URLSearchParams({
+      ...(search && { search }),
+      ...(brand && { brand }),
+      ...(minPrice && { minPrice: minPrice.toString() }),
+      ...(maxPrice && { maxPrice: maxPrice.toString() }),
+      ...(minYear && { minYear: minYear.toString() }),
+      ...(maxYear && { maxYear: maxYear.toString() }),
+      page: nextPage.toString()
+    });
+    
+    fetcher.load(`/listings?${searchParams.toString()}`);
+  };
+
+  // Efecto para cargar más cuando se detecta la intersección
+  useEffect(() => {
+    if (isIntersecting && !isLoadingMore && nextPage <= totalPages) {
+      loadMoreResults()
+    }
+  }, [isIntersecting])
+
+  // Manejar la respuesta del fetcher
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle' && isLoadingMore) {
+      const newData = fetcher.data as any;
+      if (newData.listings && newData.listings.length > 0) {
+        setAllListings(prev => [...prev, ...newData.listings]);
+        setNextPage(prev => prev + 1);
+      }
+      setIsLoadingMore(false);
+    }
+  }, [fetcher.data, fetcher.state, isLoadingMore]);
+
+  // Reset listings cuando cambian los filtros
+  useEffect(() => {
+    setAllListings(listings);
+    setNextPage(currentPage + 1);
+  }, [listings, currentPage]);
 
   const hasActiveFilters = brand || minPrice || maxPrice || minYear || maxYear
 
@@ -289,7 +363,8 @@ export default function ListingsIndex() {
         type="listings" 
         search={search} 
         totalCount={totalCount} 
-        brandsCount={brands.length} 
+        brandsCount={brands.length}
+        listings={allListings}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -311,9 +386,9 @@ export default function ListingsIndex() {
               )}
             </button>
 
-            {listings.length > 0 && (
+            {allListings.length > 0 && (
               <span className="text-sm text-gray-600">
-                {listings.length} resultado{listings.length !== 1 ? 's' : ''} de {totalCount}
+                {allListings.length} resultado{allListings.length !== 1 ? 's' : ''} de {totalCount}
               </span>
             )}
           </div>
@@ -495,13 +570,13 @@ export default function ListingsIndex() {
         )}
 
         {/* Results */}
-        {listings.length > 0 ? (
+        {allListings.length > 0 ? (
           <div className={`grid gap-8 ${
             viewMode === 'grid'
               ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
               : 'grid-cols-1 max-w-4xl mx-auto px-2 sm:px-4'
           }`}>
-            {listings.map((listing) => {
+            {allListings.map((listing) => {
               //  Verificar si este listing tiene like del usuario
               const isLiked = likedListings.includes(listing._id)
               
@@ -671,112 +746,30 @@ export default function ListingsIndex() {
           </div>
         )}
 
-        {/* ✅ MANTENER: Solo el botón sin información adicional */}
-{currentPage < totalPages && (
-  <div className="mt-12 flex justify-center">
-    {user ? (
-      <a
-        href={`/listings?${new URLSearchParams({
-          ...Object.fromEntries(searchParams.entries()),
-          page: (currentPage + 1).toString()
-        }).toString()}`}
-        className="inline-flex items-center space-x-2 bg-red-100 text-red-700 px-8 py-3 rounded-xl hover:bg-red-200 transition-colors font-medium border border-red-200 hover:border-red-300 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-      >
-        <span>Ver más resultados</span>
-      </a>
-    ) : (
-      <button
-        onClick={() => {
-          const nextPageUrl = `/listings?${new URLSearchParams({
-            ...Object.fromEntries(searchParams.entries()),
-            page: (currentPage + 1).toString()
-          }).toString()}`;
-          
-          setPendingRedirect(nextPageUrl);
-          setShowAuthModal(true);
-          
-          toast.info(
-            'Inicia sesión para continuar',
-            'Necesitas una cuenta para ver más resultados. Es gratis y toma solo unos segundos.'
-          );
-        }}
-        className="inline-flex items-center space-x-2 bg-red-100 text-red-700 px-8 py-3 rounded-xl hover:bg-red-200 transition-colors font-medium border border-red-200 hover:border-red-300 shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-      >
-        <span>Ver más resultados</span>
-      </button>
-    )}
-  </div>
-)}
-
-        {/* ✅ MODAL DE AUTENTICACIÓN AGREGADO */}
-        {showAuthModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-              {/* Header */}
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <User className="w-8 h-8 text-red-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Únete a Cliquéalo.mx
-                </h2>
-                <p className="text-gray-600">
-                  Crea tu cuenta gratuita para ver más autos y acceder a todas las funciones
-                </p>
+        {/* Indicador de carga con lazy loading */}
+        {nextPage <= totalPages && (
+          <div ref={loadMoreRef} className="text-center mt-16 py-8">
+            {isLoadingMore && (
+              <div className="inline-flex items-center space-x-2 text-red-700">
+                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                <span>Cargando más autos...</span>
               </div>
-
-              {/* Botones de autenticación */}
-              <div className="space-y-3 mb-6">
-                <SignUpButton
-                  mode="modal"
-                  afterSignInUrl={pendingRedirect || "/listings"}
-                  afterSignUpUrl={pendingRedirect || "/listings"}
-                >
-                  <button className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-6 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95">
-                    Registrarse Gratis
-                  </button>
-                </SignUpButton>
-
-                <SignInButton
-                  mode="modal"
-                  afterSignInUrl={pendingRedirect || "/listings"}
-                  afterSignUpUrl={pendingRedirect || "/listings"}
-                >
-                  <button className="w-full bg-white text-red-700 py-3 px-6 rounded-xl border-2 border-red-200 hover:border-red-300 hover:bg-red-50 transition-all duration-200 font-medium">
-                    Ya tengo cuenta
-                  </button>
-                </SignInButton>
-              </div>
-
-              {/* Beneficios */}
-              <div className="text-sm text-gray-500 mb-6">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Acceso completo al catálogo</span>
-                </div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Guardar autos favoritos</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>Aplicar para créditos automotrices</span>
-                </div>
-              </div>
-
-              {/* Botón cerrar */}
-              <button
-                onClick={() => {
-                  setShowAuthModal(false);
-                  setPendingRedirect(null);
-                }}
-                className="w-full text-gray-500 hover:text-gray-700 py-2 transition-colors"
-              >
-                Cerrar
-              </button>
-            </div>
+            )}
           </div>
         )}
+
+        {/* Botón manual de carga (solo visible si el lazy loading falla) */}
+        {nextPage <= totalPages && !isLoadingMore && allListings.length > 0 && (
+          <div className="text-center mt-4">
+            <button
+              onClick={loadMoreResults}
+              className="text-sm text-gray-500 hover:text-gray-700 underline"
+            >
+              Cargar más manualmente
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   )
